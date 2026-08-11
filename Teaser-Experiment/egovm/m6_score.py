@@ -113,6 +113,7 @@ def main() -> None:
     t_start = time.time()
     n_done = 0
     n_skipped = 0
+    t_write = 0.0
     with out_path.open("a") as f:
         for r in todo:
             if a.time_budget_s and time.time() - t_start > a.time_budget_s:
@@ -163,13 +164,21 @@ def main() -> None:
                            control_lag_s=ctl["lag_s"], frame_load_s=0.0,
                            score_s=round(time.time() - t0, 2), **cres)
                 f.write(json.dumps(rec) + "\n")
+            # flush every row so partial results are readable, but fsync only occasionally:
+            # /home is a shared NFS mount and a per-row fsync was costing ~25 s against 2.3 s
+            # of actual GPU work. flush() alone survives job kill and wall-clock timeout;
+            # only a node crash could lose the last few rows, which are simply re-run.
+            t0 = time.time()
             f.flush()
-            os.fsync(f.fileno())
-
             n_done += 1
+            if n_done % 100 == 0:
+                os.fsync(f.fileno())
+            t_write += time.time() - t0
+
             if n_done % 20 == 0:
                 el = time.time() - t_start
                 print(f"  {n_done}/{len(todo)} rows  {el/n_done:.2f}s/row  "
+                      f"(write {t_write/n_done:.2f}s/row)  "
                       f"eta {(len(todo)-n_done)*el/n_done/60:.1f} min", flush=True)
 
     print(f"M6: wrote {n_done} rows ({n_skipped} skipped on OOM) in "
