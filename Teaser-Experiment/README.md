@@ -49,6 +49,26 @@ $PY -m egovm.m7_analyze
 partition wall limit continues where it stopped. `--shard i/n` splits the plan across
 concurrent jobs writing to separate output files.
 
+## Cluster gotchas that cost time here
+
+- **`sbatch --export` splits on commas.** `--export=ALL,EGOVM_ARMS=main,prior` sets
+  `EGOVM_ARMS=main` and creates a stray variable `prior`; two arms were silently never
+  scheduled and the jobs looked healthy. Export in the calling shell and pass `--export=ALL`
+  (`scripts/submit_arm.sh`). Always check the job's `N rows to run` against the plan.
+- **Long jobs do not schedule.** 20 h jobs on `gpu-long` sat at `PD (Priority)` indefinitely;
+  the same work at `2:55:00` on `gpu` backfilled within a minute. M6 is resumable, so it runs
+  as a chain of short jobs (`scripts/chain_followups.sh`) with distinct `-J` names — the GPU
+  race cancels same-name pending jobs and would otherwise eat its own chain.
+- **Reads from the login node are stale.** NFS attribute caching made record files and job
+  logs look frozen for minutes while the jobs were writing normally. This looks exactly like
+  a hang. Trust the job's own progress lines and file mtimes, not `wc -l` from elsewhere.
+- **`/home` fsync is expensive.** M6 flushes every row but fsyncs every 100.
+- **Not every node runs the conda python.** Two `long`-partition nodes (`xcng0`, `xcng1`)
+  failed with `cannot execute binary file: Exec format error`.
+- **`h100-47` really is ~47 GB visible** even though `nvidia-smi` names a 95 GB card. A 60 min
+  window needs a single ~12 GB vision-tower allocation and thrashes there; the headline arms
+  run on `a100-80` / `h100-96` / `h200-141`.
+
 ## Notes for whoever picks this up
 
 - **Δt is stream time, not wall-clock.** The A1 recording has 31 gaps including six overnight
