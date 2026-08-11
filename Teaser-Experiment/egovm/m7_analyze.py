@@ -254,6 +254,16 @@ def figure(metrics: dict, path_stem):
     ax.axhline(0.25, color="#999", lw=1, ls=(0, (2, 3)))
     ax.text(x[0], 0.255, "chance (4-way)", fontsize=8, color="#777", va="bottom")
 
+    # the language-prior floor: same questions, evidence-free window. Accuracy above this
+    # is what the video evidence buys; reaching it means the evidence is effectively gone.
+    prior = metrics.get("bins", {}).get("memory/prior", {})
+    if prior:
+        pk = sorted(prior, key=int)[0]
+        pv = prior[pk]["accuracy"]
+        ax.axhline(pv, color="#7b1fa2", lw=1.2, ls=(0, (5, 2)))
+        ax.text(x[-1], pv + 0.008, "language-prior floor (no evidence in context)",
+                fontsize=8, color="#7b1fa2", ha="right", va="bottom")
+
     ax.set_xscale("log")
     ax.set_xticks(x)
     ax.set_xticklabels([f"{int(v)}" for v in x])
@@ -287,14 +297,23 @@ def figure(metrics: dict, path_stem):
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--records", default=str(BIG_ARTIFACTS / "m6_records.jsonl"))
+    ap.add_argument("--records", nargs="+",
+                    default=[str(BIG_ARTIFACTS / "m6_records.jsonl")],
+                    help="one or more record files; concurrent M6 jobs write separate files")
     ap.add_argument("--drop-audio", action="store_true",
                     help="exclude need_audio questions (model is vision-only)")
     a = ap.parse_args()
 
     from pathlib import Path
 
-    recs = load(Path(a.records))
+    seen = {}
+    for p in a.records:
+        if not Path(p).exists():
+            print(f"  (skipping missing {p})")
+            continue
+        for r in load(Path(p)):
+            seen[r["record_id"]] = r
+    recs = list(seen.values())
     if not recs:
         raise SystemExit("no records")
     metrics = {
