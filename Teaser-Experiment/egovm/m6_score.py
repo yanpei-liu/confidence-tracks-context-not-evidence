@@ -25,6 +25,21 @@ from .m3_frames import frame_path
 RECORDS = BIG_ARTIFACTS / "m6_records.jsonl"
 
 
+def score_resilient(sc, frames, question, choices, offsets, retries: int = 2):
+    """Score, freeing the CUDA cache and retrying once on an out-of-memory failure."""
+    import torch
+
+    for attempt in range(retries):
+        try:
+            return sc.score(frames, question, choices, frame_offsets=offsets)
+        except torch.cuda.OutOfMemoryError:
+            torch.cuda.empty_cache()
+            if attempt == retries - 1:
+                raise
+            time.sleep(2.0)
+    raise RuntimeError("unreachable")
+
+
 def load_frames(gids: list[int]) -> list[Image.Image]:
     out = []
     for g in gids:
@@ -97,6 +112,7 @@ def main() -> None:
 
     t_start = time.time()
     n_done = 0
+    n_skipped = 0
     with out_path.open("a") as f:
         for r in todo:
             if a.time_budget_s and time.time() - t_start > a.time_budget_s:
@@ -117,8 +133,18 @@ def main() -> None:
             offsets = [g - r["gids"][0] for g in r["gids"]]
 
             t0 = time.time()
-            res = sc.score(frames, q["question"],
-                           {c: q[f"choice_{c}"] for c in "abcd"}, frame_offsets=offsets)
+            try:
+                res = score_resilient(sc, frames, q["question"],
+                                      {c: q[f"choice_{c}"] for c in "abcd"}, offsets)
+            except RuntimeError as e:
+                # A 60 min window is ~38k visual tokens and the vision tower allocates it in
+                # one block; on a 47 GB card that can fail outright. Skip the row rather than
+                # killing a multi-hour unattended job — it stays in the plan and a later
+                # resubmission on a larger GPU will pick it up.
+                print(f"  SKIP {r['row_id']} ({r['n_frames']} frames): {str(e)[:120]}",
+                      flush=True)
+                n_skipped += 1
+                continue
             res_t = time.time() - t0
             rec = dict(base, record_id=f"{r['row_id']}|memory", question_kind="memory",
                        gold=r["answer"], correct=res["pred"] == r["answer"],
@@ -131,8 +157,7 @@ def main() -> None:
             ctl = controls.get(f"{r['qid']}|{r['dt_s']}") if r["arm"] == "main" else None
             if ctl is not None:
                 t0 = time.time()
-                cres = sc.score(frames, ctl["question"], ctl["choices"],
-                                frame_offsets=offsets)
+                cres = score_resilient(sc, frames, ctl["question"], ctl["choices"], offsets)
                 rec = dict(base, record_id=f"{r['row_id']}|control", question_kind="control",
                            gold=ctl["answer"], correct=cres["pred"] == ctl["answer"],
                            control_lag_s=ctl["lag_s"], frame_load_s=0.0,
@@ -147,8 +172,8 @@ def main() -> None:
                 print(f"  {n_done}/{len(todo)} rows  {el/n_done:.2f}s/row  "
                       f"eta {(len(todo)-n_done)*el/n_done/60:.1f} min", flush=True)
 
-    print(f"M6: wrote {n_done} rows in {(time.time()-t_start)/60:.1f} min -> {out_path}",
-          flush=True)
+    print(f"M6: wrote {n_done} rows ({n_skipped} skipped on OOM) in "
+          f"{(time.time()-t_start)/60:.1f} min -> {out_path}", flush=True)
 
 
 if __name__ == "__main__":

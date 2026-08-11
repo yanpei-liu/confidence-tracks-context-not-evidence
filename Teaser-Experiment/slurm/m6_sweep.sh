@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J egovm-sweep
 #SBATCH -p gpu-long
-#SBATCH --gres=gpu:h100-47:1
+#SBATCH --gres=gpu:h100-96:1
 #SBATCH -c 8
 #SBATCH --mem=96G
 #SBATCH -t 20:00:00
