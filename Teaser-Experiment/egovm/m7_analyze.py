@@ -320,6 +320,16 @@ def main() -> None:
     recs = list(seen.values())
     if not recs:
         raise SystemExit("no records")
+
+    # Only rows in the current plan count. Superseded jobs may have written records for
+    # questions the plan has since excluded (e.g. evidence span too wide), and those must
+    # not leak into the bins.
+    plan_rows = {json.loads(l)["row_id"]
+                 for l in (ARTIFACTS / "m4_eval_plan.jsonl").read_text().splitlines()}
+    before = len(recs)
+    recs = [r for r in recs if r["row_id"] in plan_rows]
+    if before != len(recs):
+        print(f"  dropped {before - len(recs)} records not in the current plan")
     metrics = {
         "all_questions": analyze(recs, drop_audio=False),
         "vision_only_questions": analyze(recs, drop_audio=True),

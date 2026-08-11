@@ -36,6 +36,14 @@ DT_GRID_S = (60, 300, 900, 1800, 3600)
 TOKMATCH_REF_DT_S = 900  # token-matched arm copies the Δt=15 min frame count
 PRIOR_REF_DT_S = 300  # language-prior arm copies the Δt=5 min frame count
 PRE_EVIDENCE_S = 60.0  # lead-in before the earliest evidence point
+
+# A question whose evidence points are spread far apart has no single Δt: the window must
+# contain all of them, so at Δt=60 min the last evidence is 60 min old but the first is
+# (span + 60 min) old. Questions with a larger span are excluded rather than mislabelled.
+# On A1 this drops 3 of 376 — and one of those (q482, 3 evidence points across 17.7 h of
+# stream) alone accounted for 13% of the sweep's frame-encodes and OOM'd every card it
+# touched at 13,465 frames.
+MAX_EVIDENCE_SPAN_S = 900.0
 SAMPLE_FPS = 0.2  # one frame per 5 s of stream
 
 CHUNK_NOMINAL_S = 30.0  # each A1 mp4 is exactly 30.000 s (verified by ffprobe)

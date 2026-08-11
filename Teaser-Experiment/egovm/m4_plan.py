@@ -37,7 +37,7 @@ import json
 import math
 
 from .config import (
-    ARTIFACTS, DT_GRID_S, INPUT_RES, PRE_EVIDENCE_S, PRIOR_REF_DT_S, SAMPLE_FPS,
+    ARTIFACTS, DT_GRID_S, INPUT_RES, MAX_EVIDENCE_SPAN_S, PRE_EVIDENCE_S, PRIOR_REF_DT_S, SAMPLE_FPS,
     TOKMATCH_REF_DT_S, visual_tokens_per_frame,
 )
 from .m2_stream_index import StreamIndex
@@ -90,9 +90,13 @@ def main() -> None:
     rows, dropped = [], collections.Counter()
     frames_by_dt: dict[int, list[int]] = {}
 
+    n_span_excluded = 0
     for q in sel:
         s_ev_min = idx.to_stream(q["evidence_min_abs_s"])
         s_ev_max = idx.to_stream(q["evidence_max_abs_s"])
+        if s_ev_max - s_ev_min > MAX_EVIDENCE_SPAN_S:
+            n_span_excluded += 1
+            continue
         lo = max(0.0, s_ev_min - PRE_EVIDENCE_S)
         keep_until_g = math.floor((s_ev_max + 60.0) / GRID_S)
 
@@ -171,7 +175,8 @@ def main() -> None:
         assert not bad, f"{arm} not token-matched for {len(bad)} questions"
     assert all(len(set(r["gids"])) == len(r["gids"]) for r in rows), "duplicate gids"
 
-    print(f"M4 OK: {len(rows)} rows over {len(sel)} questions -> {out}")
+    print(f"M4 OK: {len(rows)} rows over {len(sel)-n_span_excluded} questions "
+          f"({n_span_excluded} excluded: evidence span > {MAX_EVIDENCE_SPAN_S:.0f}s) -> {out}")
     for dt in DT_GRID_S:
         ns = main_n[dt]
         print(f"  Δt={dt//60:3d}min  main n={len(ns):4d}  mean_frames={sum(ns)/len(ns):7.1f}  "
