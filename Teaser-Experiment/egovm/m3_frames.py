@@ -62,7 +62,7 @@ def extract_chunk(args) -> tuple[int, list[int], str]:
     # exact source-frame numbers; select is evaluated on the decoded frame index
     nums = [int(round(off * SRC_FPS)) for _, off in want]
     expr = "+".join(f"eq(n\\,{n})" for n in nums)
-    tmp = outdir / f".tmp_{i}_%03d.jpg"
+    tmp = outdir / f".tmp_{os.getpid()}_{i}_%03d.jpg"
     cmd = [
         "ffmpeg", "-v", "error", "-y", "-threads", "2",
         "-i", str(VIDEO_DIR / rel_path),
@@ -76,14 +76,14 @@ def extract_chunk(args) -> tuple[int, list[int], str]:
 
     missing = []
     for k, g in enumerate(gids):
-        src = outdir / f".tmp_{i}_{k+1:03d}.jpg"
+        src = outdir / f".tmp_{os.getpid()}_{i}_{k+1:03d}.jpg"
         if src.exists() and src.stat().st_size > 0:
             frame_path(g).parent.mkdir(parents=True, exist_ok=True)
             os.replace(src, frame_path(g))
         else:
             missing.append(g)
     for k in range(len(gids) + 2):
-        stale = outdir / f".tmp_{i}_{k+1:03d}.jpg"
+        stale = outdir / f".tmp_{os.getpid()}_{i}_{k+1:03d}.jpg"
         if stale.exists():
             stale.unlink()
     return i, missing, ""
@@ -93,12 +93,22 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 2) // 2))
     ap.add_argument("--limit", type=int, default=0, help="debug: only first N chunks")
+    ap.add_argument("--shard", default="0/1",
+                    help="i/n — split chunks across concurrent jobs on different nodes")
+    ap.add_argument("--verify", action="store_true",
+                    help="no extraction: scan the whole grid and write the final index")
     a = ap.parse_args()
 
     idx = StreamIndex.load()
-    jobs = chunk_frame_jobs(idx)
+    all_jobs = chunk_frame_jobs(idx)
     if a.limit:
-        jobs = jobs[: a.limit]
+        all_jobs = all_jobs[: a.limit]
+
+    if a.verify:
+        return finalize(all_jobs)
+
+    si, sn = (int(x) for x in a.shard.split("/"))
+    jobs = [j for k, j in enumerate(all_jobs) if k % sn == si]
     n_expected = sum(len(w) for _, _, w in jobs)
     n_grid = math.floor(idx.total_s / GRID_S) + 1
     print(f"M3: {len(jobs)} chunks -> {n_expected} frames "
@@ -118,25 +128,45 @@ def main() -> None:
                 print(f"  {done}/{len(jobs)} chunks, {len(missing)} missing", flush=True)
 
     doc = {
-        "grid_s": GRID_S,
-        "sample_fps": SAMPLE_FPS,
+        "shard": a.shard,
         "n_chunks": len(jobs),
         "n_frames_expected": n_expected,
-        "max_gid": max(g for _, _, w in jobs for g, _ in w),
+        "n_frames_missing": len(missing),
+        "missing_gids": sorted(missing)[:20000],
+        "errors": errors,
+    }
+    tag = a.shard.replace("/", "of")
+    out = ARTIFACTS / f"m3_shard_{tag}.json"
+    out.write_text(json.dumps(doc, indent=1))
+
+    got = n_expected - len(missing)
+    print(f"M3 shard {a.shard} {'OK' if not missing else 'PARTIAL'}: {got}/{n_expected} "
+          f"frames ({100*got/n_expected:.2f}%), {len(errors)} chunk errors -> {out}", flush=True)
+
+
+def finalize(all_jobs) -> None:
+    """Scan the whole grid on disk and write the authoritative index."""
+    expected = [(g, i) for i, _, w in all_jobs for g, _ in w]
+    missing = [g for g, _ in expected
+               if not (frame_path(g).exists() and frame_path(g).stat().st_size > 0)]
+    doc = {
+        "grid_s": GRID_S,
+        "sample_fps": SAMPLE_FPS,
+        "n_chunks": len(all_jobs),
+        "n_frames_expected": len(expected),
+        "max_gid": max(g for g, _ in expected),
         "n_frames_missing": len(missing),
         "missing_gids": sorted(missing)[:20000],
         "frame_w": FRAME_W,
         "frame_h": FRAME_H,
-        "errors": errors,
         "frames_root": str(FRAMES),
     }
     out = ARTIFACTS / "m3_frame_index.json"
     out.write_text(json.dumps(doc, indent=1))
-
-    got = n_expected - len(missing)
-    print(f"M3 {'OK' if not missing else 'PARTIAL'}: {got}/{n_expected} frames "
-          f"({100*got/n_expected:.2f}%), {len(errors)} chunk errors -> {out}", flush=True)
-    if len(missing) > 0.02 * n_expected:
+    got = len(expected) - len(missing)
+    print(f"M3 {'OK' if not missing else 'PARTIAL'}: {got}/{len(expected)} frames "
+          f"({100*got/len(expected):.2f}%) -> {out}", flush=True)
+    if len(missing) > 0.02 * len(expected):
         sys.exit(f"too many missing frames: {len(missing)}")
 
 
