@@ -26,6 +26,10 @@ export PYTHONUNBUFFERED=1
 export HF_HOME=~/Files/EgoVM-data/hf_home
 export HF_HUB_OFFLINE=1
 export TOKENIZERS_PARALLELISM=false
+# Window sizes vary 25 -> 734 frames row to row, so the allocator ends up holding many
+# differently-sized blocks; a failing job reported 13.7 GB reserved but unallocated.
+# Expandable segments let those blocks be reused across sizes.
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 cd "$EGOVM_REPO"
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 ~/miniconda3/envs/egovm/bin/python -m egovm.m6_score \

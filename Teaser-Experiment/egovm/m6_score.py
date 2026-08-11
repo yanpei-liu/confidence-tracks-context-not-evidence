@@ -29,14 +29,19 @@ def score_resilient(sc, frames, question, choices, offsets, retries: int = 2):
     """Score, freeing the CUDA cache and retrying once on an out-of-memory failure."""
     import torch
 
+    oom = getattr(torch, "OutOfMemoryError", None) or torch.cuda.OutOfMemoryError
     for attempt in range(retries):
         try:
             return sc.score(frames, question, choices, frame_offsets=offsets)
-        except torch.cuda.OutOfMemoryError:
+        except oom:
+            # torch.OutOfMemoryError does not subclass RuntimeError in torch 2.13, so it has
+            # to be named explicitly — catching RuntimeError let it escape and killed two
+            # shard jobs outright.
             torch.cuda.empty_cache()
+            torch.cuda.synchronize()
             if attempt == retries - 1:
                 raise
-            time.sleep(2.0)
+            time.sleep(3.0)
     raise RuntimeError("unreachable")
 
 
@@ -137,14 +142,17 @@ def main() -> None:
             try:
                 res = score_resilient(sc, frames, q["question"],
                                       {c: q[f"choice_{c}"] for c in "abcd"}, offsets)
-            except RuntimeError as e:
-                # A 60 min window is ~38k visual tokens and the vision tower allocates it in
-                # one block; on a 47 GB card that can fail outright. Skip the row rather than
-                # killing a multi-hour unattended job — it stays in the plan and a later
-                # resubmission on a larger GPU will pick it up.
-                print(f"  SKIP {r['row_id']} ({r['n_frames']} frames): {str(e)[:120]}",
-                      flush=True)
+            except Exception as e:  # noqa: BLE001
+                # A 60 min window is ~37k visual tokens and the vision tower allocates it in
+                # one block; GPUs here are shared, so the memory actually available varies
+                # between rows. Skip the row rather than killing a multi-hour unattended job —
+                # it stays in the plan and a later resubmission picks it up.
+                print(f"  SKIP {r['row_id']} ({r['n_frames']} frames): "
+                      f"{type(e).__name__}: {str(e)[:110]}", flush=True)
                 n_skipped += 1
+                import torch
+
+                torch.cuda.empty_cache()
                 continue
             res_t = time.time() - t0
             rec = dict(base, record_id=f"{r['row_id']}|memory", question_kind="memory",
