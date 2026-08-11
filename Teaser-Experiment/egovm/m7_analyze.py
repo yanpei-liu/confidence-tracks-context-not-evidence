@@ -297,17 +297,21 @@ def figure(metrics: dict, path_stem):
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--records", nargs="+",
-                    default=[str(BIG_ARTIFACTS / "m6_records.jsonl")],
-                    help="one or more record files; concurrent M6 jobs write separate files")
+    ap.add_argument("--records", nargs="+", default=None,
+                    help="record files; defaults to every m6_records*.jsonl in the data dir, "
+                         "since the sweep runs as several sharded jobs writing separate files")
     ap.add_argument("--drop-audio", action="store_true",
                     help="exclude need_audio questions (model is vision-only)")
     a = ap.parse_args()
 
     from pathlib import Path
 
+    paths = a.records or sorted(str(q) for q in BIG_ARTIFACTS.glob("m6_records*.jsonl"))
+    if not paths:
+        raise SystemExit(f"no record files under {BIG_ARTIFACTS}")
+    print(f"merging {len(paths)} record file(s)")
     seen = {}
-    for p in a.records:
+    for p in paths:
         if not Path(p).exists():
             print(f"  (skipping missing {p})")
             continue

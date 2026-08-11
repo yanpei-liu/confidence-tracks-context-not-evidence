@@ -29,7 +29,7 @@ export TOKENIZERS_PARALLELISM=false
 cd "$EGOVM_REPO"
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 ~/miniconda3/envs/egovm/bin/python -m egovm.m6_score \
-    --arms "${EGOVM_ARMS:-main,prior}" --order plan \
+    --arms "${EGOVM_ARMS:-main,prior}" --order plan --shard "${EGOVM_SHARD:-0/1}" \
     --out "${EGOVM_OUT:-~/Files/EgoVM-data/artifacts/m6_records.jsonl}" \
     --time-budget-s "${EGOVM_BUDGET:-9600}"
 echo "SWEEP_EXIT=$?"
