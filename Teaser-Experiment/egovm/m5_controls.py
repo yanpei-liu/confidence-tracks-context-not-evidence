@@ -34,7 +34,19 @@ from .m2_stream_index import StreamIndex
 from .timeparse import abs_seconds
 
 MIN_CHARS = 6
+GOLD_MIN_CHARS = 8
 MAX_DUP = 8
+
+# A caption like "我稍微向左右摆头" ("I turn my head slightly left and right") is a true
+# description of the instant but carries nothing a 0.2 fps frame can be scored against, so
+# such items are not used as the gold answer. They stay eligible as distractors, where being
+# hard to rule in is harmless.
+_LOW_CONTENT = re.compile(
+    r"^(?:我)?(?:又|再|继续|然后|接着|稍微|慢慢|快速)*"
+    r"(?:抬头|低头|摆头|转头|回头|扭头|点头|站着|坐着|站起来|坐下|走着|停下|"
+    r"看了一眼|看着前面|向左|向右|向前|向后|环顾|四处看看|张望|发呆|不动)"
+    r"[^，,。]{0,4}$"
+)
 FAR_S = 1800.0   # distractors come from >= 30 min away in stream time
 NEAR_S = 300.0   # ...and must not occur within 5 min of the checkpoint
 MAX_BIGRAM_J = 0.20
@@ -115,13 +127,17 @@ def main() -> None:
         j = bisect.bisect_right(s_starts, ck) - 1
         # take the caption covering ck, else the nearest one ending before it
         gold = None
-        for k in range(j, max(j - 4, -1), -1):
+        for k in range(j, max(j - 12, -1), -1):
             if k < 0:
                 break
             a, b, t = scaps[k]
-            if ck - a > 20.0:
+            # 30 s back is still the last frame or two of the window at 0.2 fps; the actual
+            # lag is recorded per item so it can be checked against the result
+            if ck - a > 30.0:
                 break
-            if len(re.sub(r"\s+", "", t)) >= MIN_CHARS and freq[t] <= MAX_DUP:
+            txt = re.sub(r"\s+", "", t)
+            if (len(txt) >= GOLD_MIN_CHARS and freq[t] <= MAX_DUP
+                    and not _LOW_CONTENT.match(txt)):
                 gold = (a, b, t)
                 break
         if gold is None:

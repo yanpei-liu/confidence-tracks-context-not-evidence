@@ -1,0 +1,8 @@
+{
+ "shard": "0/6",
+ "n_chunks": 1044,
+ "n_frames_expected": 6222,
+ "n_frames_missing": 0,
+ "missing_gids": [],
+ "errors": {}
+}
