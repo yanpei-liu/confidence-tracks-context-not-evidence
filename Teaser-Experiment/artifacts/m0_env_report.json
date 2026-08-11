@@ -1,0 +1,49 @@
+{
+ "python": "3.11.15",
+ "platform": "Linux-6.8.0-136-generic-x86_64-with-glibc2.39",
+ "torch": "2.13.0+cu126",
+ "torch_cuda": "12.6",
+ "gpu": "NVIDIA H100 NVL MIG 3g.47gb",
+ "gpu_mem_gb": 46.4,
+ "model_hub_id": "Qwen/Qwen3-VL-8B-Instruct",
+ "model_path": "~/Files/EgoVM-data/model/Qwen3-VL-8B-Instruct",
+ "input_res": 320,
+ "hostname": "xgpi20",
+ "transformers": "5.15.0",
+ "accelerate": "1.14.0",
+ "PIL": "12.2.0",
+ "numpy": "2.4.4",
+ "load_s": 40.1,
+ "letter_token_ids": [
+  32,
+  33,
+  34,
+  35
+ ],
+ "visual_tokens_per_frame": {
+  "8": 50.0,
+  "64": 50.0,
+  "256": 50.0
+ },
+ "expected_tokens_per_frame": 50.0,
+ "timestamp_markers_12_frames": [
+  2.5,
+  12.5,
+  22.5,
+  32.5,
+  42.5,
+  52.5
+ ],
+ "timestamp_markers_nonuniform": [
+  2.5,
+  155.0,
+  307.5
+ ],
+ "frames_are_read_score": "4/4",
+ "seconds_per_eval": {
+  "8": 2.45,
+  "64": 0.5,
+  "256": 2.21
+ },
+ "failures": []
+}
