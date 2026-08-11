@@ -37,8 +37,8 @@ import json
 import math
 
 from .config import (
-    ARTIFACTS, DT_GRID_S, INPUT_RES, PRE_EVIDENCE_S, SAMPLE_FPS, TOKMATCH_REF_DT_S,
-    visual_tokens_per_frame,
+    ARTIFACTS, DT_GRID_S, INPUT_RES, PRE_EVIDENCE_S, PRIOR_REF_DT_S, SAMPLE_FPS,
+    TOKMATCH_REF_DT_S, visual_tokens_per_frame,
 )
 from .m2_stream_index import StreamIndex
 
@@ -79,7 +79,9 @@ def main() -> None:
 
     idx = StreamIndex.load()
     fi = json.loads((ARTIFACTS / "m3_frame_index.json").read_text())
-    n_frames_total = fi["n_frames_expected"]
+    # gids are grid indices, not a dense 0..n-1 range (a few chunks are clipped short), so
+    # the upper bound is the largest gid the bank actually produced
+    n_frames_total = fi["max_gid"] + 1
     missing = set(fi.get("missing_gids", []))
 
     questions = [json.loads(l) for l in (ARTIFACTS / "m1_questions.jsonl").read_text().splitlines()]
@@ -111,7 +113,7 @@ def main() -> None:
 
         # language-prior floor: an evidence-free window of the same size as the Δt=5 min one
         prior_gids = None
-        short = per_dt.get(DT_GRID_S[0])
+        short = per_dt.get(PRIOR_REF_DT_S)
         if short:
             n_short = len(short[0])
             span_g = math.ceil(n_short * 1.0)
@@ -131,7 +133,7 @@ def main() -> None:
             if n_ref is not None and dt > TOKMATCH_REF_DT_S and len(gids) > n_ref:
                 arms["tokmatch_uniform"] = uniform_subsample(gids, n_ref)
                 arms["tokmatch_evkeep"] = evkeep_subsample(gids, n_ref, keep_until_g)
-            if dt == DT_GRID_S[0] and prior_gids:
+            if dt == PRIOR_REF_DT_S and prior_gids:
                 arms["prior"] = prior_gids
             for arm, fr in arms.items():
                 rows.append({

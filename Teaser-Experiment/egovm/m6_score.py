@@ -125,7 +125,10 @@ def main() -> None:
                        frame_load_s=round(t_load_f, 2), score_s=round(res_t, 2), **res)
             f.write(json.dumps(rec) + "\n")
 
-            ctl = controls.get(f"{r['qid']}|{r['dt_s']}")
+            # The control exists to rule out generic long-context degradation along the Δt
+            # sweep, so it only rides on the `main` arm; running it on the token-matched and
+            # prior arms would roughly double the sweep for no additional claim.
+            ctl = controls.get(f"{r['qid']}|{r['dt_s']}") if r["arm"] == "main" else None
             if ctl is not None:
                 t0 = time.time()
                 cres = sc.score(frames, ctl["question"], ctl["choices"],

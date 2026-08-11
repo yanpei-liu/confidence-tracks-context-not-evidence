@@ -43,6 +43,23 @@ def probe_duration(path) -> float:
         return float(c.duration) / 1_000_000.0
 
 
+def _probe_one(rel: str) -> tuple[str, float]:
+    try:
+        return rel, probe_duration(VIDEO_DIR / rel)
+    except Exception:  # noqa: BLE001 - a chunk that will not open contributes no stream time
+        return rel, 0.0
+
+
+def probe_all(paths: list[str], workers: int = 16) -> dict[str, float]:
+    from concurrent.futures import ProcessPoolExecutor
+
+    out = {}
+    with ProcessPoolExecutor(max_workers=workers) as ex:
+        for rel, d in ex.map(_probe_one, paths, chunksize=32):
+            out[rel] = d
+    return out
+
+
 @dataclass
 class StreamIndex:
     """Monotone map between wall-clock absolute seconds and cumulative stream seconds."""
@@ -82,25 +99,38 @@ class StreamIndex:
         return min(max(i, 0), len(self.cum) - 1)
 
 
-def main(n_probe: int = 60) -> None:
+def main(workers: int = 16) -> None:
     chunks = scan_chunks()
     if not chunks:
         raise SystemExit(f"no chunks under {VIDEO_DIR} — is the download finished?")
 
-    # Probe a stratified sample of real durations to justify the 30 s nominal value.
-    step = max(1, len(chunks) // n_probe)
-    probed = []
-    for i in range(0, len(chunks), step):
-        probed.append(probe_duration(VIDEO_DIR / chunks[i][1]))
+    # Probe every file. Most are exactly 30.000 s but some are short, and a sampled probe
+    # found one 12.4 s under nominal — assuming 30 s there would place frames past the end
+    # of the file and shift every later stream time.
+    print(f"probing {len(chunks)} durations...", flush=True)
+    real = probe_all([p for _, p in chunks], workers=workers)
+    probed = [real[p] for _, p in chunks]
     dev = [abs(d - CHUNK_NOMINAL_S) for d in probed]
+    n_short = sum(1 for d in probed if d < CHUNK_NOMINAL_S - 0.05)
+    n_zero = sum(1 for d in probed if d <= 0.0)
 
-    durs = [CHUNK_NOMINAL_S] * len(chunks)
+    # Files are also clipped when consecutive chunks start less than one duration apart
+    # (2.5, 2.9, 10.0, 17.7, 28.5 s) — the recording restarted and the segments overlap in
+    # wall-clock. Clipping each chunk to the next one's start keeps the wall-clock <-> stream
+    # map monotone and invertible; without it a stream time inside an overlap resolves back
+    # to the wrong chunk (the round-trip check below fails by up to 29.5 s).
+    starts = [c[0] for c in chunks]
+    durs = [
+        min(probed[i], starts[i + 1] - starts[i]) if i + 1 < len(starts) else probed[i]
+        for i in range(len(starts))
+    ]
+    durs = [max(d, 0.0) for d in durs]
+    n_clipped = sum(1 for i, d in enumerate(durs) if d < probed[i] - 1e-6)
     cum, acc = [], 0.0
     for d in durs:
         cum.append(acc)
         acc += d
 
-    starts = [c[0] for c in chunks]
     gaps = []
     for i in range(len(chunks) - 1):
         g = starts[i + 1] - starts[i] - durs[i]
@@ -113,10 +143,13 @@ def main(n_probe: int = 60) -> None:
         "total_stream_s": acc,
         "total_stream_h": acc / 3600.0,
         "nominal_chunk_s": CHUNK_NOMINAL_S,
+        "n_chunks_clipped_for_overlap": n_clipped,
         "probe": {
             "n": len(probed),
             "median_duration_s": statistics.median(probed),
             "max_abs_deviation_s": max(dev),
+            "n_shorter_than_nominal": n_short,
+            "n_unopenable": n_zero,
         },
         "n_gaps": len(gaps),
         "gaps": gaps,
@@ -139,7 +172,9 @@ def main(n_probe: int = 60) -> None:
     assert all(cum[i] < cum[i + 1] for i in range(len(cum) - 1))
     print(
         f"M2 OK: {len(chunks)} chunks, {acc/3600:.2f} h stream, {len(gaps)} gaps, "
-        f"probe max|dur-30s| = {max(dev):.3f}s, roundtrip err {worst:.2e} -> {out}"
+        f"{n_clipped} clipped for overlap, {n_short} shorter than nominal, "
+        f"{n_zero} unopenable, max|dur-30s| = {max(dev):.3f}s, "
+        f"roundtrip err {worst:.2e} -> {out}"
     )
 
 

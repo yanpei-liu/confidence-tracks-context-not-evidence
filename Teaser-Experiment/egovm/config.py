@@ -28,8 +28,13 @@ KEEP_TYPES = ("EntityLog", "EventRecall", "RelationMap")
 SCREEN_TYPES = ("HabitInsight",)  # scored, reported separately, not in the headline set
 DROP_TYPES = ("TaskMaster",)  # prospective / state-dependent
 
-DT_GRID_S = (300, 900, 1800, 3600)  # 5 / 15 / 30 / 60 min
+# 1 / 5 / 15 / 30 / 60 min. The 1 min bin is the near-ceiling anchor: the evidence is still
+# essentially in view, so it bounds how much of the later decline is forgetting rather than
+# the question simply being hard. Its window is short, which is exactly why the token-matched
+# arms exist.
+DT_GRID_S = (60, 300, 900, 1800, 3600)
 TOKMATCH_REF_DT_S = 900  # token-matched arm copies the Δt=15 min frame count
+PRIOR_REF_DT_S = 300  # language-prior arm copies the Δt=5 min frame count
 PRE_EVIDENCE_S = 60.0  # lead-in before the earliest evidence point
 SAMPLE_FPS = 0.2  # one frame per 5 s of stream
 
