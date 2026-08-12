@@ -205,6 +205,40 @@ def analyze(records, drop_audio: bool) -> dict:
             "delta_accuracy": cluster_bootstrap(by_q, d_acc),
         }
 
+    # ---- evidence awareness: does confidence know whether the evidence is even there? ----
+    # `prior` and `main` at PRIOR_REF_DT_S are token-matched by construction (same frame
+    # count), and differ only in whether the window contains the evidence. If accuracy rises
+    # far more than confidence when the evidence is present, the model cannot tell whether it
+    # has the information — a metamemory deficit that does not require any forgetting.
+    pri = {r["qid"]: r for r in records
+           if r["question_kind"] == "memory" and r["arm"] == "prior"}
+    ref = {r["qid"]: r for r in records
+           if r["question_kind"] == "memory" and r["arm"] == "main" and r["dt_s"] == 300}
+    common = sorted(set(pri) & set(ref))
+    if common:
+        by_q = {q: [("evid", ref[q]), ("none", pri[q])] for q in common}
+
+        def _delta(field):
+            def f(rows):
+                e = [r for t, r in rows if t == "evid"]
+                n = [r for t, r in rows if t == "none"]
+                if not e or not n:
+                    return None
+                return sum(r[field] for r in e) / len(e) - sum(r[field] for r in n) / len(n)
+            return f
+
+        out["evidence_awareness"] = {
+            "n_questions": len(common),
+            "mean_tokens_with_evidence": sum(ref[q]["visual_tokens"] for q in common) / len(common),
+            "mean_tokens_without": sum(pri[q]["visual_tokens"] for q in common) / len(common),
+            "accuracy_with_evidence": sum(ref[q]["correct"] for q in common) / len(common),
+            "accuracy_without": sum(pri[q]["correct"] for q in common) / len(common),
+            "confidence_with_evidence": sum(ref[q]["confidence"] for q in common) / len(common),
+            "confidence_without": sum(pri[q]["confidence"] for q in common) / len(common),
+            "delta_accuracy": cluster_bootstrap(by_q, _delta("correct")),
+            "delta_confidence": cluster_bootstrap(by_q, _delta("confidence")),
+        }
+
     # ---- per-category breakdown at the extremes ----
     for typ in sorted({r["type"] for r in mem}) if mem else []:
         for dt in (min(dts), max(dts)):
@@ -212,6 +246,41 @@ def analyze(records, drop_audio: bool) -> dict:
             if rows:
                 out.setdefault("by_type", {}).setdefault(typ, {})[str(dt)] = summarize(rows)
     return out
+
+
+# Validated categorical slots (scripts/validate_palette.js, light surface #fcfcfb):
+# all four pass the lightness band, chroma floor, CVD separation and normal-vision floor.
+# The aqua slot warns on contrast vs surface, which is discharged by the legend plus
+# direct labels — identity is never carried by colour alone here.
+C_ACC = "#2a78d6"     # accuracy
+C_CONF = "#eb6834"    # confidence
+C_CTRL = "#1baf7a"    # no-memory control
+C_PRIOR = "#4a3aa7"   # language-prior floor
+INK = "#0b0b0b"
+INK2 = "#52514e"
+MUTED = "#8a8984"
+
+
+def headline_title(metrics: dict) -> str:
+    """State what the numbers show, not what was predicted."""
+    h = metrics.get("headline") or {}
+    da, dc, dg = h.get("delta_accuracy"), h.get("delta_confidence"), h.get("delta_gap")
+    if not (da and dc and dg):
+        return "Accuracy and confidence vs recall delay"
+    lo, hi = h["dt_lo_s"] // 60, h["dt_hi_s"] // 60
+    if dg["lo95"] > 0:
+        lead = "Accuracy falls faster than confidence — the overconfidence gap widens"
+    elif dg["hi95"] < 0:
+        lead = "Confidence falls faster than accuracy — the gap narrows"
+    else:
+        lead = "Accuracy and confidence fall together — the overconfidence gap does not widen"
+    return (f"{lead}\n"
+            f"{lo}→{hi} min: accuracy {da['mean']*100:+.1f} pp "
+            f"[{da['lo95']*100:+.1f}, {da['hi95']*100:+.1f}], "
+            f"confidence {dc['mean']*100:+.1f} pp "
+            f"[{dc['lo95']*100:+.1f}, {dc['hi95']*100:+.1f}], "
+            f"gap {dg['mean']*100:+.1f} pp "
+            f"[{dg['lo95']*100:+.1f}, {dg['hi95']*100:+.1f}]  (n={h['n_paired_questions']})")
 
 
 def figure(metrics: dict, path_stem):
@@ -228,70 +297,111 @@ def figure(metrics: dict, path_stem):
     x = [d / 60 for d in dts]
     acc = [bins[str(d)]["accuracy"] for d in dts]
     conf = [bins[str(d)]["mean_confidence"] for d in dts]
-    acc_lo = [bins[str(d)]["accuracy_ci"]["lo95"] for d in dts]
-    acc_hi = [bins[str(d)]["accuracy_ci"]["hi95"] for d in dts]
-    cf_lo = [bins[str(d)]["confidence_ci"]["lo95"] for d in dts]
-    cf_hi = [bins[str(d)]["confidence_ci"]["hi95"] for d in dts]
 
-    fig, ax = plt.subplots(figsize=(7.2, 4.6))
-    ax.fill_between(x, acc_lo, acc_hi, color="#1b6ca8", alpha=0.16, lw=0)
-    ax.plot(x, acc, "o-", color="#1b6ca8", lw=2.2, ms=7, label="accuracy", zorder=3)
-    ax.fill_between(x, cf_lo, cf_hi, color="#c1440e", alpha=0.16, lw=0)
-    ax.plot(x, conf, "s--", color="#c1440e", lw=2.2, ms=7,
-            label="mean confidence (option-letter softmax)", zorder=3)
+    fig, (ax, bx) = plt.subplots(
+        1, 2, figsize=(13.4, 5.4), gridspec_kw={"width_ratios": [1.25, 1.0]})
 
-    for xi, a, c in zip(x, acc, conf):
-        ax.annotate("", xy=(xi, c), xytext=(xi, a),
-                    arrowprops=dict(arrowstyle="<->", color="#666", lw=1.0, alpha=0.8))
+    # ---------------- panel A: the Δt sweep ----------------
+    ax.fill_between(x, [bins[str(d)]["accuracy_ci"]["lo95"] for d in dts],
+                    [bins[str(d)]["accuracy_ci"]["hi95"] for d in dts],
+                    color=C_ACC, alpha=0.15, lw=0)
+    ax.plot(x, acc, "o-", color=C_ACC, lw=2, ms=8, label="memory accuracy", zorder=4)
+    ax.fill_between(x, [bins[str(d)]["confidence_ci"]["lo95"] for d in dts],
+                    [bins[str(d)]["confidence_ci"]["hi95"] for d in dts],
+                    color=C_CONF, alpha=0.15, lw=0)
+    ax.plot(x, conf, "s--", color=C_CONF, lw=2, ms=8,
+            label="memory confidence (option-letter softmax)", zorder=4)
+
+    for xi, a_, c_ in zip(x, acc, conf):
+        ax.annotate("", xy=(xi, c_), xytext=(xi, a_),
+                    arrowprops=dict(arrowstyle="<->", color=MUTED, lw=1.0))
 
     ctl = metrics.get("bins", {}).get("control/main", {})
     if ctl:
         cd = sorted(int(k) for k in ctl)
         ax.plot([d / 60 for d in cd], [ctl[str(d)]["accuracy"] for d in cd],
-                "^:", color="#2e7d32", lw=1.8, ms=6,
-                label="no-memory control accuracy", zorder=2)
+                "^:", color=C_CTRL, lw=2, ms=8,
+                label="no-memory control accuracy", zorder=3)
 
-    ax.axhline(0.25, color="#999", lw=1, ls=(0, (2, 3)))
-    ax.text(x[0], 0.255, "chance (4-way)", fontsize=8, color="#777", va="bottom")
-
-    # the language-prior floor: same questions, evidence-free window. Accuracy above this
-    # is what the video evidence buys; reaching it means the evidence is effectively gone.
     prior = metrics.get("bins", {}).get("memory/prior", {})
     if prior:
-        pk = sorted(prior, key=int)[0]
-        pv = prior[pk]["accuracy"]
-        ax.axhline(pv, color="#7b1fa2", lw=1.2, ls=(0, (5, 2)))
-        ax.text(x[-1], pv + 0.008, "language-prior floor (no evidence in context)",
-                fontsize=8, color="#7b1fa2", ha="right", va="bottom")
+        pv = prior[sorted(prior, key=int)[0]]["accuracy"]
+        ax.axhline(pv, color=C_PRIOR, lw=1.4, ls=(0, (5, 2)), zorder=2)
+        ax.text(x[-1], pv - 0.022, "language-prior floor — no evidence in context",
+                fontsize=8.5, color=C_PRIOR, ha="right", va="top")
+
+    ax.axhline(0.25, color=MUTED, lw=1, ls=(0, (2, 3)), zorder=1)
+    ax.text(x[0], 0.25 - 0.022, "chance (4-way)", fontsize=8.5, color=MUTED, va="top")
+
+    # ECE on its own row so it cannot collide with the marks or the floor lines
+    ax.text(x[0] * 0.66, 0.055, "ECE", fontsize=8.5, color=INK2, ha="left", va="center")
+    for xi, d in zip(x, dts):
+        ax.text(xi, 0.055, f"{bins[str(d)]['ece']:.2f}", ha="center", va="center",
+                fontsize=8.5, color=INK2)
 
     ax.set_xscale("log")
     ax.set_xticks(x)
     ax.set_xticklabels([f"{int(v)}" for v in x])
-    ax.set_xlabel("Δt — stream time between evidence and recall checkpoint (min, log scale)")
+    ax.set_xlim(x[0] * 0.62, x[-1] * 1.45)
+    ax.set_xlabel("Δt — stream time between evidence and recall checkpoint (min, log)")
     ax.set_ylabel("accuracy / confidence")
     ax.set_ylim(0, 1)
-    ax.grid(alpha=0.18, lw=0.7)
+    ax.grid(alpha=0.15, lw=0.7)
     for s in ("top", "right"):
         ax.spines[s].set_visible(False)
+    ax.legend(frameon=False, fontsize=9, loc="upper right")
+    ax.set_title(headline_title(metrics), fontsize=10, loc="left", color=INK)
 
-    for xi, d in zip(x, dts):
-        b = bins[str(d)]
-        ax.annotate(f"ECE {b['ece']:.2f}", (xi, min(b['accuracy'], b['mean_confidence']) - 0.055),
-                    ha="center", fontsize=8, color="#444")
-
+    # ---------------- panel B: the decisive contrasts ----------------
     h = metrics.get("headline", {})
-    if h and h.get("delta_gap"):
-        g = h["delta_gap"]
-        ax.set_title(
-            f"Confidence stays flat while accuracy falls\n"
-            f"Δgap ({h['dt_lo_s']//60}→{h['dt_hi_s']//60} min) = "
-            f"{g['mean']:+.3f} [{g['lo95']:+.3f}, {g['hi95']:+.3f}] 95% CI, "
-            f"n={h['n_paired_questions']} questions",
-            fontsize=10.5, loc="left")
-    ax.legend(frameon=False, fontsize=9, loc="lower left")
+    ea = metrics.get("evidence_awareness", {})
+    tm = metrics.get("token_matched", {})
+    rows = []
+    if ea:
+        rows.append(("evidence in context vs none\n(token-matched)",
+                     ea["delta_accuracy"], C_ACC, "accuracy"))
+        rows.append(("evidence in context vs none\n(token-matched)",
+                     ea["delta_confidence"], C_CONF, "confidence"))
+    if h:
+        rows.append((f"Δt {h['dt_hi_s']//60} vs {h['dt_lo_s']//60} min\n(tokens grow with Δt)",
+                     h["delta_accuracy"], C_ACC, "accuracy"))
+        rows.append((f"Δt {h['dt_hi_s']//60} vs {h['dt_lo_s']//60} min\n(tokens grow with Δt)",
+                     h["delta_confidence"], C_CONF, "confidence"))
+    for arm, lbl in (("tokmatch_uniform", "uniform thinning"),
+                     ("tokmatch_evkeep", "evidence preserved")):
+        if arm in tm:
+            rows.append((f"Δt 60 vs 15 min, tokens FIXED\n({lbl})",
+                         tm[arm]["delta_accuracy"], C_ACC, "accuracy"))
+
+    ypos = list(range(len(rows)))[::-1]
+    for y, (lbl, d, col, meas) in zip(ypos, rows):
+        bx.plot([d["lo95"] * 100, d["hi95"] * 100], [y, y], color=col, lw=2.4,
+                solid_capstyle="round", zorder=3)
+        bx.plot([d["mean"] * 100], [y], "o", color=col, ms=9,
+                markeredgecolor="#fcfcfb", markeredgewidth=2, zorder=4)
+        sig = "" if d["lo95"] < 0 < d["hi95"] else "  ✱"
+        bx.text(d["hi95"] * 100 + 0.7, y, f"{d['mean']*100:+.1f} pp{sig}",
+                va="center", fontsize=8.5, color=INK2)
+    bx.axvline(0, color=INK2, lw=1.1, zorder=2)
+    bx.set_yticks(ypos)
+    bx.set_yticklabels([r[0] for r in rows], fontsize=8.5, color=INK)
+    bx.tick_params(axis="y", length=0)
+    bx.set_ylim(-0.7, len(rows) - 0.3)
+    span = max(abs(d["lo95"]) for _, d, _, _ in rows) * 100
+    bx.set_xlim(-span * 1.25, max(d["hi95"] for _, d, _, _ in rows) * 100 + span * 0.65)
+    bx.set_xlabel("change (percentage points, 95% cluster-bootstrap CI over questions)")
+    bx.grid(axis="x", alpha=0.15, lw=0.7)
+    for s in ("top", "right", "left"):
+        bx.spines[s].set_visible(False)
+    bx.set_title("What actually moves the model\n"
+                 "✱ = interval excludes zero", fontsize=10, loc="left", color=INK)
+    hd = [plt.Line2D([], [], color=C_ACC, lw=2.4, marker="o", ms=8, label="accuracy"),
+          plt.Line2D([], [], color=C_CONF, lw=2.4, marker="o", ms=8, label="confidence")]
+    bx.legend(handles=hd, frameon=False, fontsize=9, loc="lower right")
+
     fig.tight_layout()
     for ext in ("pdf", "png"):
-        fig.savefig(f"{path_stem}.{ext}", dpi=180)
+        fig.savefig(f"{path_stem}.{ext}", dpi=180, facecolor="#fcfcfb")
     print(f"figure -> {path_stem}.pdf/.png")
 
 
@@ -352,6 +462,18 @@ def main() -> None:
             v = h[k]
             print(f"  {k:18s} {v['mean']:+.4f} [{v['lo95']:+.4f}, {v['hi95']:+.4f}] "
                   f"p={v['p_two_sided_vs_0']:.4f}")
+    ea = m.get("evidence_awareness")
+    if ea:
+        print(f"  evidence awareness (n={ea['n_questions']}, token-matched at "
+              f"{ea['mean_tokens_with_evidence']:.0f} vs {ea['mean_tokens_without']:.0f} tok):")
+        print(f"    accuracy   {ea['accuracy_without']:.3f} (no evidence) -> "
+              f"{ea['accuracy_with_evidence']:.3f} (evidence)  "
+              f"Δ={ea['delta_accuracy']['mean']:+.4f} "
+              f"[{ea['delta_accuracy']['lo95']:+.4f}, {ea['delta_accuracy']['hi95']:+.4f}]")
+        print(f"    confidence {ea['confidence_without']:.3f} (no evidence) -> "
+              f"{ea['confidence_with_evidence']:.3f} (evidence)  "
+              f"Δ={ea['delta_confidence']['mean']:+.4f} "
+              f"[{ea['delta_confidence']['lo95']:+.4f}, {ea['delta_confidence']['hi95']:+.4f}]")
     for arm, tm in m.get("token_matched", {}).items():
         v = tm["delta_accuracy"]
         print(f"  {arm}: acc {tm['accuracy_hi']:.3f} (Δt=60, {tm['mean_tokens_hi']:.0f} tok) vs "

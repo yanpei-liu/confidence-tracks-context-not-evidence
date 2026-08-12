@@ -86,9 +86,12 @@ def main() -> None:
         plan.sort(key=lambda r: r["n_frames"])
 
     out_path = Path(a.out)
+    # Resume against *every* record file in the directory, not just this job's own output:
+    # the sweep runs as many sharded jobs writing separate files, and a job that only reads
+    # its own file re-runs rows another shard already finished.
     done = set()
-    if out_path.exists():
-        with out_path.open() as f:
+    for p in sorted(out_path.parent.glob("m6_records*.jsonl")):
+        with p.open() as f:
             for line in f:
                 try:
                     done.add(json.loads(line)["record_id"])

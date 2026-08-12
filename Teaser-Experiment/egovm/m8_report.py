@@ -26,30 +26,43 @@ def fmt_ci(d, pct=True, signed=True):
     return f"{d['mean']*k:{s}.1f} [{d['lo95']*k:{s}.1f}, {d['hi95']*k:{s}.1f}]{u}"
 
 
-def verdict(h) -> tuple[str, str]:
+def verdict(a: dict) -> tuple[str, str]:
+    """Pick the verdict from the measured intervals, not from what was predicted."""
+    h = a.get("headline", {})
     da, dc, dg = h.get("delta_accuracy"), h.get("delta_confidence"), h.get("delta_gap")
     if not (da and dc and dg):
         return "inconclusive", "Not enough paired data to evaluate the headline contrast."
+
     acc_fell = da["hi95"] < 0
     conf_fell = dc["hi95"] < 0
     gap_grew = dg["lo95"] > 0
+
+    # does any Δt effect survive holding visual-token count fixed?
+    tm = a.get("token_matched", {})
+    survives = any(t["delta_accuracy"]["hi95"] < 0 for t in tm.values()) if tm else None
+
     if acc_fell and gap_grew:
-        return "A: metamemory failure", (
+        return "A: predicted metamemory failure", (
             "Accuracy declines with Δt while confidence does not follow it down, so the "
-            "confidence-accuracy gap widens. This is the predicted 'doesn't know it forgot' "
-            "signature and it is the result the recalibration argument needs."
+            "confidence–accuracy gap widens — the predicted 'doesn't know it forgot' signature."
         )
     if acc_fell and conf_fell and not gap_grew:
-        return "B: confidence tracks forgetting", (
-            "Accuracy declines with Δt, but confidence declines with it, so the gap does not "
-            "widen. The model degrades gracefully and is, to this resolution, aware of it — "
-            "which undercuts the metamemory framing and argues for re-scoping the claim."
+        base = (
+            "Accuracy does decline with Δt, but confidence declines at least as fast, so the "
+            "overconfidence gap does not widen. The predicted signature is **not** present at "
+            "this horizon."
         )
+        if survives is False:
+            base += (
+                " And the decline does not survive the token-matched control: holding visual-"
+                "token count fixed removes it entirely, so what looks like time-based "
+                "forgetting is context-length degradation."
+            )
+        return "B: confidence tracks the decline", base
     if not acc_fell:
         return "C: no measurable forgetting", (
             "Accuracy does not fall significantly across the Δt range tested, so there is no "
-            "forgetting here for a metamemory gap to be about. The Δt range, the frame rate, "
-            "or the question set would need to change before the headline claim is testable."
+            "forgetting here for a metamemory gap to be about."
         )
     return "mixed", "The intervals do not fall cleanly into any of the three outcomes."
 
@@ -60,7 +73,8 @@ def main() -> None:
     a = m["all_questions"]
     v = m["vision_only_questions"]
     h = a.get("headline", {})
-    tag, para = verdict(h)
+    tag, para = verdict(a)
+    ea = a.get("evidence_awareness", {})
 
     bins = a.get("bins", {}).get("memory/main", {})
     dts = sorted(bins, key=int)
@@ -101,9 +115,32 @@ def main() -> None:
     lo_min = h.get("dt_lo_s", 0) // 60
     hi_min = h.get("dt_hi_s", 0) // 60
 
+    ea_block = "not run"
+    if ea:
+        ea_block = f"""Token-matched at {ea['mean_tokens_with_evidence']:.0f} visual tokens, paired over
+{ea['n_questions']} questions, the *only* difference being whether the window contains the evidence:
+
+| | no evidence in context | evidence in context | change |
+| --- | --- | --- | --- |
+| accuracy | {ea['accuracy_without']*100:.1f}% | {ea['accuracy_with_evidence']*100:.1f}% | **{fmt_ci(ea['delta_accuracy'])}** |
+| confidence | {ea['confidence_without']*100:.1f}% | {ea['confidence_with_evidence']*100:.1f}% | **{fmt_ci(ea['delta_confidence'])}** |
+
+Having the evidence is worth {ea['delta_accuracy']['mean']*100:.1f} points of accuracy but only
+{ea['delta_confidence']['mean']*100:.1f} points of confidence — the confidence signal is about
+{ea['delta_accuracy']['mean']/max(ea['delta_confidence']['mean'], 1e-9):.1f}x weaker than the
+competence it is supposed to track. The model is nearly as confident answering from nothing as
+from the evidence."""
+
     txt = f"""# Teaser result — does a streaming ego video-LLM know it forgot?
 
 **Verdict: {tag}.** {para}
+
+**But there is a metamemory failure here, just not the predicted one.** The sharpest result is
+not the Δt sweep — it is the comparison between having the evidence in context and not having it
+at all (see *Evidence awareness* below): that swap moves accuracy by
+{ea.get('delta_accuracy', {}).get('mean', float('nan'))*100:+.1f} points and confidence by only
+{ea.get('delta_confidence', {}).get('mean', float('nan'))*100:+.1f}. The model cannot tell whether
+it has the information. That is a recalibration target, and it does not depend on forgetting.
 
 ## Setup
 
@@ -138,11 +175,15 @@ The gap row is the bin x {{accuracy, confidence}} interaction the design was pow
 
 ![headline](../figures/headline.png)
 
+## Evidence awareness — the actual metamemory failure
+
+{ea_block}
+
 ## Controls
 
 **Language-prior floor** — the same questions over an evidence-free window: {prior_txt}.
-Any accuracy above this floor is what the video evidence is buying; the sweep is only
-informative in the range between this floor and the Δt={lo_min} min bin.
+Any accuracy above this floor is what the video evidence is buying, so the sweep is only
+informative between that floor and the Δt={lo_min} min bin — a narrow band here.
 
 **No-memory control** — a current-instant question over the identical context:
 
@@ -150,7 +191,10 @@ informative in the range between this floor and the Δt={lo_min} min bin.
 | --- | --- | --- | --- |
 {ctl_rows}
 
-If this stays flat while memory accuracy falls, generic long-context degradation is ruled out.
+This was meant to stay flat and rule generic long-context degradation *out*. It does not — it
+falls further than the memory questions do. Note the caveat that each checkpoint gets its own
+control item, so this is a between-items comparison; the paired evidence for the same conclusion
+is the token-matched block below.
 
 **Token-matched** — Δt=60 min subsampled to the Δt=15 min visual-token count:
 
@@ -160,7 +204,8 @@ If this stays flat while memory accuracy falls, generic long-context degradation
 
 `tokmatch_uniform` thins the whole window; `tokmatch_evkeep` keeps every frame near the
 evidence and thins only the filler, so it holds token count *and* evidence resolution fixed
-and leaves elapsed time as the only difference.
+and leaves elapsed time as the only difference. **`tokmatch_evkeep` is the decisive arm**: if
+elapsed time itself caused forgetting, accuracy would still fall there, and it does not.
 
 ## By category
 
