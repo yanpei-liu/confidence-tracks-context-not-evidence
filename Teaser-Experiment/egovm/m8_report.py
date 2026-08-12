@@ -75,6 +75,8 @@ def main() -> None:
     h = a.get("headline", {})
     tag, para = verdict(a)
     ea = a.get("evidence_awareness", {})
+    vh = v.get("headline", {})
+    vea = v.get("evidence_awareness", {})
 
     bins = a.get("bins", {}).get("memory/main", {})
     dts = sorted(bins, key=int)
@@ -213,11 +215,22 @@ elapsed time itself caused forgetting, accuracy would still fall there, and it d
 | --- | --- | --- | --- | --- |
 {type_rows}
 
-## Caveats
+## Robustness: dropping the audio-dependent questions
 
-- Vision only: {a['n_records'] - v['n_records']} records come from questions flagged
-  `need_audio`, which this model cannot answer in principle. The `vision_only_questions`
-  block in `m7_metrics.json` repeats every number with those excluded.
+{a['n_records'] - v['n_records']} records come from questions flagged `need_audio`, which a
+vision-only model cannot answer in principle. Re-running the whole analysis without them
+(n={vh.get('n_paired_questions', 0)} paired questions) changes nothing that matters:
+
+| quantity | all questions | vision-only |
+| --- | --- | --- |
+| accuracy, {lo_min}→{hi_min} min | {fmt_ci(h.get('delta_accuracy'))} | {fmt_ci(vh.get('delta_accuracy'))} |
+| confidence, {lo_min}→{hi_min} min | {fmt_ci(h.get('delta_confidence'))} | {fmt_ci(vh.get('delta_confidence'))} |
+| overconfidence gap | {fmt_ci(h.get('delta_gap'))} | {fmt_ci(vh.get('delta_gap'))} |
+| evidence vs none, accuracy | {fmt_ci(ea.get('delta_accuracy'))} | {fmt_ci(vea.get('delta_accuracy'))} |
+| evidence vs none, confidence | {fmt_ci(ea.get('delta_confidence'))} | {fmt_ci(vea.get('delta_confidence'))} |
+| `tokmatch_evkeep` accuracy | {fmt_ci(a.get('token_matched', {}).get('tokmatch_evkeep', {}).get('delta_accuracy'))} | {fmt_ci(v.get('token_matched', {}).get('tokmatch_evkeep', {}).get('delta_accuracy'))} |
+
+## Caveats
 - The model sees a *window* around the evidence, not the full 44 h history EgoLifeQA assumes,
   so absolute accuracy is not comparable to published EgoLifeQA numbers. The claim is about
   the slope and the gap, not the level.

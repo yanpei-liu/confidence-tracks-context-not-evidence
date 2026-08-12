@@ -5,8 +5,8 @@
 **But there is a metamemory failure here, just not the predicted one.** The sharpest result is
 not the Δt sweep — it is the comparison between having the evidence in context and not having it
 at all (see *Evidence awareness* below): that swap moves accuracy by
-+9.6 points and confidence by only
-+2.7. The model cannot tell whether
++9.7 points and confidence by only
++3.3. The model cannot tell whether
 it has the information. That is a recalibration target, and it does not depend on forgetting.
 
 ## Setup
@@ -27,20 +27,20 @@ It is a proxy, reported with ECE, not a calibrated probability.
 
 | Δt (min) | n | accuracy % | confidence % | gap (pp) | ECE | frames | visual tokens |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 314 | 40.8 | 72.0 | +31.3 | 0.313 | 26 | 1276 |
-| 5 | 315 | 41.0 | 68.5 | +27.5 | 0.275 | 74 | 3693 |
-| 15 | 315 | 40.3 | 66.7 | +26.4 | 0.265 | 194 | 9693 |
-| 30 | 314 | 39.2 | 64.1 | +24.9 | 0.249 | 374 | 18690 |
-| 60 | 314 | 34.7 | 62.4 | +27.7 | 0.277 | 734 | 36676 |
+| 1 | 373 | 42.9 | 72.1 | +29.2 | 0.292 | 26 | 1279 |
+| 5 | 373 | 41.0 | 69.3 | +28.3 | 0.283 | 74 | 3679 |
+| 15 | 373 | 39.4 | 66.7 | +27.3 | 0.274 | 194 | 9679 |
+| 30 | 373 | 38.9 | 64.7 | +25.8 | 0.258 | 374 | 18679 |
+| 60 | 373 | 36.5 | 62.4 | +26.0 | 0.260 | 734 | 36679 |
 
-Paired over the 314 questions present at both ends
+Paired over the 373 questions present at both ends
 (1 -> 60 min), cluster-bootstrapped over questions:
 
 | quantity | change | p |
 | --- | --- | --- |
-| accuracy | -6.0 [-10.5, -1.6] pp | 0.0120 |
-| confidence | -9.7 [-11.6, -7.7] pp | 0.0000 |
-| **overconfidence gap** | **-3.7 [-8.3, +1.0] pp** | 0.1216 |
+| accuracy | -6.4 [-10.5, -2.4] pp | 0.0024 |
+| confidence | -9.7 [-11.5, -7.9] pp | 0.0000 |
+| **overconfidence gap** | **-3.2 [-7.5, +1.0] pp** | 0.1376 |
 
 The gap row is the bin x {accuracy, confidence} interaction the design was powered for.
 
@@ -48,17 +48,17 @@ The gap row is the bin x {accuracy, confidence} interaction the design was power
 
 ## Evidence awareness — the actual metamemory failure
 
-Token-matched at 3693 visual tokens, paired over
-315 questions, the *only* difference being whether the window contains the evidence:
+Token-matched at 3679 visual tokens, paired over
+373 questions, the *only* difference being whether the window contains the evidence:
 
 | | no evidence in context | evidence in context | change |
 | --- | --- | --- | --- |
-| accuracy | 31.4% | 41.0% | **+9.6 [+4.4, +14.6] pp** |
-| confidence | 65.8% | 68.5% | **+2.7 [+0.4, +4.9] pp** |
+| accuracy | 31.4% | 41.0% | **+9.7 [+4.8, +14.5] pp** |
+| confidence | 66.0% | 69.3% | **+3.3 [+1.2, +5.4] pp** |
 
-Having the evidence is worth 9.6 points of accuracy but only
-2.7 points of confidence — the confidence signal is about
-3.6x weaker than the
+Having the evidence is worth 9.7 points of accuracy but only
+3.3 points of confidence — the confidence signal is about
+2.9x weaker than the
 competence it is supposed to track. The model is nearly as confident answering from nothing as
 from the evidence.
 
@@ -72,11 +72,11 @@ informative between that floor and the Δt=1 min bin — a narrow band here.
 
 | Δt (min) | n | accuracy % | confidence % |
 | --- | --- | --- | --- |
-| 1 | 309 | 54.4 | 85.6 |
-| 5 | 311 | 59.2 | 85.3 |
-| 15 | 306 | 50.0 | 81.4 |
-| 30 | 302 | 48.3 | 76.9 |
-| 60 | 299 | 42.5 | 75.0 |
+| 1 | 366 | 53.6 | 86.0 |
+| 5 | 366 | 57.9 | 85.4 |
+| 15 | 362 | 50.8 | 81.0 |
+| 30 | 361 | 47.4 | 78.1 |
+| 60 | 355 | 42.5 | 75.2 |
 
 This was meant to stay flat and rule generic long-context degradation *out*. It does not — it
 falls further than the memory questions do. Note the caveat that each checkpoint gets its own
@@ -87,8 +87,8 @@ is the token-matched block below.
 
 | arm | n | tokens (ref) | acc @15 min % | acc @60 min % | Δ accuracy |
 | --- | --- | --- | --- | --- | --- |
-| `tokmatch_uniform` | 315 | 9693 | 40.3 | 37.8 | -2.6 [-6.7, +1.3] pp |
-| `tokmatch_evkeep` | 315 | 9693 | 40.3 | 40.6 | +0.3 [-3.2, +3.5] pp |
+| `tokmatch_uniform` | 373 | 9679 | 39.4 | 37.0 | -2.4 [-5.9, +1.1] pp |
+| `tokmatch_evkeep` | 373 | 9679 | 39.4 | 39.7 | +0.3 [-2.9, +3.2] pp |
 
 `tokmatch_uniform` thins the whole window; `tokmatch_evkeep` keeps every frame near the
 evidence and thins only the filler, so it holds token count *and* evidence resolution fixed
@@ -99,15 +99,26 @@ elapsed time itself caused forgetting, accuracy would still fall there, and it d
 
 | category | acc @1 min % | acc @60 min % | conf @1 min % | conf @60 min % |
 | --- | --- | --- | --- | --- |
-| EntityLog | 36.2 | 31.4 | 73.3 | 66.3 |
-| EventRecall | 52.8 | 41.5 | 80.8 | 71.9 |
-| RelationMap | 33.0 | 31.1 | 61.7 | 48.6 |
+| EntityLog | 37.6 | 33.6 | 74.4 | 66.5 |
+| EventRecall | 52.4 | 43.5 | 81.8 | 73.0 |
+| RelationMap | 38.7 | 32.3 | 60.1 | 47.7 |
+
+## Robustness: dropping the audio-dependent questions
+
+1639 records come from questions flagged `need_audio`, which a
+vision-only model cannot answer in principle. Re-running the whole analysis without them
+(n=263 paired questions) changes nothing that matters:
+
+| quantity | all questions | vision-only |
+| --- | --- | --- |
+| accuracy, 1→60 min | -6.4 [-10.5, -2.4] pp | -6.4 [-11.4, -1.5] pp |
+| confidence, 1→60 min | -9.7 [-11.5, -7.9] pp | -9.4 [-11.5, -7.2] pp |
+| overconfidence gap | -3.2 [-7.5, +1.0] pp | -3.0 [-8.1, +2.3] pp |
+| evidence vs none, accuracy | +9.7 [+4.8, +14.5] pp | +11.4 [+5.3, +17.5] pp |
+| evidence vs none, confidence | +3.3 [+1.2, +5.4] pp | +4.0 [+1.6, +6.5] pp |
+| `tokmatch_evkeep` accuracy | +0.3 [-2.9, +3.2] pp | +0.8 [-3.0, +4.6] pp |
 
 ## Caveats
-
-- Vision only: 1472 records come from questions flagged
-  `need_audio`, which this model cannot answer in principle. The `vision_only_questions`
-  block in `m7_metrics.json` repeats every number with those excluded.
 - The model sees a *window* around the evidence, not the full 44 h history EgoLifeQA assumes,
   so absolute accuracy is not comparable to published EgoLifeQA numbers. The claim is about
   the slope and the gap, not the level.
