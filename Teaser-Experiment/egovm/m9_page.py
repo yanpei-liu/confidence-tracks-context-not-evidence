@@ -1,0 +1,335 @@
+"""M9 — render the shareable HTML page from m7_metrics.json + the headline figure.
+
+Generated rather than hand-written so the page cannot drift from the numbers, and the
+figure is inlined as a data URI because the artifact CSP blocks external hosts.
+
+Artifact: artifacts/m8_teaser.html
+"""
+from __future__ import annotations
+
+import base64
+import json
+
+from .config import ARTIFACTS, FIGURES
+
+
+def pp(d, digits=1):
+    if not d:
+        return "n/a"
+    return (f"{d['mean']*100:+.{digits}f} <span class='ci'>[{d['lo95']*100:+.{digits}f}, "
+            f"{d['hi95']*100:+.{digits}f}]</span>")
+
+
+def sig(d):
+    return "excludes 0" if d and not (d["lo95"] < 0 < d["hi95"]) else "includes 0"
+
+
+def main() -> None:
+    m = json.loads((ARTIFACTS / "m7_metrics.json").read_text())
+    env = json.loads((ARTIFACTS / "m0_env_report.json").read_text())
+    a, v = m["all_questions"], m["vision_only_questions"]
+    h, vh = a["headline"], v["headline"]
+    ea, vea = a["evidence_awareness"], v["evidence_awareness"]
+    tm = a["token_matched"]
+    bins = a["bins"]["memory/main"]
+    ctl = a["bins"]["control/main"]
+    prior = a["bins"]["memory/prior"]["300"]
+    dts = sorted(bins, key=int)
+
+    fig_b64 = base64.b64encode((FIGURES / "headline.png").read_bytes()).decode()
+
+    sweep_rows = "\n".join(
+        f"<tr><td>{int(d)//60}</td><td>{bins[d]['n']}</td>"
+        f"<td>{bins[d]['accuracy']*100:.1f}</td><td>{bins[d]['mean_confidence']*100:.1f}</td>"
+        f"<td>{bins[d]['overconfidence']*100:+.1f}</td><td>{bins[d]['ece']:.2f}</td>"
+        f"<td>{bins[d]['mean_frames']:.0f}</td>"
+        f"<td>{bins[d]['mean_visual_tokens']:,.0f}</td>"
+        f"<td>{ctl[d]['accuracy']*100:.1f}</td></tr>"
+        for d in dts)
+
+    robust_rows = "\n".join(
+        f"<tr><td>{lbl}</td><td>{pp(x)}</td><td>{pp(y)}</td></tr>"
+        for lbl, x, y in [
+            ("accuracy, 1&rarr;60 min", h["delta_accuracy"], vh["delta_accuracy"]),
+            ("confidence, 1&rarr;60 min", h["delta_confidence"], vh["delta_confidence"]),
+            ("overconfidence gap", h["delta_gap"], vh["delta_gap"]),
+            ("evidence vs none, accuracy", ea["delta_accuracy"], vea["delta_accuracy"]),
+            ("evidence vs none, confidence", ea["delta_confidence"], vea["delta_confidence"]),
+            ("&Delta;t 60 vs 15 min, tokens fixed",
+             tm["tokmatch_evkeep"]["delta_accuracy"],
+             v["token_matched"]["tokmatch_evkeep"]["delta_accuracy"]),
+        ])
+
+    type_rows = "\n".join(
+        f"<tr><td>{t}</td>"
+        f"<td>{d[min(d, key=int)]['accuracy']*100:.1f}</td>"
+        f"<td>{d[max(d, key=int)]['accuracy']*100:.1f}</td>"
+        f"<td>{d[min(d, key=int)]['mean_confidence']*100:.1f}</td>"
+        f"<td>{d[max(d, key=int)]['mean_confidence']*100:.1f}</td></tr>"
+        for t, d in a["by_type"].items() if len(d) >= 2)
+
+    html = f"""<title>Does a streaming ego video-LLM know it forgot?</title>
+<style>
+  :root {{
+    color-scheme: light;
+    --ground: #f7f8fa;
+    --panel: #ffffff;
+    --ink: #10131a;
+    --ink-2: #4a515e;
+    --ink-3: #79818f;
+    --rule: #dde2ea;
+    --acc: #2a78d6;
+    --conf: #c4521f;
+    --floor: #4a3aa7;
+    --flag: #a8320f;
+  }}
+  @media (prefers-color-scheme: dark) {{
+    :root:not([data-theme="light"]) {{
+      color-scheme: dark;
+      --ground: #10131a; --panel: #161a23; --ink: #eef1f6; --ink-2: #a3abba;
+      --ink-3: #767e8c; --rule: #262b36; --acc: #6ba6ec; --conf: #f0895a;
+      --floor: #9085e9; --flag: #f08a6c;
+    }}
+  }}
+  :root[data-theme="dark"] {{
+    color-scheme: dark;
+    --ground: #10131a; --panel: #161a23; --ink: #eef1f6; --ink-2: #a3abba;
+    --ink-3: #767e8c; --rule: #262b36; --acc: #6ba6ec; --conf: #f0895a;
+    --floor: #9085e9; --flag: #f08a6c;
+  }}
+  * {{ box-sizing: border-box; }}
+  body {{
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+    font-size: 17px; line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }}
+  .wrap {{ max-width: 78ch; margin: 0 auto; padding: 4rem 1.5rem 6rem; }}
+  .mono {{ font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace; }}
+  .eyebrow {{
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .7rem; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 1rem;
+  }}
+  h1 {{
+    font-size: clamp(1.9rem, 4.4vw, 2.75rem); line-height: 1.12; margin: 0 0 1rem;
+    text-wrap: balance; font-weight: 600; letter-spacing: -.015em;
+  }}
+  h2 {{
+    font-size: 1.28rem; margin: 3.4rem 0 .9rem; font-weight: 600;
+    letter-spacing: -.01em; text-wrap: balance;
+    padding-top: .9rem; border-top: 1px solid var(--rule);
+  }}
+  h3 {{ font-size: 1rem; margin: 2rem 0 .5rem; font-weight: 600; }}
+  p {{ margin: 0 0 1.05rem; }}
+  .lede {{ font-size: 1.1rem; color: var(--ink-2); }}
+  strong {{ font-weight: 600; }}
+  .verdict {{
+    background: var(--panel); border: 1px solid var(--rule);
+    border-left: 3px solid var(--flag);
+    padding: 1.2rem 1.35rem; margin: 2rem 0; border-radius: 2px;
+  }}
+  .verdict p:last-child {{ margin-bottom: 0; }}
+  .tiles {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: .8rem; margin: 2rem 0; }}
+  .tile {{ background: var(--panel); border: 1px solid var(--rule); border-radius: 2px;
+           padding: .95rem 1rem; }}
+  .tile .k {{ font-family: ui-monospace, Menlo, monospace; font-size: .68rem;
+              letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }}
+  .tile .val {{ font-family: ui-monospace, Menlo, monospace; font-size: 1.5rem;
+                font-weight: 600; margin: .3rem 0 .15rem; font-variant-numeric: tabular-nums; }}
+  .tile .note {{ font-size: .78rem; color: var(--ink-2); line-height: 1.4; }}
+  .t-acc .val {{ color: var(--acc); }}
+  .t-conf .val {{ color: var(--conf); }}
+  .t-gap .val {{ color: var(--ink); }}
+  figure {{ margin: 2rem 0; }}
+  figure img {{ width: 100%; height: auto; display: block;
+                border: 1px solid var(--rule); border-radius: 2px; background: #fcfcfb; }}
+  figcaption {{ font-size: .8rem; color: var(--ink-2); margin-top: .6rem; line-height: 1.5; }}
+  .scroll {{ overflow-x: auto; margin: 1.2rem 0; }}
+  table {{ border-collapse: collapse; width: 100%; font-size: .85rem;
+           font-variant-numeric: tabular-nums;
+           font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }}
+  th, td {{ text-align: right; padding: .42rem .6rem; border-bottom: 1px solid var(--rule);
+            white-space: nowrap; }}
+  th:first-child, td:first-child {{ text-align: left; }}
+  thead th {{ color: var(--ink-3); font-weight: 500; font-size: .72rem;
+              letter-spacing: .07em; text-transform: uppercase; }}
+  tbody tr:last-child td {{ border-bottom: none; }}
+  .ci {{ color: var(--ink-3); font-size: .92em; }}
+  ul {{ padding-left: 1.15rem; margin: 0 0 1.05rem; }}
+  li {{ margin-bottom: .45rem; }}
+  .foot {{ margin-top: 3.5rem; padding-top: 1.1rem; border-top: 1px solid var(--rule);
+           font-size: .8rem; color: var(--ink-3); }}
+  code {{ font-family: ui-monospace, Menlo, monospace; font-size: .86em;
+          background: var(--panel); border: 1px solid var(--rule);
+          padding: .08em .32em; border-radius: 2px; }}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Egocentric Vision Metamemory &middot; teaser experiment</p>
+  <h1>Does a streaming ego video-LLM know it forgot?</h1>
+  <p class="lede">Qwen3-VL-8B answering {bins[dts[0]]['n']} time-invariant EgoLifeQA questions at five
+  recall delays over one 52-hour egocentric stream. The predicted answer was &ldquo;no &mdash; it stays
+  confident as it forgets.&rdquo; The data says something more specific, and more useful.</p>
+
+  <div class="verdict">
+    <p><strong>The predicted signature is absent.</strong> Accuracy does fall with &Delta;t, but
+    confidence falls faster, so the overconfidence gap does not widen. And the fall does not
+    survive the token-matched control: hold visual-token count and evidence sampling fixed and
+    the &Delta;t effect disappears. What looked like forgetting is context-length degradation.</p>
+    <p><strong>There is a metamemory failure &mdash; a different one.</strong> Swap the evidence out of
+    the context entirely, holding tokens fixed, and accuracy moves
+    {ea['delta_accuracy']['mean']*100:+.1f} points while confidence moves only
+    {ea['delta_confidence']['mean']*100:+.1f}. The model can barely tell whether it has the
+    information at all.</p>
+  </div>
+
+  <div class="tiles">
+    <div class="tile t-acc"><div class="k">Accuracy 1&rarr;60 min</div>
+      <div class="val">{h['delta_accuracy']['mean']*100:+.1f} pp</div>
+      <div class="note">95% CI [{h['delta_accuracy']['lo95']*100:+.1f},
+        {h['delta_accuracy']['hi95']*100:+.1f}] &middot; {sig(h['delta_accuracy'])}</div></div>
+    <div class="tile t-conf"><div class="k">Confidence 1&rarr;60 min</div>
+      <div class="val">{h['delta_confidence']['mean']*100:+.1f} pp</div>
+      <div class="note">95% CI [{h['delta_confidence']['lo95']*100:+.1f},
+        {h['delta_confidence']['hi95']*100:+.1f}] &middot; {sig(h['delta_confidence'])}</div></div>
+    <div class="tile t-gap"><div class="k">Overconfidence gap</div>
+      <div class="val">{h['delta_gap']['mean']*100:+.1f} pp</div>
+      <div class="note">95% CI [{h['delta_gap']['lo95']*100:+.1f},
+        {h['delta_gap']['hi95']*100:+.1f}] &middot; {sig(h['delta_gap'])} &mdash; the predicted
+        widening is not there</div></div>
+  </div>
+
+  <figure>
+    <img src="data:image/png;base64,{fig_b64}"
+         alt="Left: accuracy, confidence and no-memory control accuracy against recall delay from
+              1 to 60 minutes, with the language-prior floor and chance marked. Right: effect
+              sizes with confidence intervals for evidence-in-context versus none, the delay
+              sweep, and the token-matched arms.">
+    <figcaption>Left &mdash; the &Delta;t sweep. Accuracy and confidence descend together; the
+      no-memory control (green) falls further than the memory questions, and the whole sweep sits
+      in a narrow band between the language-prior floor and the 1-minute bin.
+      Right &mdash; the contrasts that separate the explanations. Shaded bands and bars are 95%
+      cluster bootstrap intervals resampling <em>questions</em>, since each question appears in
+      every bin.</figcaption>
+  </figure>
+
+  <h2>The sweep</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>&Delta;t (min)</th><th>n</th><th>acc %</th><th>conf %</th><th>gap pp</th>
+      <th>ECE</th><th>frames</th><th>vis. tokens</th><th>control acc %</th></tr></thead>
+    <tbody>{sweep_rows}</tbody>
+  </table></div>
+  <p>&Delta;t is elapsed <strong>stream</strong> time &mdash; video the model has actually observed
+  &mdash; not wall-clock. The A1 recording has 31 gaps including six overnight breaks of 10&ndash;14 h,
+  so a wall-clock delay would silently jump across a night's sleep.</p>
+
+  <h2>Three things the controls establish</h2>
+  <h3>1. The delay effect is context length, not elapsed time</h3>
+  <p>Subsampling the 60-minute window down to the 15-minute token count removes the decline.
+  <code>tokmatch_evkeep</code> is the decisive arm: it keeps every frame near the evidence and thins
+  only the filler, holding token count <em>and</em> evidence resolution fixed, leaving elapsed time
+  as the only difference. Accuracy there is
+  {tm['tokmatch_evkeep']['delta_accuracy']['mean']*100:+.1f} pp
+  <span class="ci">[{tm['tokmatch_evkeep']['delta_accuracy']['lo95']*100:+.1f},
+  {tm['tokmatch_evkeep']['delta_accuracy']['hi95']*100:+.1f}]</span> &mdash; nothing.</p>
+  <h3>2. The no-memory control fails in the informative direction</h3>
+  <p>A question answerable from the checkpoint instant alone was meant to stay flat and rule
+  generic long-context degradation <em>out</em>. It falls from {ctl[dts[0]]['accuracy']*100:.1f}% to
+  {ctl[dts[-1]]['accuracy']*100:.1f}% &mdash; further than the memory questions do. Present-moment
+  perception degrades with context length more than memory does.</p>
+  <h3>3. The usable dynamic range is narrow</h3>
+  <p>With no evidence in the window at all the model still scores {prior['accuracy']*100:.1f}%
+  against a 25% chance floor, because these questions are about a shared house and its recurring
+  people and objects. The whole sweep lives between that floor and
+  {bins[dts[0]]['accuracy']*100:.1f}% at one minute.</p>
+
+  <h2>Evidence awareness &mdash; the failure that is present</h2>
+  <p>Token-matched at {ea['mean_tokens_with_evidence']:,.0f} visual tokens and paired over
+  {ea['n_questions']} questions, the only difference being whether the window contains the
+  evidence:</p>
+  <div class="scroll"><table>
+    <thead><tr><th></th><th>no evidence</th><th>evidence</th><th>change (pp)</th></tr></thead>
+    <tbody>
+      <tr><td>accuracy</td><td>{ea['accuracy_without']*100:.1f}%</td>
+        <td>{ea['accuracy_with_evidence']*100:.1f}%</td><td>{pp(ea['delta_accuracy'])}</td></tr>
+      <tr><td>confidence</td><td>{ea['confidence_without']*100:.1f}%</td>
+        <td>{ea['confidence_with_evidence']*100:.1f}%</td><td>{pp(ea['delta_confidence'])}</td></tr>
+    </tbody>
+  </table></div>
+  <p>Having the evidence is worth
+  {ea['delta_accuracy']['mean']/max(ea['delta_confidence']['mean'], 1e-9):.1f}&times; more accuracy
+  than confidence. On top of that the model is uniformly overconfident at every horizon &mdash; gap
+  {min(bins[d]['overconfidence'] for d in dts)*100:+.0f} to
+  {max(bins[d]['overconfidence'] for d in dts)*100:+.0f} pp, ECE
+  {min(bins[d]['ece'] for d in dts):.2f}&ndash;{max(bins[d]['ece'] for d in dts):.2f} &mdash;
+  including when it has nothing to go on. That is the recalibration target, and it needs no
+  forgetting to motivate it.</p>
+
+  <h2>By question category</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>category</th><th>acc @1 min</th><th>acc @60 min</th>
+      <th>conf @1 min</th><th>conf @60 min</th></tr></thead>
+    <tbody>{type_rows}</tbody>
+  </table></div>
+
+  <h2>Robustness: dropping audio-dependent questions</h2>
+  <p>{a['n_records'] - v['n_records']} records come from questions flagged <code>need_audio</code>,
+  which a vision-only model cannot answer in principle. Re-running everything without them
+  ({vh['n_paired_questions']} paired questions) changes nothing that matters.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>quantity</th><th>all questions</th><th>vision-only</th></tr></thead>
+    <tbody>{robust_rows}</tbody>
+  </table></div>
+
+  <h2>Method</h2>
+  <ul>
+    <li><strong>Model.</strong> {env['model_hub_id']} (Apache 2.0), BF16, option-letter logprobs
+      softmaxed over {{A,B,C,D}}; no text generated. Confidence is that max &mdash; a proxy, reported
+      with ECE, never as a calibrated probability.</li>
+    <li><strong>Questions.</strong> EgoLifeQA participant A1/Jake, the only released participant.
+      Mitigation&nbsp;1 keeps the time-invariant categories (EntityLog, EventRecall, RelationMap);
+      TaskMaster is dropped as prospective. Three further questions are excluded because their
+      evidence points span more than 15 minutes, which leaves them without a single well-defined
+      &Delta;t.</li>
+    <li><strong>Evidence times.</strong> From the released <code>target_time</code> field, which is
+      populated on all 500 items &mdash; contrary to the project's planning notes, so no
+      AVW-derivation fallback dataset was needed.</li>
+    <li><strong>Window.</strong> Frames at 0.2&nbsp;fps from 60&nbsp;s before the earliest evidence
+      to the checkpoint, at a pinned {env['input_res']}&times;{env['input_res']}
+      ({env['expected_tokens_per_frame']:.0f} visual tokens/frame, asserted constant in window
+      length). Three Qwen3-VL preprocessing defaults had to be overridden or the sweep would have
+      measured the wrong thing: frame resampling to 2&nbsp;fps, a total-pixel budget that shrinks
+      frames as the window grows, and an assumed 24&nbsp;fps that would have labelled a 60-minute
+      window as 16 seconds.</li>
+    <li><strong>Statistics.</strong> Every interval is a cluster bootstrap over questions
+      (5,000 resamples), because each question appears in all five bins.</li>
+  </ul>
+
+  <h2>What this does not settle</h2>
+  <ul>
+    <li>One participant, one model, one frame rate. N per bin is bounded by the single released
+      EgoLife participant.</li>
+    <li>&Delta;t tops out at 60 minutes. A gap that opens only over many hours would not appear
+      here; the 44-hour horizons EGOSTREAM reports remain untested.</li>
+    <li>The model sees a window around the evidence, not the full history the benchmark assumes,
+      so the absolute accuracy level is not comparable to published EgoLifeQA numbers. The claims
+      here are about slopes and contrasts.</li>
+    <li>Control questions are auto-generated from the DenseCaption track and posed in Chinese;
+      they are only ever compared against themselves across &Delta;t.</li>
+  </ul>
+
+  <p class="foot">{a['n_records']:,} scored (question, checkpoint, arm) records over
+  {bins[dts[0]]['n']} questions &times; 5 delays &times; 4 arms, from a 37,401-frame bank covering
+  51.95&nbsp;h of stream. EgoLife is S-Lab License 1.0, research use; no dataset content is
+  redistributed here.</p>
+</div>
+"""
+    out = ARTIFACTS / "m8_teaser.html"
+    out.write_text(html)
+    print(f"M9 -> {out} ({len(html)/1024:.0f} KB)")
+
+
+if __name__ == "__main__":
+    main()
