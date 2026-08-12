@@ -15,11 +15,12 @@ egovm/m3_frames.py        global 0.2 fps frame bank (decode once, re-read many)
 egovm/m4_plan.py          (question x Δt x arm) plan with explicit frame lists
 egovm/m5_controls.py      no-memory control MCQ from DenseCaption
 egovm/m6_score.py         option-letter logprob sweep  (GPU, resumable)
-egovm/m7_analyze.py       per-bin acc/conf/ECE, cluster bootstrap, headline figure
+egovm/m7_analyze.py       per-bin acc/conf/ECE, paired manipulation contrasts, figures
 egovm/scoring.py          Qwen3-VL option-letter scorer
+scripts/                  submission helpers, incl. submit_supplements.sh (S1-S4)
 slurm/                    batch scripts
 artifacts/                small, committed artifacts (no dataset content)
-figures/                  headline figure
+figures/                  headline.pdf (manipulation map) + supp_sweep.pdf (the Δt sweep)
 ```
 
 Data (video, frames, raw records) lives at `$EGOVM_DATA`

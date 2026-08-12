@@ -16,8 +16,12 @@ Arms:
   tokmatch_evkeep    same target count, but every frame up to (evidence_max + 60 s) is kept
                      and only the filler is thinned. Holds tokens *and* evidence resolution
                      fixed, so Δt is the only thing that moves.
+  tokmatch_ckptkeep  the mirror of evkeep: keeps the last CKPT_KEEP_S before the checkpoint
+                     at full density and thins the head. This is the token match that suits
+                     the *no-memory control*, which asks about the checkpoint instant — the
+                     other arms thin exactly the frames that question is about.
   prior              the same question over a window that contains **no** evidence (drawn
-                     >= 2 h away in stream time), matched to the Δt=5 min frame count. This
+                     >= 2 h away in stream time), matched frame-for-frame to that Δt bin. This
                      is the language-prior floor: what the model scores from the question and
                      options alone. Without it, "accuracy falls with Δt" is uninterpretable —
                      the drop only means forgetting if the Δt=5 min bin is meaningfully above
@@ -26,6 +30,11 @@ Arms:
 The two token-matched arms bracket the confound from both sides: if accuracy at Δt=60 min
 stays low in `tokmatch_evkeep` — same tokens, same evidence sampling — the drop cannot be
 context length or evidence resolution.
+
+Δt bins past DT_GRID_S (DT_GRID_EXT_S: 2 h, 4 h) carry the token-matched arms only. Once the
+context budget is spent there is nothing left to learn from letting the window grow, but
+elapsed time can keep going for free — those rows cost exactly what a Δt=30 min matched row
+costs, because the frame count is pinned.
 
 Artifact: artifacts/m4_eval_plan.jsonl
 """
@@ -37,8 +46,9 @@ import json
 import math
 
 from .config import (
-    ARTIFACTS, DT_GRID_S, INPUT_RES, MAX_EVIDENCE_SPAN_S, PRE_EVIDENCE_S, PRIOR_REF_DT_S, SAMPLE_FPS,
-    TOKMATCH_REF_DT_S, visual_tokens_per_frame,
+    ARTIFACTS, CKPT_KEEP_S, DT_GRID_EXT_S, DT_GRID_S, INPUT_RES, MAX_EVIDENCE_SPAN_S,
+    PRE_EVIDENCE_S, PRIOR_ALL_BINS, PRIOR_REF_DT_S, SAMPLE_FPS, TOKMATCH_REF_DT_S,
+    visual_tokens_per_frame,
 )
 from .m2_stream_index import StreamIndex
 
@@ -71,6 +81,19 @@ def evkeep_subsample(gids: list[int], k: int, keep_until_g: int) -> list[int]:
     return head + uniform_subsample(tail, k - len(head))
 
 
+def ckptkeep_subsample(gids: list[int], k: int, keep_from_g: int) -> list[int]:
+    """Keep every frame with gid >= keep_from_g; thin the head to reach k total.
+
+    The mirror of `evkeep_subsample`, for the question kind that asks about the checkpoint
+    instead of the evidence.
+    """
+    tail = [g for g in gids if g >= keep_from_g]
+    head = [g for g in gids if g < keep_from_g]
+    if len(tail) >= k:
+        return uniform_subsample(tail, k) if k < len(tail) else tail
+    return uniform_subsample(head, k - len(tail)) + tail
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--include-screen", action="store_true",
@@ -101,7 +124,7 @@ def main() -> None:
         keep_until_g = math.floor((s_ev_max + 60.0) / GRID_S)
 
         per_dt = {}
-        for dt in DT_GRID_S:
+        for dt in tuple(DT_GRID_S) + tuple(DT_GRID_EXT_S):
             ck = s_ev_max + dt
             if ck > idx.total_s:
                 dropped[dt] += 1
@@ -115,12 +138,15 @@ def main() -> None:
         ref = per_dt.get(TOKMATCH_REF_DT_S)
         n_ref = len(ref[0]) if ref else None
 
-        # language-prior floor: an evidence-free window of the same size as the Δt=5 min one
-        prior_gids = None
-        short = per_dt.get(PRIOR_REF_DT_S)
-        if short:
-            n_short = len(short[0])
-            span_g = math.ceil(n_short * 1.0)
+        # language-prior floor: an evidence-free window matched frame-for-frame to the bin
+        prior_dts = [dt for dt in DT_GRID_S if PRIOR_ALL_BINS] or [PRIOR_REF_DT_S]
+        prior_gids: dict[int, list[int]] = {}
+        for dt in prior_dts:
+            here = per_dt.get(dt)
+            if not here:
+                continue
+            n_here = len(here[0])
+            span_g = math.ceil(n_here * 1.0)
             ev_lo_g = math.floor((lo - 7200) / GRID_S)
             ev_hi_g = math.ceil((s_ev_max + 7200) / GRID_S)
             max_g = n_frames_total - 1
@@ -129,16 +155,19 @@ def main() -> None:
             if starts:
                 s0 = starts[(int(q["qid"]) * 7919) % len(starts)]
                 cand = [g for g in range(s0, s0 + span_g) if g not in missing]
-                if len(cand) >= max(8, n_short // 2):
-                    prior_gids = cand[:n_short]
+                if len(cand) >= max(8, n_here // 2):
+                    prior_gids[dt] = cand[:n_here]
 
         for dt, (gids, ck) in per_dt.items():
-            arms = {"main": gids}
+            arms = {"main": gids} if dt in DT_GRID_S else {}
             if n_ref is not None and dt > TOKMATCH_REF_DT_S and len(gids) > n_ref:
+                keep_from_g = math.ceil((ck - CKPT_KEEP_S) / GRID_S)
                 arms["tokmatch_uniform"] = uniform_subsample(gids, n_ref)
                 arms["tokmatch_evkeep"] = evkeep_subsample(gids, n_ref, keep_until_g)
-            if dt == PRIOR_REF_DT_S and prior_gids:
-                arms["prior"] = prior_gids
+                if dt in DT_GRID_S:  # the control question only exists in the main bins
+                    arms["tokmatch_ckptkeep"] = ckptkeep_subsample(gids, n_ref, keep_from_g)
+            if dt in prior_gids:
+                arms["prior"] = prior_gids[dt]
             for arm, fr in arms.items():
                 rows.append({
                     "row_id": f"{q['qid']}|{dt}|{arm}",
@@ -167,13 +196,24 @@ def main() -> None:
         lo_dt, hi_dt = DT_GRID_S[i], DT_GRID_S[i + 1]
         assert sum(main_n[hi_dt]) / len(main_n[hi_dt]) > sum(main_n[lo_dt]) / len(main_n[lo_dt]), \
             "main arm frame count must grow with Δt"
-    for arm in ("tokmatch_uniform", "tokmatch_evkeep"):
-        ns = {r["qid"]: r["n_frames"] for r in rows if r["arm"] == arm and r["dt_s"] == 3600}
-        ref = {r["qid"]: r["n_frames"] for r in rows if r["arm"] == "main"
-               and r["dt_s"] == TOKMATCH_REF_DT_S}
-        bad = [k for k in ns if abs(ns[k] - ref[k]) > 1]
-        assert not bad, f"{arm} not token-matched for {len(bad)} questions"
+    ref = {r["qid"]: r["n_frames"] for r in rows if r["arm"] == "main"
+           and r["dt_s"] == TOKMATCH_REF_DT_S}
+    for arm in ("tokmatch_uniform", "tokmatch_evkeep", "tokmatch_ckptkeep"):
+        for dt in sorted({r["dt_s"] for r in rows if r["arm"] == arm}):
+            ns = {r["qid"]: r["n_frames"] for r in rows if r["arm"] == arm and r["dt_s"] == dt}
+            bad = [k for k in ns if abs(ns[k] - ref[k]) > 1]
+            assert not bad, f"{arm}@{dt}s not token-matched for {len(bad)} questions"
+    for dt in sorted({r["dt_s"] for r in rows if r["arm"] == "prior"}):
+        ns = {r["qid"]: r["n_frames"] for r in rows if r["arm"] == "prior" and r["dt_s"] == dt}
+        mn = {r["qid"]: r["n_frames"] for r in rows if r["arm"] == "main" and r["dt_s"] == dt}
+        bad = [k for k in ns if abs(ns[k] - mn[k]) > 1]
+        assert not bad, f"prior@{dt}s not token-matched to main for {len(bad)} questions"
     assert all(len(set(r["gids"])) == len(r["gids"]) for r in rows), "duplicate gids"
+    # the extended bins exist to move elapsed time *without* moving anything else
+    for dt in DT_GRID_EXT_S:
+        arms = {r["arm"] for r in rows if r["dt_s"] == dt}
+        assert arms <= {"tokmatch_uniform", "tokmatch_evkeep"}, \
+            f"Δt={dt}s must carry token-matched arms only, got {sorted(arms)}"
 
     print(f"M4 OK: {len(rows)} rows over {len(sel)-n_span_excluded} questions "
           f"({n_span_excluded} excluded: evidence span > {MAX_EVIDENCE_SPAN_S:.0f}s) -> {out}")

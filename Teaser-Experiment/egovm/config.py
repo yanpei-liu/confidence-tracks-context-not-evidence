@@ -34,7 +34,34 @@ DROP_TYPES = ("TaskMaster",)  # prospective / state-dependent
 # arms exist.
 DT_GRID_S = (60, 300, 900, 1800, 3600)
 TOKMATCH_REF_DT_S = 900  # token-matched arm copies the Δt=15 min frame count
-PRIOR_REF_DT_S = 300  # language-prior arm copies the Δt=5 min frame count
+
+# S1 — elapsed time past the point where the context budget is spent. The design gives the
+# model the whole window while it fits; once the budget is saturated (that is the Δt=15 min
+# frame count) tokens are pinned there and only elapsed time keeps growing. `main` therefore
+# stops at 60 min and the token-fixed arms carry the elapsed-time axis out to 4 h. Because
+# tokens are pinned, these bins cost no more per row than the Δt=30 min token-matched rows.
+DT_GRID_EXT_S = (7200, 14400)
+
+PRIOR_REF_DT_S = 300  # the prior/main pair used for the headline evidence-awareness contrast
+# S3 — run the no-evidence floor in every Δt bin, token-matched bin by bin, so the *value*
+# of having the evidence can be read as a function of Δt rather than at one point.
+PRIOR_ALL_BINS = True
+
+# S2 — the control asks about the checkpoint instant, so `evkeep` is the wrong token match
+# for it: that arm thins exactly the frames the control is about. `tokmatch_ckptkeep` is its
+# mirror, keeping the last CKPT_KEEP_S of the window at full density and thinning the head.
+CKPT_KEEP_S = 120.0
+# Arms the no-memory control question rides on. `main` is the original sweep; the two
+# token-matched arms answer whether the control's own decline is context length.
+CONTROL_ARMS = ("main", "tokmatch_ckptkeep", "tokmatch_uniform")
+
+# S4 — an explicit way to say "the video does not tell me". Scored as a fifth letter, in a
+# separate records file so the five-way softmax never mixes into the four-way headline.
+ABSTAIN_LETTER = "E"
+ABSTAIN_TEXT = "There is not enough information in the video to answer."
+ABSTAIN_DT_S = (300, 3600)
+ABSTAIN_ARMS = ("main", "prior")
+
 PRE_EVIDENCE_S = 60.0  # lead-in before the earliest evidence point
 
 # A question whose evidence points are spread far apart has no single Δt: the window must

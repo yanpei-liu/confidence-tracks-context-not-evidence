@@ -1,8 +1,9 @@
 """Option-letter logprob scoring for Qwen3-VL.
 
-Confidence is the softmax over the logits of the four option-letter tokens {A,B,C,D} at the
-first generated position; correctness is whether the argmax matches the gold letter. No text
-is generated. This is the `multiple_choice`/`loglikelihood` protocol used by lmms-eval.
+Confidence is the softmax over the logits of the option-letter tokens — {A,B,C,D}, or
+{A,B,C,D,E} when the abstention option is offered — at the first generated position;
+correctness is whether the argmax matches the gold letter. No text is generated. This is the
+`multiple_choice`/`loglikelihood` protocol used by lmms-eval.
 
 Reported as "model confidence (option-letter softmax)" — it is a proxy, not a calibrated
 probability.
@@ -23,9 +24,14 @@ SYSTEM = (
 
 PROMPT = (
     "{question}\n"
-    "A. {a}\nB. {b}\nC. {c}\nD. {d}\n"
+    "{options}\n"
     "Answer with the letter of the correct option only."
 )
+
+
+def option_block(choices: dict) -> str:
+    """"A. …\\nB. …" for however many options this item has (four, or five with abstention)."""
+    return "\n".join(f"{k.upper()}. {v}" for k, v in sorted(choices.items()))
 
 
 @dataclass
@@ -35,10 +41,15 @@ class LetterScorer:
     letter_ids: list[int]
     device: str
     input_res: int = INPUT_RES
+    letters: tuple = tuple(OPTION_LETTERS)
 
     @classmethod
     def load(cls, model_id: str = MODEL_ID, dtype=torch.bfloat16, attn: str = "sdpa",
-             input_res: int = INPUT_RES):
+             input_res: int = INPUT_RES, letters=OPTION_LETTERS):
+        """`letters` is the answer alphabet the softmax runs over — {A,B,C,D} normally, or
+        {A,B,C,D,E} when the abstention option is offered (S4). It is a property of the
+        *scorer*, not of the item, because the softmax denominator has to be fixed across
+        every row in a records file for the confidences to be comparable."""
         from transformers import AutoProcessor, Qwen3VLForConditionalGeneration
 
         processor = AutoProcessor.from_pretrained(model_id)
@@ -48,18 +59,18 @@ class LetterScorer:
         model.eval()
         tok = processor.tokenizer
         ids = []
-        for L in OPTION_LETTERS:
+        for L in letters:
             enc = tok.encode(L, add_special_tokens=False)
             if len(enc) != 1:
                 raise RuntimeError(f"letter {L!r} is not a single token: {enc}")
             ids.append(enc[0])
         if len(set(ids)) != len(ids):
             raise RuntimeError(f"option letters collide: {ids}")
-        return cls(model, processor, ids, "cuda:0", input_res)
+        return cls(model, processor, ids, "cuda:0", input_res, tuple(letters))
 
     def build_inputs(self, images: list, question: str, choices: dict,
                      frame_offsets: list[int] | None = None):
-        """images: list of PIL.Image forming the video; choices: {'a'..'d': str}.
+        """images: list of PIL.Image forming the video; choices: {'a'..'d'(..'e'): str}.
 
         `frame_offsets` are the frames' positions on the 0.2 fps grid *relative to the first
         frame of this window*, so frame k sits at ``frame_offsets[k] * 5 s``. They must be
@@ -78,7 +89,8 @@ class LetterScorer:
                 "role": "user",
                 "content": [
                     {"type": "video"},
-                    {"type": "text", "text": PROMPT.format(question=question, **choices)},
+                    {"type": "text",
+                     "text": PROMPT.format(question=question, options=option_block(choices))},
                 ],
             },
         ]
@@ -118,11 +130,11 @@ class LetterScorer:
         vis = int(inputs["video_grid_thw"].prod(dim=-1).sum().item() // 4) \
             if "video_grid_thw" in inputs else None
         return {
-            "letter_probs": {L: round(v, 6) for L, v in zip(OPTION_LETTERS, p)},
+            "letter_probs": {L: round(v, 6) for L, v in zip(self.letters, p)},
             "letter_logprobs": {
-                L: round(v, 4) for L, v in zip(OPTION_LETTERS, logprobs_full.tolist())
+                L: round(v, 4) for L, v in zip(self.letters, logprobs_full.tolist())
             },
-            "pred": OPTION_LETTERS[pred_i],
+            "pred": self.letters[pred_i],
             "confidence": round(p[pred_i], 6),
             "entropy": round(-sum(q * math.log(max(q, 1e-12)) for q in p), 6),
             "n_input_tokens": n_tok,

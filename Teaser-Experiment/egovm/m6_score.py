@@ -5,7 +5,9 @@ Resumable by construction: every completed row appends a line to m6_records.json
 sweep is meant to be run as several jobs (or sharded) against the same output file.
 
 Each plan row produces up to two records: the memory question, and — over the *same frames* —
-the no-memory control for that checkpoint.
+the no-memory control for that checkpoint (on the arms listed in CONTROL_ARMS). A row is
+re-visited if *either* record is missing, so widening CONTROL_ARMS backfills controls onto arms
+whose memory question already ran.
 
 Raw per-(question, checkpoint) records are the primary artifact; the figure is derived.
 """
@@ -19,7 +21,10 @@ from pathlib import Path
 
 from PIL import Image
 
-from .config import ARTIFACTS, BIG_ARTIFACTS, DT_GRID_S, MODEL_ID, QA_JSON, SAMPLE_FPS
+from .config import (
+    ABSTAIN_LETTER, ABSTAIN_TEXT, ARTIFACTS, BIG_ARTIFACTS, CONTROL_ARMS, DT_GRID_S, MODEL_ID,
+    OPTION_LETTERS, QA_JSON, SAMPLE_FPS,
+)
 from .m3_frames import frame_path
 
 RECORDS = BIG_ARTIFACTS / "m6_records.jsonl"
@@ -62,10 +67,21 @@ def main() -> None:
     ap.add_argument("--shard", default="0/1", help="i/n — split the plan across jobs")
     ap.add_argument("--out", default=str(RECORDS))
     ap.add_argument("--no-control", action="store_true")
+    ap.add_argument("--abstain", action="store_true",
+                    help="S4: offer a fifth option ('not enough information in the video') and "
+                         "score the softmax over five letters. Implies --no-control and must "
+                         "write to its own --out: a five-way softmax is not comparable with the "
+                         "four-way confidences the headline is built on.")
     ap.add_argument("--time-budget-s", type=int, default=0,
                     help="stop cleanly before the Slurm wall limit")
     ap.add_argument("--order", default="hard-first", choices=["hard-first", "plan", "easy-first"])
     a = ap.parse_args()
+
+    # abstention rows are a separate record kind so they never merge into the four-way
+    # confidences: the softmax denominator is different and the numbers are not comparable
+    mem_kind = "memory_abstain" if a.abstain else "memory"
+    if a.abstain and Path(a.out) == RECORDS:
+        raise SystemExit("--abstain needs its own --out (see the flag's help)")
 
     plan = [json.loads(l) for l in (ARTIFACTS / "m4_eval_plan.jsonl").read_text().splitlines()]
     if a.arms != "all":
@@ -97,25 +113,38 @@ def main() -> None:
                     done.add(json.loads(line)["record_id"])
                 except Exception:  # noqa: BLE001 - tolerate a torn final line
                     pass
-    todo = [r for r in plan if f"{r['row_id']}|memory" not in done]
-    if a.limit:
-        todo = todo[: a.limit]
-    print(f"M6: {len(todo)} rows to run ({len(done)} records already present)", flush=True)
-    if not todo:
-        return
-
     raw = {str(x["ID"]): x for x in json.loads(QA_JSON.read_text())}
     controls = {}
     cpath = ARTIFACTS / "m5_control_questions.jsonl"
-    if cpath.exists() and not a.no_control:
+    if cpath.exists() and not (a.no_control or a.abstain):
         for line in cpath.read_text().splitlines():
             c = json.loads(line)
             controls[c["control_id"]] = c
 
+    def control_for(r):
+        return controls.get(f"{r['qid']}|{r['dt_s']}") if r["arm"] in CONTROL_ARMS else None
+
+    # A row is outstanding if *either* of its records is missing. Checking only the memory
+    # record would silently skip rows whose memory question ran under an earlier config but
+    # whose control did not — which is exactly the state S2 leaves the token-matched arms in.
+    def wanted(r) -> tuple[bool, bool]:
+        return (f"{r['row_id']}|{mem_kind}" not in done,
+                control_for(r) is not None and f"{r['row_id']}|control" not in done)
+
+    todo = [r for r in plan if any(wanted(r))]
+    if a.limit:
+        todo = todo[: a.limit]
+    n_ctl_only = sum(1 for r in todo if not wanted(r)[0])
+    print(f"M6: {len(todo)} rows to run ({len(done)} records already present"
+          f"{f', {n_ctl_only} needing only the control' if n_ctl_only else ''})", flush=True)
+    if not todo:
+        return
+
     from .scoring import LetterScorer
 
     t_load = time.time()
-    sc = LetterScorer.load()
+    letters = (list(OPTION_LETTERS) + [ABSTAIN_LETTER]) if a.abstain else list(OPTION_LETTERS)
+    sc = LetterScorer.load(letters=letters)
     print(f"model loaded in {time.time()-t_load:.1f}s", flush=True)
 
     t_start = time.time()
@@ -141,10 +170,15 @@ def main() -> None:
             # markers stay truthful for the non-uniformly sampled arms too
             offsets = [g - r["gids"][0] for g in r["gids"]]
 
+            want_mem, want_ctl = wanted(r)
+            choices = {c: q[f"choice_{c}"] for c in "abcd"}
+            if a.abstain:
+                choices[ABSTAIN_LETTER.lower()] = ABSTAIN_TEXT
+
             t0 = time.time()
             try:
-                res = score_resilient(sc, frames, q["question"],
-                                      {c: q[f"choice_{c}"] for c in "abcd"}, offsets)
+                res = score_resilient(sc, frames, q["question"], choices, offsets) \
+                    if want_mem else None
             except Exception as e:  # noqa: BLE001
                 # A 60 min window is ~37k visual tokens and the vision tower allocates it in
                 # one block; GPUs here are shared, so the memory actually available varies
@@ -158,15 +192,20 @@ def main() -> None:
                 torch.cuda.empty_cache()
                 continue
             res_t = time.time() - t0
-            rec = dict(base, record_id=f"{r['row_id']}|memory", question_kind="memory",
-                       gold=r["answer"], correct=res["pred"] == r["answer"],
-                       frame_load_s=round(t_load_f, 2), score_s=round(res_t, 2), **res)
-            f.write(json.dumps(rec) + "\n")
+            if res is not None:
+                rec = dict(base, record_id=f"{r['row_id']}|{mem_kind}", question_kind=mem_kind,
+                           gold=r["answer"], correct=res["pred"] == r["answer"],
+                           frame_load_s=round(t_load_f, 2), score_s=round(res_t, 2), **res)
+                if a.abstain:
+                    rec["abstained"] = res["pred"] == ABSTAIN_LETTER
+                f.write(json.dumps(rec) + "\n")
 
-            # The control exists to rule out generic long-context degradation along the Δt
-            # sweep, so it only rides on the `main` arm; running it on the token-matched and
-            # prior arms would roughly double the sweep for no additional claim.
-            ctl = controls.get(f"{r['qid']}|{r['dt_s']}") if r["arm"] == "main" else None
+            # The control rides on `main` (the sweep it was designed for) and on the two
+            # token-matched arms that suit a present-tense question, which is what shows
+            # whether the control's *own* decline along Δt is context length rather than
+            # anything about the checkpoint. Control ids are keyed `qid|dt_s`, so the same
+            # control MCQ rides every arm at a given checkpoint and the comparison is paired.
+            ctl = control_for(r) if want_ctl else None
             if ctl is not None:
                 t0 = time.time()
                 cres = score_resilient(sc, frames, ctl["question"], ctl["choices"], offsets)

@@ -10,7 +10,7 @@ from __future__ import annotations
 import base64
 import json
 
-from .config import ARTIFACTS, FIGURES
+from .config import ARTIFACTS, FIGURES, PRIOR_REF_DT_S
 
 
 def pp(d, digits=1):
@@ -35,6 +35,38 @@ def main() -> None:
     ctl = a["bins"]["control/main"]
     prior = a["bins"]["memory/prior"]["300"]
     dts = sorted(bins, key=int)
+
+    contrasts = a["contrasts"]
+    el = next(contrasts[k] for _, k in
+              sorted((int(k.split("_")[-1][:-3]), k) for k in contrasts
+                     if k.startswith("more_elapsed_time_"))[-1:])
+    tk = contrasts["fewer_tokens"]
+    # the prior contrast at the bin the evidence-awareness pair is defined on; with the prior
+    # arm in every bin (S3) the key carries a suffix
+    ev = contrasts.get("evidence_present") or contrasts[
+        f"evidence_present_{PRIOR_REF_DT_S // 60}min"]
+    dec = a["decomposition"]
+    it = a["item_transitions"]
+    disc = a["discrimination"]
+    mem_auc = sorted((int(k.split("/")[-1]), val["auroc"]) for k, val in disc.items()
+                     if k.startswith("memory/main/"))
+    auc_lo, auc_hi = mem_auc[0][1], mem_auc[-1][1]
+    auc_prior = next(val["auroc"] for k, val in disc.items() if k.startswith("memory/prior/"))
+
+    # ordered as the argument runs, not by effect size: the contrasts that carry the claim are
+    # the smallest numbers in the table
+    def rank(key: str) -> tuple:
+        order = ["more_elapsed_time_", "fewer_tokens", "evidence_present", "evidence_resolution",
+                 "raw_sweep", "control_sweep", "question_kind_", "control_"]
+        for i, pref in enumerate(order):
+            if key == pref or key.startswith(pref):
+                return (i, key)
+        return (len(order), key)
+
+    contrast_rows = "\n".join(
+        f"<tr><td>{c['label']}</td><td>{pp(c['delta_accuracy'])}</td>"
+        f"<td>{pp(c['delta_confidence'])}</td><td>{c['n_questions']}</td></tr>"
+        for _, c in sorted(contrasts.items(), key=lambda kv: rank(kv[0])))
 
     fig_b64 = base64.b64encode((FIGURES / "headline.png").read_bytes()).decode()
 
@@ -171,49 +203,91 @@ def main() -> None:
   <h1>Does a streaming ego video-LLM know it forgot?</h1>
   <p class="lede">Qwen3-VL-8B answering {bins[dts[0]]['n']} time-invariant EgoLifeQA questions at five
   recall delays over one 52-hour egocentric stream. The predicted answer was &ldquo;no &mdash; it stays
-  confident as it forgets.&rdquo; The data says something more specific, and more useful.</p>
+  confident as it forgets.&rdquo; What the controls actually show is stranger: its confidence
+  <em>does</em> move, consistently, and never for a reason that has anything to do with what it
+  can answer.</p>
 
   <div class="verdict">
-    <p><strong>The predicted signature is absent.</strong> Accuracy does fall with &Delta;t, but
-    confidence falls faster, so the overconfidence gap does not widen. And the fall does not
-    survive the token-matched control: hold visual-token count and evidence sampling fixed and
-    the &Delta;t effect disappears. What looked like forgetting is context-length degradation.</p>
-    <p><strong>There is a metamemory failure &mdash; a different one.</strong> Swap the evidence out of
-    the context entirely, holding tokens fixed, and accuracy moves
-    {ea['delta_accuracy']['mean']*100:+.1f} points while confidence moves only
-    {ea['delta_confidence']['mean']*100:+.1f}. The model can barely tell whether it has the
-    information at all.</p>
+    <p><strong>Confidence responds to the one thing that costs no accuracy.</strong> Hold the
+    visual-token count and the evidence sampling fixed and let only elapsed time grow: accuracy
+    moves {el['delta_accuracy']['mean']*100:+.1f} pp &mdash; nothing &mdash; while confidence drops
+    {el['delta_confidence']['mean']*100:.1f} pp. Hold elapsed time fixed and cut the context to a
+    quarter instead: accuracy moves {tk['delta_accuracy']['mean']*100:+.1f} pp and confidence
+    {tk['delta_confidence']['mean']*100:+.1f}. The two measures are reading different variables.</p>
+    <p><strong>And it barely notices whether it has the evidence.</strong> Swapping the evidence
+    out of the context entirely, tokens held fixed, moves accuracy
+    {ev['delta_accuracy']['mean']*100:+.1f} points and confidence only
+    {ev['delta_confidence']['mean']*100:+.1f} &mdash; a
+    {ev['delta_accuracy']['mean']/max(ev['delta_confidence']['mean'], 1e-9):.1f}&times;
+    under-reaction to the largest accuracy effect in the experiment.</p>
+    <p><strong>The originally predicted signature is absent.</strong> The overconfidence gap does
+    not widen with &Delta;t ({h['delta_gap']['mean']*100:+.1f} pp
+    <span class="ci">[{h['delta_gap']['lo95']*100:+.1f}, {h['delta_gap']['hi95']*100:+.1f}]</span>,
+    {sig(h['delta_gap'])}). Both measures fall over the raw sweep &mdash; but for different
+    reasons, which is what makes the sweep alone uninterpretable.</p>
   </div>
 
   <div class="tiles">
-    <div class="tile t-acc"><div class="k">Accuracy 1&rarr;60 min</div>
-      <div class="val">{h['delta_accuracy']['mean']*100:+.1f} pp</div>
-      <div class="note">95% CI [{h['delta_accuracy']['lo95']*100:+.1f},
-        {h['delta_accuracy']['hi95']*100:+.1f}] &middot; {sig(h['delta_accuracy'])}</div></div>
-    <div class="tile t-conf"><div class="k">Confidence 1&rarr;60 min</div>
-      <div class="val">{h['delta_confidence']['mean']*100:+.1f} pp</div>
-      <div class="note">95% CI [{h['delta_confidence']['lo95']*100:+.1f},
-        {h['delta_confidence']['hi95']*100:+.1f}] &middot; {sig(h['delta_confidence'])}</div></div>
-    <div class="tile t-gap"><div class="k">Overconfidence gap</div>
-      <div class="val">{h['delta_gap']['mean']*100:+.1f} pp</div>
-      <div class="note">95% CI [{h['delta_gap']['lo95']*100:+.1f},
-        {h['delta_gap']['hi95']*100:+.1f}] &middot; {sig(h['delta_gap'])} &mdash; the predicted
-        widening is not there</div></div>
+    <div class="tile t-conf"><div class="k">+45 min elapsed, context pinned</div>
+      <div class="val">{el['delta_accuracy']['mean']*100:+.1f} acc /
+        {el['delta_confidence']['mean']*100:+.1f} conf</div>
+      <div class="note">confidence moves, accuracy does not &middot;
+        {sig(el['delta_confidence'])} on confidence</div></div>
+    <div class="tile t-acc"><div class="k">4&times; the context, &Delta;t pinned</div>
+      <div class="val">{-tk['delta_accuracy']['mean']*100:+.1f} acc /
+        {-tk['delta_confidence']['mean']*100:+.1f} conf</div>
+      <div class="note">accuracy moves, confidence does not &middot;
+        {sig(tk['delta_accuracy'])} on accuracy</div></div>
+    <div class="tile t-gap"><div class="k">Evidence in context vs none</div>
+      <div class="val">{ev['delta_accuracy']['mean']*100:+.1f} acc /
+        {ev['delta_confidence']['mean']*100:+.1f} conf</div>
+      <div class="note">both move, but confidence
+        {ev['delta_accuracy']['mean']/max(ev['delta_confidence']['mean'], 1e-9):.1f}&times;
+        too little</div></div>
   </div>
 
   <figure>
     <img src="data:image/png;base64,{fig_b64}"
-         alt="Left: accuracy, confidence and no-memory control accuracy against recall delay from
-              1 to 60 minutes, with the language-prior floor and chance marked. Right: effect
-              sizes with confidence intervals for evidence-in-context versus none, the delay
-              sweep, and the token-matched arms.">
-    <figcaption>Left &mdash; the &Delta;t sweep. Accuracy and confidence descend together; the
-      no-memory control (green) falls further than the memory questions, and the whole sweep sits
-      in a narrow band between the language-prior floor and the 1-minute bin.
-      Right &mdash; the contrasts that separate the explanations. Shaded bands and bars are 95%
-      cluster bootstrap intervals resampling <em>questions</em>, since each question appears in
-      every bin.</figcaption>
+         alt="Three panels. Left: accuracy and confidence against recall delay, once with context
+              growing with the delay and once with context pinned at the 15-minute budget; the
+              pinned accuracy line is flat while the pinned confidence line keeps falling. Middle:
+              a scatter of change in accuracy against change in confidence for each manipulation,
+              with a diagonal marking where confidence would track competence; every point is off
+              the diagonal. Right: confidence change for items kept versus items lost, which are
+              indistinguishable, and AUROC against delay, which is flat.">
+    <figcaption><strong>A</strong> &mdash; two &Delta;t sweeps. With context growing, both measures
+      fall. With context pinned at the 15-minute budget, accuracy is flat and confidence still
+      falls. <strong>B</strong> &mdash; each manipulation placed by what it moves; the diagonal is
+      where confidence would track competence, and nothing sits on it. <strong>C</strong> &mdash;
+      the confidence drop is the same on items the model kept and items it lost, while its ability
+      to <em>rank</em> its own answers is untouched by &Delta;t. All intervals are 95% cluster
+      bootstraps resampling <em>questions</em>, since each question appears in every bin.</figcaption>
   </figure>
+
+  <h2>What moves accuracy, and what moves confidence</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>manipulation</th><th>&Delta; accuracy (pp)</th><th>&Delta; confidence (pp)</th>
+      <th>n</th></tr></thead>
+    <tbody>{contrast_rows}</tbody>
+  </table></div>
+  <p>The two token-matched arms are what make elapsed time and context length separately
+  identifiable. The observed &Delta;t=15&rarr;60 min change in the <code>main</code> arm splits
+  cleanly into the two: accuracy&rsquo;s decline is
+  {dec['accuracy']['context_length']*100:+.1f} pp of context length and
+  {dec['accuracy']['elapsed_time']*100:+.1f} pp of elapsed time, while confidence&rsquo;s is
+  {dec['confidence']['elapsed_time']*100:+.1f} pp of elapsed time and
+  {dec['confidence']['context_length']*100:+.1f} pp of context length.</p>
+
+  <h2>A flat discount, not item knowledge</h2>
+  <p>Pooling over adjacent &Delta;t steps and keeping only items the model had right at the earlier
+  bin, confidence falls {it['delta_confidence_kept']['mean']*100:.1f} pp on the
+  {it['n_kept']} items it kept and {it['delta_confidence_lost']['mean']*100:.1f} pp on the
+  {it['n_lost']} it lost &mdash; a difference of {pp(it['difference'])}, {sig(it['difference'])}.
+  The decline lands on everything.</p>
+  <p>Its <em>ranking</em>, though, is intact: AUROC of confidence against correctness is
+  {auc_lo:.3f} at 1 minute and {auc_hi:.3f} at 60 minutes, and drops to {auc_prior:.3f} only when
+  the evidence is absent from the window. The usable signal is there &mdash; it just never reaches
+  the confidence level.</p>
 
   <h2>The sweep</h2>
   <div class="scroll"><table>
@@ -226,26 +300,28 @@ def main() -> None:
   so a wall-clock delay would silently jump across a night's sleep.</p>
 
   <h2>Three things the controls establish</h2>
-  <h3>1. The delay effect is context length, not elapsed time</h3>
+  <h3>1. The accuracy decline is context length, not elapsed time</h3>
   <p>Subsampling the 60-minute window down to the 15-minute token count removes the decline.
-  <code>tokmatch_evkeep</code> is the decisive arm: it keeps every frame near the evidence and thins
-  only the filler, holding token count <em>and</em> evidence resolution fixed, leaving elapsed time
-  as the only difference. Accuracy there is
-  {tm['tokmatch_evkeep']['delta_accuracy']['mean']*100:+.1f} pp
+  <code>tokmatch_evkeep</code> is the arm that isolates elapsed time: it keeps every frame near the
+  evidence and thins only the filler, holding token count <em>and</em> evidence resolution fixed.
+  Accuracy there is {tm['tokmatch_evkeep']['delta_accuracy']['mean']*100:+.1f} pp
   <span class="ci">[{tm['tokmatch_evkeep']['delta_accuracy']['lo95']*100:+.1f},
-  {tm['tokmatch_evkeep']['delta_accuracy']['hi95']*100:+.1f}]</span> &mdash; nothing.</p>
+  {tm['tokmatch_evkeep']['delta_accuracy']['hi95']*100:+.1f}]</span> &mdash; nothing. Confidence in
+  the same arm falls {el['delta_confidence']['mean']*100:.1f} pp, which is the dissociation this
+  page is about.</p>
   <h3>2. The no-memory control fails in the informative direction</h3>
   <p>A question answerable from the checkpoint instant alone was meant to stay flat and rule
   generic long-context degradation <em>out</em>. It falls from {ctl[dts[0]]['accuracy']*100:.1f}% to
   {ctl[dts[-1]]['accuracy']*100:.1f}% &mdash; further than the memory questions do. Present-moment
-  perception degrades with context length more than memory does.</p>
+  perception degrades with context length more than memory does. The control has so far only run
+  on <code>main</code> frames, so its own decline has not yet been token-matched.</p>
   <h3>3. The usable dynamic range is narrow</h3>
   <p>With no evidence in the window at all the model still scores {prior['accuracy']*100:.1f}%
   against a 25% chance floor, because these questions are about a shared house and its recurring
   people and objects. The whole sweep lives between that floor and
   {bins[dts[0]]['accuracy']*100:.1f}% at one minute.</p>
 
-  <h2>Evidence awareness &mdash; the failure that is present</h2>
+  <h2>Evidence awareness</h2>
   <p>Token-matched at {ea['mean_tokens_with_evidence']:,.0f} visual tokens and paired over
   {ea['n_questions']} questions, the only difference being whether the window contains the
   evidence:</p>

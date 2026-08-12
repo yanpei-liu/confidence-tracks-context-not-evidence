@@ -8,6 +8,8 @@
 #SBATCH -o ~/Files/EgoVM-data/logs/m6_%x_%j.out
 #
 # EGOVM_ARMS  which arms to run (default: the headline set)
+# EGOVM_DTS   which Δt bins, comma-separated seconds (default: all)
+# EGOVM_EXTRA extra flags passed through verbatim (e.g. --abstain for S4)
 # EGOVM_OUT   record file; concurrent jobs must use different files
 #
 # --order plan keeps the plan's per-question grouping, so a job that is cut short still
@@ -33,7 +35,8 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 cd "$EGOVM_REPO"
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 ~/miniconda3/envs/egovm/bin/python -m egovm.m6_score \
-    --arms "${EGOVM_ARMS:-main,prior}" --order plan --shard "${EGOVM_SHARD:-0/1}" \
+    --arms "${EGOVM_ARMS:-main,prior}" --dts "${EGOVM_DTS:-all}" \
+    --order plan --shard "${EGOVM_SHARD:-0/1}" \
     --out "${EGOVM_OUT:-~/Files/EgoVM-data/artifacts/m6_records.jsonl}" \
-    --time-budget-s "${EGOVM_BUDGET:-9600}"
+    --time-budget-s "${EGOVM_BUDGET:-9600}" ${EGOVM_EXTRA:-}
 echo "SWEEP_EXIT=$?"
