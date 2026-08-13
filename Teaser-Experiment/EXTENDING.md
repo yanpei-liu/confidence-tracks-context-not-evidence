@@ -261,15 +261,52 @@ placeholders (`tensor_ops.py:128`), so interleaved text does not disturb the map
 (`FlexibleCacheLayer.py:600`), so it tolerates non-visual tokens in the appended span. Cost is
 ~5 tokens per 100, i.e. ~5 %.
 
-**X1 validates this rather than assuming it** — a probe asks the model an elapsed-time question
-against an ingested stream with markers on and off. If markers-on does not beat markers-off,
-the injection is not reaching the model and the primary condition is broken; that is a gate, not
-a nice-to-have.
+### 4a. The validation failed, and that is a result
 
-**Ablation: timestamps off** (X8), on a subset. Given the teaser's finding, *what happens to
-confidence when the model is time-blind* is a genuinely informative contrast rather than a
-control. It is the cleanest available test of whether the confidence–Δt slope is driven by the
-time signal itself or by correlates of it.
+X1 and X1b tested the injection rather than assuming it, and the premise did not survive.
+
+The first probe was not diagnostic — one 600 s window, "how long was this?", answered "about
+10 minutes" at p = 0.999 both with markers and without, because that is also the model's prior.
+Nothing was learned. The redesigned probe holds the **frames fixed** (120 real frames) and
+varies **only the injected clock** over 60 / 600 / 3600 s. The answer did not move: `['B','B','B']`
+with markers, `['B','B','B']` without.
+
+The markers are provably present — decoding the ingested token stream gives
+`<0 seconds><|vision_start|><|image_pad|><|vision_end|><300 seconds>…` — so this is not an
+injection bug. X1b then separated the explanations over 3 marker formats × 2 question types ×
+2 cache states:
+
+| condition | 32 frames (3.2k tokens, **unevicted**) | 120 frames (12k tokens, **evicted**) |
+| --- | --- | --- |
+| readout, `<t seconds>` | `['C','B','C']` — 2/3 correct, **tracks** | `['C','C','C']` — no tracking |
+| readout, other formats | 1/3, no tracking | 1/3, no tracking |
+| elapsed (integration), any format | `['B','B','B']` | `['B','B','B']` |
+| markers off | `['B','B','B']` | `['B','B','B']` |
+
+Read across, with the caveat that each cell is three points and "tracks" means two distinct
+answers rather than a measured effect:
+
+- **The clock is at best weakly legible, and only while it is still in the cache.** The single
+  condition showing any tracking is unevicted, `<t seconds>`, and a pure readout.
+- **Once the cache saturates, the clock is gone.** No format, no question type recovers it.
+- **Integration never works.** "How much time has elapsed" returns the prior in every cell
+  including markers-off, so it measures nothing.
+
+**Consequence for the design, stated plainly: at Δt ∈ {15, 30, 60} min — every bin where the
+cache is saturated — the model has no usable elapsed-time input.** The streaming condition
+therefore *cannot* test "does confidence move on elapsed time" the way the full-reprocess sweep
+did. What it can test is what happens when the evidence is genuinely evicted, which is the
+reason to run it (§0). The elapsed-time axis is reported as **unavailable in this regime**, not
+as a null result — an input the model cannot read is not a manipulation that failed.
+
+`<t seconds>` stays the primary format: it is the one with any legibility, and it matches what
+the full-reprocess sweep receives via `VideoMetadata`.
+
+**X8 is promoted from ablation to confirmatory test.** If the above is right, `main` and `nots`
+should be statistically indistinguishable at the saturated bins and may differ only at Δt = 1
+and 5 min, where the clock is still live. That is a sharp, falsifiable prediction at the scale
+of the real sweep, on 373 questions rather than three probe points — and it is a strong internal
+validity check on the whole streaming condition. It runs on all questions, not a subset.
 
 ## 5. Modules
 
@@ -284,10 +321,21 @@ Code lives in `Teaser-Experiment/egovm/streaming/`; small artifacts in
 | # | Module | Artifact | Verification |
 | --- | --- | --- | --- |
 | **X0** | EgoStream adapter + shims | `egovm/streaming/backend.py`, `artifacts/x0_backend_report.json` | imports under `egovm` with no `cv2` installed; all three shims applied; sha256 of every upstream file depended on; `hat` size parameterised on tokens/frame; licence status recorded |
-| **X1** | backend calibration (GPU) | `artifacts/x1_calibration.json` | (1) **tokens/frame constant** at 100 across batch sizes 4/16/64 — the resolution-confound regression test; (2) cache saturates at `sink+mutable+hat` for each of the three budgets; (3) deepcopy leaves master seq length unchanged; (4) letters single-token; (5) **synthetic colour MCQ** — the model demonstrably reads frames through this path; (6) **timestamp probe** — markers-on beats markers-off on an elapsed-time question; (7) throughput s/frame and peak GB at 320×320 |
+| **X1** | backend calibration (GPU) | `artifacts/x1_calibration.json` | (1) **tokens/frame constant** at 100 across batch sizes 4/16/64 — the resolution-confound regression test; (2) cache saturates at `sink+mutable+hat` for each of the three budgets; (3) deepcopy leaves master seq length unchanged; (4) letters single-token; (5) **synthetic colour MCQ** — the model demonstrably reads frames through this path (4/4); (6) **timestamp probe**, frames held fixed and only the clock varied; (7) throughput s/frame and peak GB at 320×320 |
+| **X1b** | elapsed-time diagnostic (GPU) | `artifacts/x1b_timeprobe.json` | runs only because X1 (6) failed. 3 marker formats × {readout, integration} × {unevicted, evicted}, separating "the markers do not reach the model" from "the cache evicts them" from "the model cannot integrate them". See §4a — the outcome changes what the experiment claims. |
 | **X2** | streaming schedule | `artifacts/x2_stream_schedule.jsonl`, `x2_schedule_report.md` | one row per **ingestion pass**; every checkpoint's gid prefix is asserted **equal to the corresponding M4 row's `gids`** (the nesting proof, machine-checked); `visual_tokens` recomputed at 100/frame; pass `row_id` sets disjoint and covering; a control resolves for every `main` checkpoint |
 | **X3** | streaming driver | `egovm/streaming/x3_stream_score.py`, `artifacts/x3_schema_check.json` | emits the §2 contract + §3c fields; a validator asserts M7 would accept the file; shards on `qid`; resumes at question granularity; `live_tokens ≤ cap` on every row |
-| **X4** | pilot gate (~1 GPU-h) | `$DATA/artifacts/m6_records_stream_pilot.jsonl`, `artifacts/x4_pilot_report.md` | 20 questions, three **pre-registered** gates: (a) letter probabilities not degenerate (mean max-prob < 0.99); (b) `live_tokens` saturates where X2 predicts; (c) Δt=1 min accuracy within a stated band of the committed full-reprocess records on the *same* questions, paired. A large unexplained gap is a driver bug and this is the cheapest place to find it. |
+| **X4** | pilot gate (~1 GPU-h) | `$DATA/artifacts/m6_records_stream_pilot*.jsonl`, `artifacts/x4_pilot_report.md` | three **pre-registered** gates: (a) letter probabilities not degenerate (mean max-prob < 0.99, sd > 0.02); (b) `live_tokens` saturates where X2 predicts; (c) Δt=1 min accuracy within ±15 pp of the committed full-reprocess records on the *same* questions, paired, and above chance. **Evaluate on ≥60 questions** — see below. |
+
+> **The pilot must be a representative sample, and originally it was not.** `subset_rank` first
+> ordered questions by `qid`, so `--max-rank 20` drew the twenty lowest ids — a set on which the
+> *committed full-reprocess sweep* scores 0.200 at Δt = 1 min against 0.427 over all 373. Gate
+> (c) failed on its "above chance" clause against that anomalous baseline, even though streaming
+> beat full-reprocess in all five bins on those same questions and answer agreement was 0.58
+> against a 0.25 floor. The fix is in the sampling, not the threshold: `subset_rank` is now a
+> deterministic sha256 shuffle, so any prefix is representative. Re-evaluated at n = 86 the gate
+> **passes as originally written** — streaming 0.454 vs full-reprocess 0.395, Δ = +5.8 pp,
+> agreement 0.733. Do not weaken a pre-registered threshold to accommodate a bad sample.
 | **X5** | main pass | `m6_records_stream_main_*.jsonl` | 373 questions × 5 checkpoints × {memory, control}; ≤ 3,730 records; `frames_ingested` monotone in `dt_s` within a question |
 | **X6** | budget arm (context-length axis) | `m6_records_stream_budget_*.jsonl` | same questions at `small` and `large`; `live_tokens` separates the three budgets by ≥2× at Δt ≥ 15 min; pairs 1:1 with X5 on `qid` |
 | **X7** | prior + tokmatch passes | `m6_records_stream_prior_*.jsonl`, `m6_records_stream_tokmatch_*.jsonl` | `prior` at Δt ∈ {1,5,15} min (per-bin ingestion, §1); `tokmatch_evkeep`/`tokmatch_uniform` at Δt=60 min; frame counts match the M4 rows exactly |
