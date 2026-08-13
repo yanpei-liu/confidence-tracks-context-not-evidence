@@ -28,23 +28,65 @@ cluster-bootstrapped over questions.
 | raw sweep 1 → 60 min (`main`) | −6.4 [−10.7, −2.4] | −9.7 [−11.4, −7.9] |
 | raw sweep 1 → 60 min, no-memory control | −10.3 [−17.8, −2.9] | −10.7 [−13.4, −8.1] |
 
-Read together: **confidence responds to elapsed time, which costs the model no accuracy, and
-barely responds to context length or evidence availability, which are the only two things that
-do.** The 15 → 60 min segment decomposes cleanly — accuracy's −2.9 pp is −2.4 pp of context length
-plus +0.3 pp of elapsed time; confidence's −4.3 pp is −3.7 pp of elapsed time plus −0.3 pp of
-context length. Two further facts:
+Read together: **confidence moves on elapsed time, which has no detectable effect on accuracy, and
+under-reacts to the things that do — context length and evidence.** The asymmetry is one of
+*proportion*, not of presence, and the table has to be read that way:
+
+One caveat on the elapsed-time null: +0.3 pp [−2.7, +3.2] is a low-precision null, and that CI
+contains the −2.4 pp context-length effect we do claim to detect. "No accuracy cost" means *none
+resolvable at n = 373*, not none.
+
+The 15 → 60 min segment decomposes, though not as cleanly on accuracy as first written: the
+elapsed-time and context-length terms sum to −2.1 pp against an observed −2.9 pp (residual
+**−0.8 pp**), while confidence's sum of −4.0 pp against an observed −4.3 pp leaves −0.3 pp. Both
+pass M7's assertion, whose tolerance is 2 pp — not the 0.5 pp quoted under *Statistics*. The
+accuracy residual is the same size as the context-length effect itself, so the accuracy
+decomposition is directionally right and quantitatively loose. Two further facts:
 
 - **The confidence decline is item-blind.** Pooled over adjacent Δt steps, among items correct at
-  the earlier bin, confidence fell −2.9 pp on items kept and −1.9 pp on items lost — difference
-  +1.0 pp [−2.8, +4.8], p = 0.63. It is a flat discount, not a signal about what was lost.
+  the earlier bin, confidence fell −2.9 pp on items kept (n = 537) and −1.9 pp on items lost
+  (n = 68) — difference +1.0 pp [−2.9, +4.9], p = 0.61. It is a flat discount, not a signal about
+  what was lost. With only 68 lost items this is an underpowered null: the CI admits a real
+  item-specific effect of up to ~5 pp, so it is *no evidence of tracking*, not evidence of none.
 - **The ranking is intact.** AUROC of confidence against correctness is 0.643 at Δt=1 min and
   0.655 at 60 min (+0.012 [−0.046, +0.071]), falling to 0.568 only when the evidence is absent.
-  The discriminative signal is real and Δt-invariant; it is the *level* that misbehaves.
+  The discriminative signal is real and Δt-invariant; it is the *level* that misbehaves. Note this
+  is the `main` arm; on the token-fixed arms AUROC at 60 min is 0.615 (`evkeep`) / 0.611
+  (`uniform`), so Δt-invariance is established along the confounded axis, not the clean one.
 
-The headline figure (`figures/headline.pdf`) is built on these: panel A contrasts the raw sweep
-with the token-fixed one, panel B places every manipulation on a Δaccuracy × Δconfidence map
-against the line where confidence would track competence, panel C shows the item-blindness and the
-flat AUROC. The original two-panel sweep figure is kept as `figures/supp_sweep.pdf`.
+### Reading the headline figure
+
+`figures/headline.pdf` is built on the above. Panel by panel, as a reader with no access to this
+document would take it:
+
+**Panel A — the accuracy decline is context length; the confidence decline is not.** The solid
+lines are the raw sweep, where Δt and token count grow together, and both measures fall — the
+forgetting curve the experiment set out to find. The open/dotted markers pin the context at the
+15 min budget (9.7k visual tokens) and split them: accuracy goes flat (39.4 % at 15 min → 39.7 %
+at 60 min) while confidence keeps sliding (66.7 % → 63.0 %). The two reference lines carry the
+scale — a no-evidence floor at 31.4 % and 4-way chance at 25 % — and they are also the panel's own
+caveat, since the whole sweep lives in an 11.5 pp band above that floor. The accuracy flatness is
+therefore partly a floor effect and should never be quoted without the floor line.
+
+**Panel B — the dissociation map.** Each manipulation is a point in Δaccuracy × Δconfidence with
+cluster-bootstrap CIs on both axes, read against the diagonal where confidence would track
+competence. The manipulations that buy accuracy sit *below* it (evidence vs none at +9.6/+3.3, 4×
+fewer tokens at +2.4/+0.3): confidence under-reacts. The manipulation that buys nothing sits
+*above* it (+45 min at +0.3/−3.7): confidence reacts anyway. The no-memory control (+5.9/+13.1)
+is the calibration check — confidence *can* swing hard, it just swings on question kind rather
+than on evidence state. Several arms' accuracy CIs individually cross zero; the panel is carried
+by the contrast between the pairs, not by any single arm.
+
+**Panel C — the decline is a level shift, not a memory signal.** The top strip shows the per-step
+confidence drop is statistically indistinguishable on items kept and items lost, so the model is
+not marking the specific items it just failed. The bottom strip shows AUROC flat at ~0.64 across
+the whole sweep, well above the 0.568 no-evidence value: the ordering of confidences stays as
+informative at 60 min as at 1 min. Together: the level slides uniformly and the ranking survives,
+which is the signature of a prior over how long ago something happened rather than of introspective
+access to memory state. The honest framing of the 0.64 is that a no-evidence model already reaches
+0.568, so most of the discriminative signal is question difficulty, not evidence grounding.
+
+The original two-panel sweep figure is kept as `figures/supp_sweep.pdf`.
 
 ## Paths
 
@@ -167,8 +209,10 @@ Within-question design (each question appears in all 5 bins of the `main` arm), 
   `qid`, and passing several cell pairs pools over Δt (the token effect is only resolvable pooled
   over the 30 and 60 min bins). Reported as Δaccuracy, Δconfidence and Δgap for each.
 - **The decomposition must close.** The observed `main` 15 → 60 min change has to equal the
-  elapsed-time term plus the context-length term to within ~0.5 pp on both measures; M7 asserts
-  this. If it stops closing, the token-matched arms are no longer matched.
+  elapsed-time term plus the context-length term on both measures; M7 asserts a residual under
+  2 pp (`m7_analyze.py:528`). If it stops closing, the token-matched arms are no longer matched.
+  As run, the residual is −0.8 pp on accuracy and −0.3 pp on confidence — passing, but the
+  accuracy residual is as large as the context-length term it is meant to isolate.
 - Originally-primary test, still reported: the **bin × measure interaction** — does the
   accuracy-vs-Δt slope differ from the confidence-vs-Δt slope? A cluster-bootstrap CI on
   `[conf(60) − acc(60)] − [conf(1) − acc(1)]`. This is the null the experiment returned.
