@@ -1,0 +1,63 @@
+{
+  "egostream_root": "~/Files/Egocentric-Vision_Metamemory/EgoStream/Online_Cache_Optimization",
+  "is_git_checkout": false,
+  "license_file_present": false,
+  "vendored_into_repo": false,
+  "vendoring_note": "Upstream ships no LICENSE and is not a git checkout, so there is no grant permitting redistribution and no commit to pin. The adapter imports it from $EGOVM_EGOSTREAM and records the checksums below instead.",
+  "missing_upstream_files": [],
+  "upstream_sha256": {
+    "src/model_operations.py": "81ca56622f6eee75b055a6722f1cf831334720132f344cb44b9bf0e60c581299",
+    "src/tensor_ops.py": "790d4b52314eeed09a363186fa376b0f9428c3a7d49612857878a48f573215ad",
+    "src/utils.py": "ae4456339f92bf1b43ce65f03078deb2fbf65e05c9a3d91325d19498cba02b30",
+    "Caches/FlexibleCache.py": "8c2b1cf378ca190810c855ab29636a75a93608b51a7a5af6332e0dbbc641d95d",
+    "Caches/FlexibleCacheLayer.py": "82ddd62d8826924e9d59f9e8a0aac4ae39bcffc38d7e6b35a5fb0c60b70aa927",
+    "Caches/CacheFactory.py": "454145d78eea543b5f9d9ce639c92f1352a5ca16dd3dbf0d848733c29ca4109e",
+    "Caches/frame_state.py": "9ec826aa9c786a1098dfa94aef7b67f89fb9f6d3af156dd319a733f1b143aa25",
+    "Caches/offload_store.py": "96f9def3b8dddf200ceb9938c4c5abcf55a37b59064b59f6e4e9c463e7f49294",
+    "Caches/pruning_pipeline.py": "5e2e524989582b172505386471c423c5a0f513cea9904fbb49c45ddc36995613",
+    "Caches/reducers.py": "7dfe914dd3f36ffd600b4c1978bb78a6a90839469979a1421acd4bd1d93148ee",
+    "Caches/retrievers.py": "d872f1a3b900650b5678128391871fb5460548b2fa970e373146ced8ac3a2ef5",
+    "Caches/similarity_ops.py": "c3550590ba8f572b9e694182420c801993420a5700d911e9f68d8c66ac5470ef",
+    "prompts/template_questions.txt": "c7193c7ff17e29a0be40d854c0d4ee2dadf8787520352bb0d4824af396cab962"
+  },
+  "shims": [
+    "cv2_stub",
+    "FlexibleCacheLayer.get_max_length",
+    "FlexibleCacheLayer.get_mask_sizes"
+  ],
+  "cache_policy": "intra_value_norm+inter_adjacent_cosine+storage_offload_left_excess+rekv_retrieve",
+  "cache_config": {
+    "mutable_token_size": 8192,
+    "use_sink_tokens": true,
+    "sink_sys_prompt": true,
+    "use_hat_tokens": true,
+    "hat_num_frames": 2,
+    "intra_frame_pruning": true,
+    "inter_frame_pruning": true,
+    "enable_disk_offload": true,
+    "retrieve": {
+      "enabled": true,
+      "method": "rekv",
+      "top_k_tokens": 8192,
+      "block_size_frames": 1,
+      "include_live_mutable": true,
+      "max_offloaded_chunks": null
+    }
+  },
+  "tokens_per_frame_probe": {
+    "320x320": 100,
+    "448x448": 196,
+    "896x512": 448
+  },
+  "tokens_per_frame": 100,
+  "cost_model": "(res//32)**2  [image path: no temporal merge]",
+  "full_reprocess_tokens_per_frame": 50,
+  "ratio_vs_full_reprocess": 2.0,
+  "live_caps": {
+    "small": 1940,
+    "default": 9108,
+    "large": 33684
+  },
+  "failures": [],
+  "ok": true
+}
