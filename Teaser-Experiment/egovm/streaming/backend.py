@@ -171,6 +171,9 @@ class StreamingScorer:
     input_res: int = INPUT_RES
     letters: tuple = tuple(OPTION_LETTERS)
     tokens_per_frame: int = sconf.TOKENS_PER_FRAME
+    # How an injected timestamp is rendered. Configurable because X1b has to establish whether
+    # the model fails to *read* this channel or merely fails to read this particular format.
+    marker_fmt: object = staticmethod(lambda t: f"<{t:.0f} seconds>")
     _stats: dict = field(default_factory=dict)
 
     # ---- construction ----
@@ -264,7 +267,7 @@ class StreamingScorer:
         content = []
         for t in times_s:
             if timestamps:
-                content.append({"type": "text", "text": f"<{t:.0f} seconds>"})
+                content.append({"type": "text", "text": self.marker_fmt(t)})
             content.append({"type": "image"})
         conversation = [{"role": "user", "content": content}]
 

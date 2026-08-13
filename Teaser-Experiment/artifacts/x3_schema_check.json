@@ -1,0 +1,10 @@
+{
+  "file": "~/Files/EgoVM-data/artifacts/m6_records_stream_pilot_0of1.jsonl",
+  "n_records": 197,
+  "n_unique_record_ids": 197,
+  "missing_fields": [],
+  "records_with_bad_question_kind": 0,
+  "records_not_in_plan": 0,
+  "records_over_cache_cap": 0,
+  "ok": true
+}

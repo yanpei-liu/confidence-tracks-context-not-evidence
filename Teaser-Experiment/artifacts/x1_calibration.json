@@ -50,20 +50,21 @@
       "n": 4
     },
     {
+      "check": "model_reads_frames",
+      "ok": true,
+      "correct": "4/4"
+    },
+    {
       "check": "throughput",
       "ok": true,
-      "offload_retrieve": 0.0355,
-      "no_offload": 0.0348
+      "offload_retrieve": 0.0346,
+      "no_offload": 0.0343
     }
   ],
   "failures": [
     {
-      "check": "model_reads_frames",
-      "error": "only 0/4 synthetic colours correct"
-    },
-    {
       "check": "timestamps_readable",
-      "error": "markers-on p(correct)=0.99926 pred=B, markers-off p(correct)=0.999837"
+      "error": "frames held fixed, clock varied over [60.0, 600.0, 3600.0]s: markers-on predicted ['B', 'B', 'B'] (1/3 correct), markers-off predicted ['B', 'B', 'B']. The injected clock does not move the answer."
     }
   ],
   "env": {
@@ -72,8 +73,8 @@
     "gpu_mem_gb": 93.1,
     "host": "xgpi7",
     "input_res": 320,
-    "offload_root": "/tmp/egovm_kv_732054",
-    "load_s": 48.4
+    "offload_root": "/tmp/egovm_kv_732091",
+    "load_s": 9.2
   },
   "shims": [
     "cv2_stub",
@@ -84,7 +85,7 @@
   "priming_tokens": 716,
   "colour_probe": [
     {
-      "gold": "a",
+      "gold": "A",
       "pred": "A",
       "confidence": 1.0,
       "letter_probs": {
@@ -96,7 +97,7 @@
       "master_intact": true
     },
     {
-      "gold": "b",
+      "gold": "B",
       "pred": "B",
       "confidence": 1.0,
       "letter_probs": {
@@ -108,7 +109,7 @@
       "master_intact": true
     },
     {
-      "gold": "c",
+      "gold": "C",
       "pred": "C",
       "confidence": 1.0,
       "letter_probs": {
@@ -120,7 +121,7 @@
       "master_intact": true
     },
     {
-      "gold": "d",
+      "gold": "D",
       "pred": "D",
       "confidence": 1.0,
       "letter_probs": {
@@ -134,62 +135,128 @@
   ],
   "timestamp_probe": {
     "on": {
-      "pred": "B",
-      "confidence": 0.99926,
-      "p_correct": 0.99926,
-      "letter_probs": {
-        "A": 2.8e-05,
-        "B": 0.99926,
-        "C": 0.00071,
-        "D": 3e-06
+      "60": {
+        "gold": "A",
+        "pred": "B",
+        "p_gold": 4.5e-05,
+        "letter_probs": {
+          "A": 4.5e-05,
+          "B": 0.999617,
+          "C": 0.000335,
+          "D": 2e-06
+        }
+      },
+      "600": {
+        "gold": "B",
+        "pred": "B",
+        "p_gold": 0.99926,
+        "letter_probs": {
+          "A": 2.8e-05,
+          "B": 0.99926,
+          "C": 0.00071,
+          "D": 3e-06
+        }
+      },
+      "3600": {
+        "gold": "C",
+        "pred": "B",
+        "p_gold": 0.00407,
+        "letter_probs": {
+          "A": 3e-06,
+          "B": 0.995921,
+          "C": 0.00407,
+          "D": 6e-06
+        }
       }
     },
     "off": {
-      "pred": "B",
-      "confidence": 0.999837,
-      "p_correct": 0.999837,
-      "letter_probs": {
-        "A": 3e-06,
-        "B": 0.999837,
-        "C": 0.000158,
-        "D": 1e-06
+      "60": {
+        "gold": "A",
+        "pred": "B",
+        "p_gold": 3e-06,
+        "letter_probs": {
+          "A": 3e-06,
+          "B": 0.999837,
+          "C": 0.000158,
+          "D": 1e-06
+        }
+      },
+      "600": {
+        "gold": "B",
+        "pred": "B",
+        "p_gold": 0.999837,
+        "letter_probs": {
+          "A": 3e-06,
+          "B": 0.999837,
+          "C": 0.000158,
+          "D": 1e-06
+        }
+      },
+      "3600": {
+        "gold": "C",
+        "pred": "B",
+        "p_gold": 0.000158,
+        "letter_probs": {
+          "A": 3e-06,
+          "B": 0.999837,
+          "C": 0.000158,
+          "D": 1e-06
+        }
       }
     },
-    "p_correct_gain": -0.0006
+    "summary": {
+      "on_preds": [
+        "B",
+        "B",
+        "B"
+      ],
+      "off_preds": [
+        "B",
+        "B",
+        "B"
+      ],
+      "on_distinct": 1,
+      "off_distinct": 1,
+      "on_correct": 1
+    }
   },
   "throughput": {
     "offload_retrieve": {
       "frames": 256,
-      "s_per_frame_all": 0.0311,
-      "s_per_frame_steady": 0.0355,
-      "query_s": 0.31,
+      "s_per_frame_all": 0.0302,
+      "s_per_frame_steady": 0.0346,
+      "query_s": 0.305,
       "clone_s": 0.016,
       "retrieved": true,
       "live_tokens": 9108,
+      "offloaded_tokens": 0,
+      "presented_tokens": 25600,
       "offload_bytes": 0,
       "offload_gb_per_733_frames": 0.0,
       "peak_gpu_gb": 19.11
     },
     "no_offload": {
       "frames": 256,
-      "s_per_frame_all": 0.0303,
-      "s_per_frame_steady": 0.0348,
+      "s_per_frame_all": 0.0299,
+      "s_per_frame_steady": 0.0343,
       "query_s": 0.057,
       "clone_s": 0.012,
       "retrieved": false,
       "live_tokens": 9108,
+      "offloaded_tokens": 0,
+      "presented_tokens": 25600,
       "offload_bytes": 0,
       "offload_gb_per_733_frames": 0.0,
       "peak_gpu_gb": 19.11
     }
   },
   "cost_projection_gpu_h": {
-    "x5_main_273622f": 2.7,
-    "x6_budget_547244f": 5.4,
-    "x7_prior_109182f": 1.1,
+    "x5_main_273622f": 2.6,
+    "x6_budget_547244f": 5.3,
+    "x7_prior_109182f": 1.0,
     "x7_tokmatch_144404f": 1.4,
-    "x8_nots_273622f": 2.7,
-    "s_per_frame_used": 0.0355
+    "x8_nots_273622f": 2.6,
+    "s_per_frame_used": 0.0346
   },
   "cache_policy": "intra_value_norm+inter_adjacent_cosine+storage_offload_left_excess+rekv_retrieve",
   "ok": false

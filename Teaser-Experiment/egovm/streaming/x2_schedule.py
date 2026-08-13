@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import hashlib
 import json
 
 from ..config import ARTIFACTS, DT_GRID_S
@@ -48,7 +49,13 @@ def main() -> None:
         controls.add(json.loads(line)["control_id"])
 
     qids = sorted({k[0] for k in plan}, key=int)
-    rank = {q: i for i, q in enumerate(qids)}
+    # `subset_rank` orders questions for the `--max-rank k` subsetting lever, so any prefix has
+    # to be *representative*. Ordering by qid is not: the first 20 by qid gave a subset on which
+    # the committed full-reprocess sweep scores 0.200 at Δt=1 min against 0.427 over all 373,
+    # which made the X4 pilot gate compare streaming against an anomalously hard sample. A
+    # deterministic hash shuffle fixes it — same ordering on every run, no qid clustering.
+    rank = {q: i for i, q in enumerate(
+        sorted(qids, key=lambda q: hashlib.sha256(q.encode()).hexdigest()))}
 
     passes: list[dict] = []
 
