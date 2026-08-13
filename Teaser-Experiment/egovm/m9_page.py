@@ -3,7 +3,7 @@
 Generated rather than hand-written so the page cannot drift from the numbers, and the
 figure is inlined as a data URI because the artifact CSP blocks external hosts.
 
-Artifact: artifacts/m8_teaser.html
+Artifact: artifacts/m9_teaser.html
 """
 from __future__ import annotations
 
@@ -402,7 +402,7 @@ def main() -> None:
   redistributed here.</p>
 </div>
 """
-    out = ARTIFACTS / "m8_teaser.html"
+    out = ARTIFACTS / "m9_teaser.html"
     out.write_text(html)
     print(f"M9 -> {out} ({len(html)/1024:.0f} KB)")
 

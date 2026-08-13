@@ -1,6 +1,6 @@
 # Teaser result — does a streaming ego video-LLM know it forgot?
 
-**Verdict: D: confidence tracks the wrong variable.** Elapsed time and context length move *different* measures. Holding visual-token count and evidence sampling fixed, an extra stretch of elapsed time costs +0.3 [-2.7, +3.2] pp of accuracy — nothing — while costing -3.7 [-5.0, -2.5] pp of confidence. Holding elapsed time fixed instead, cutting the context to a quarter is worth +2.4 [+0.3, +4.6] pp of accuracy but only +0.3 [-0.5, +1.1] pp of confidence. Confidence responds to the variable that costs the model nothing and ignores the one that costs it accuracy. And the largest accuracy effect in the whole experiment — having the evidence in context at all, +9.6 [+4.8, +14.5] pp — moves confidence only +3.3 [+1.2, +5.4] pp, a 2.9x under-reaction.
+**Verdict: D: confidence tracks the wrong variable.** Elapsed time and context length move *different* measures. Holding visual-token count and evidence sampling fixed, an extra stretch of elapsed time costs +0.3 [-2.9, +3.2] pp of accuracy — nothing — while costing -3.7 [-4.9, -2.4] pp of confidence. Holding elapsed time fixed instead, cutting the context to a quarter is worth +2.4 [+0.3, +4.7] pp of accuracy but only +0.3 [-0.5, +1.1] pp of confidence. Confidence responds to the variable that costs the model nothing and ignores the one that costs it accuracy. And the largest accuracy effect in the whole experiment — having the evidence in context at all, +9.7 [+4.8, +14.5] pp — moves confidence only +3.3 [+1.2, +5.4] pp, a 2.9x under-reaction.
 
 **The originally predicted signature is absent.** The overconfidence gap does not widen with Δt
 (-3.2 [-7.5, +1.0] pp, p=0.1376) —
@@ -17,15 +17,15 @@ are the argument; the rest are the context they sit in.
 
 | manipulation | Δ accuracy | Δ confidence | n |
 | --- | --- | --- | --- |
-| +15 min elapsed (tokens, evidence fixed) | +1.1 [-1.9, +4.0] pp | -2.1 [-3.1, -1.1] pp | 373 |
-| +45 min elapsed (tokens, evidence fixed) | +0.3 [-2.7, +3.2] pp | -3.7 [-5.0, -2.5] pp | 373 |
-| 4× fewer visual tokens (Δt, evidence fixed) | +2.4 [+0.3, +4.6] pp | +0.3 [-0.5, +1.1] pp | 373 |
-| evidence in context vs none (Δt=5 min) | +9.6 [+4.8, +14.5] pp | +3.3 [+1.2, +5.4] pp | 373 |
-| evidence frames kept vs thinned (tokens, Δt fixed) | +2.9 [+0.8, +5.1] pp | +1.2 [+0.3, +2.0] pp | 373 |
-| Δt 1→60 min (context grows with Δt) | -6.4 [-10.5, -2.1] pp | -9.7 [-11.4, -7.9] pp | 373 |
-| Δt 1→60 min, no-memory question | -10.3 [-17.2, -3.2] pp | -10.7 [-13.4, -7.9] pp | 348 |
-| no-memory vs recall question, identical frames (Δt=1 min) | +10.4 [+3.6, +17.2] pp | +13.9 [+10.9, +17.0] pp | 366 |
-| no-memory vs recall question, identical frames (Δt=60 min) | +5.9 [-1.1, +13.0] pp | +13.1 [+10.0, +16.2] pp | 355 |
+| +15 min elapsed (tokens, evidence fixed) | +1.1 [-1.9, +4.0] pp | -2.1 [-3.1, -1.0] pp | 373 |
+| +45 min elapsed (tokens, evidence fixed) | +0.3 [-2.9, +3.2] pp | -3.7 [-4.9, -2.4] pp | 373 |
+| 4× fewer visual tokens (Δt, evidence fixed) | +2.4 [+0.3, +4.7] pp | +0.3 [-0.5, +1.1] pp | 373 |
+| evidence in context vs none (Δt=5 min) | +9.7 [+4.8, +14.5] pp | +3.3 [+1.2, +5.4] pp | 373 |
+| evidence frames kept vs thinned (tokens, Δt fixed) | +2.9 [+0.8, +5.1] pp | +1.1 [+0.3, +2.0] pp | 373 |
+| Δt 1→60 min (context grows with Δt) | -6.4 [-10.5, -2.7] pp | -9.7 [-11.4, -7.9] pp | 373 |
+| Δt 1→60 min, no-memory question | -10.4 [-17.5, -3.2] pp | -10.7 [-13.4, -7.9] pp | 348 |
+| no-memory vs recall question, identical frames (Δt=1 min) | +10.4 [+3.3, +17.2] pp | +13.9 [+10.9, +16.9] pp | 366 |
+| no-memory vs recall question, identical frames (Δt=60 min) | +5.9 [-1.1, +13.0] pp | +13.1 [+9.9, +16.2] pp | 355 |
 
 Read down the table: the two token-matched arms make elapsed time and context length separately
 identifiable, and they come apart. Elapsed time is what confidence responds to, and it is the one
@@ -60,8 +60,8 @@ or keep it:
 | items | n | confidence change |
 | --- | --- | --- |
 | kept (still correct) | 537 | -2.9 [-3.6, -2.1] pp |
-| lost (now wrong) | 68 | -1.9 [-5.6, +1.9] pp |
-| **difference** | | **+1.0 [-2.9, +4.9] pp**, p=0.612 |
+| lost (now wrong) | 68 | -1.9 [-5.6, +2.0] pp |
+| **difference** | | **+1.0 [-2.8, +4.9] pp**, p=0.618 |
 
 The decline is a flat discount applied to every item, not a signal about the ones actually lost.
 This is the item-level counterpart of the aggregate result: whatever drives confidence down is

@@ -156,7 +156,10 @@ def contrast(idx: dict, cells_a, cells_b, seed: int = 0) -> dict | None:
         A, B = idx.get(ca), idx.get(cb)
         if not A or not B:
             return None
-        for q in set(A) & set(B):
+        # sorted, not raw set order: `by_q`'s insertion order becomes `qids` in
+        # cluster_bootstrap, so an unordered set makes every resample depend on
+        # PYTHONHASHSEED and the CIs move by ~0.3 pp between runs on identical data.
+        for q in sorted(set(A) & set(B)):
             by_q[q].append(("a", A[q]))
             by_q[q].append(("b", B[q]))
     if not by_q:
@@ -257,7 +260,7 @@ def item_transitions(records, arm: str = "main", seed: int = 0) -> dict | None:
     by_q: dict = collections.defaultdict(list)
     for lo, hi in zip(dts, dts[1:]):
         A, B = idx[("memory", arm, lo)], idx[("memory", arm, hi)]
-        for q in set(A) & set(B):
+        for q in sorted(set(A) & set(B)):  # deterministic qid order — see contrast()
             if A[q]["correct"]:
                 tag = "lost" if not B[q]["correct"] else "kept"
                 by_q[q].append((tag, B[q]["confidence"] - A[q]["confidence"]))
@@ -539,10 +542,10 @@ def analyze(records, drop_audio: bool) -> dict:
     return out
 
 
-# Validated categorical slots (scripts/validate_palette.js, light surface #fcfcfb):
-# all four pass the lightness band, chroma floor, CVD separation and normal-vision floor.
-# The aqua slot warns on contrast vs surface, which is discharged by the legend plus
-# direct labels — identity is never carried by colour alone here.
+# Categorical slots checked against a light surface (#fcfcfb) for lightness band, chroma
+# floor, CVD separation and normal-vision separation. The aqua slot is the marginal one on
+# contrast against the surface, which is discharged by the legend plus direct labels —
+# identity is never carried by colour alone in either figure.
 C_ACC = "#2a78d6"     # accuracy
 C_CONF = "#eb6834"    # confidence
 C_CTRL = "#1baf7a"    # no-memory control
