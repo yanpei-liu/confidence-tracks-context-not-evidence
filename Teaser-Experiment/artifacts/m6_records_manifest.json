@@ -1,0 +1,78 @@
+{
+ "note": "inputs to m7_analyze; the files themselves stay outside the repo",
+ "dir": "~/Files/EgoVM-data/artifacts",
+ "files": [
+  {
+   "name": "m6_records_A.jsonl",
+   "bytes": 103018,
+   "lines": 145,
+   "unique_record_ids": 145,
+   "sha256": "479ed672e41ae18d31783605867d739e283ff8879febc0d4f67fe2d32c1940ef"
+  },
+  {
+   "name": "m6_records_B.jsonl",
+   "bytes": 558557,
+   "lines": 750,
+   "unique_record_ids": 750,
+   "sha256": "c8b78e4f4acfdd0416324298e00fcfadc5b08315eff73d666202b0c3509993e4"
+  },
+  {
+   "name": "m6_records_C.jsonl",
+   "bytes": 264979,
+   "lines": 375,
+   "unique_record_ids": 375,
+   "sha256": "18ee5467874b9fb38ae8f59d60146531a9b003f048d2386b7715077eb3cab107"
+  },
+  {
+   "name": "m6_records_D.jsonl",
+   "bytes": 556276,
+   "lines": 750,
+   "unique_record_ids": 750,
+   "sha256": "eb5c89133d79b67be28686daee05e53c6cb81256cdcdb2a36dcdb5e027e418f7"
+  },
+  {
+   "name": "m6_records_fill_0.jsonl",
+   "bytes": 463764,
+   "lines": 646,
+   "unique_record_ids": 646,
+   "sha256": "d575e0a96def1f590654c14ef32815306c4b21d5b679b70bd6ad2e4755661eec"
+  },
+  {
+   "name": "m6_records_fill_1.jsonl",
+   "bytes": 81779,
+   "lines": 115,
+   "unique_record_ids": 115,
+   "sha256": "b586b88864b3cab12284ba4eb26111c9fde6c331b3c750cf6574f266a231a259"
+  },
+  {
+   "name": "m6_records_main_0of4.jsonl",
+   "bytes": 663482,
+   "lines": 924,
+   "unique_record_ids": 924,
+   "sha256": "da7ddd9205e958be372b2e487536441fccf3f837bd127e64e7e1f044c5ac2900"
+  },
+  {
+   "name": "m6_records_main_1of4.jsonl",
+   "bytes": 656920,
+   "lines": 915,
+   "unique_record_ids": 915,
+   "sha256": "b80d4e05cc8891753d9f9d415017214740c9252772955ee8fd84c807aef7f2b2"
+  },
+  {
+   "name": "m6_records_main_2of4.jsonl",
+   "bytes": 661278,
+   "lines": 921,
+   "unique_record_ids": 921,
+   "sha256": "3a78712b39eaab90e0231915927211d8a0318f867d1977d35c21c7f824eecb6f"
+  },
+  {
+   "name": "m6_records_main_3of4.jsonl",
+   "bytes": 1135524,
+   "lines": 1581,
+   "unique_record_ids": 1540,
+   "sha256": "23566abd628fb2d1863520755072695b1c29a09e7e04f370c81e348ba73c3c65"
+  }
+ ],
+ "total_lines": 7122,
+ "unique_record_ids": 5562
+}

@@ -1,0 +1,20 @@
+# Versions the completed sweep actually ran on, read off artifacts/m0_env_report.json.
+# Python 3.11.15, Linux glibc 2.39, NVIDIA H100 NVL MIG 3g.47gb (46.4 GB visible).
+#
+# scripts/install_env.sh installs looser ranges; this file is the record of what produced
+# the committed artifacts. Pin to it if you need to reproduce them exactly.
+
+--extra-index-url https://download.pytorch.org/whl/cu126
+torch==2.13.0+cu126
+transformers==5.15.0
+accelerate==1.14.0
+pillow==12.2.0
+numpy==2.4.4
+
+# Imported by the pipeline but not captured in the env report: av (M3 video decode),
+# matplotlib (M7 figures). Unpinned because nothing depends on their exact version.
+av
+matplotlib
+
+# Only needed for the provisioning scripts, not for the pipeline itself.
+huggingface_hub
