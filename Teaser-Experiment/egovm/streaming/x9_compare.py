@@ -163,6 +163,120 @@ def cross_regime_specs() -> list[tuple]:
     ]
 
 
+def verdict(out: dict) -> str:
+    """Select the verdict from the measured intervals, among the four outcomes pre-enumerated
+    in EXTENDING.md §7. Written this way for the same reason M8 is (`m8_report.py:20-24`): the
+    teaser's value was that it reported the prediction failing, and that only stays credible if
+    the sentence is chosen by the numbers rather than by the author."""
+    ev = out["streaming_contrasts"].get("evidence_vs_none", {})
+    raw = out["streaming_contrasts"].get("elapsed_time_raw", {})
+    if ev.get("unavailable") or raw.get("unavailable"):
+        return "Not enough of the design has run to select a verdict."
+    ev_a, ev_c = ev["delta_accuracy"], ev["delta_confidence"]
+    raw_a, raw_c = raw["delta_accuracy"], raw["delta_confidence"]
+    # gap = confidence - accuracy; the raw contrast is 1 min minus 60 min, so the gap WIDENS
+    # with elapsed time when confidence falls less than accuracy, i.e. raw_c < raw_a
+    widens = raw_c["hi95"] < raw_a["lo95"]
+    narrows = raw_c["lo95"] > raw_a["hi95"]
+    evidence_blind = ev_a["lo95"] > 0 and ev_c["lo95"] <= 0 <= ev_c["hi95"]
+    if widens and evidence_blind:
+        return ("**Outcome 2 — 'doesn't know it forgot', found at last.** Accuracy falls as the "
+                "evidence is evicted and confidence does not follow, so the gap widens in the "
+                "regime where forgetting is real.")
+    if widens:
+        return ("**Outcome 2 (partial).** The overconfidence gap widens with elapsed time under "
+                "streaming, but confidence is not evidence-blind.")
+    if evidence_blind and narrows:
+        return ("**Outcome 3 — the dissociation replicates.** Confidence does not track whether "
+                "the evidence is present, while accuracy does; and over the raw sweep confidence "
+                "falls *faster* than accuracy, so the predicted widening gap is absent here too.")
+    if evidence_blind:
+        return ("**Outcome 3 — the dissociation replicates.** Confidence does not track whether "
+                "the evidence is present, while accuracy does.")
+    return ("**Outcome 1 — confidence tracks eviction.** Both measures respond to the "
+            "manipulations, so metamemory is better here than the teaser suggested.")
+
+
+def write_report(out: dict, fmt) -> None:
+    S, C, X = out["streaming_contrasts"], out["cross_regime"], out["cells"]
+    L = ["# X9 — the streaming sweep, and how it compares with full-reprocess", "",
+         "Generated from `x9_regime_comparison.json`; every number below is read from it, so "
+         "this file cannot drift from the metrics. Δ are percentage points, paired "
+         "within-question, cluster-bootstrapped over questions (5,000 draws, seed 0).", "",
+         f"{out['n_streaming_records']:,} streaming records "
+         f"({', '.join(f'{k}={v:,}' for k, v in sorted(out['records_by_condition'].items()))}) "
+         f"against {out['n_full_records']:,} committed full-reprocess records.", "",
+         "## Verdict", "", verdict(out), "",
+         "## The manipulations, under streaming", "",
+         "| manipulation | n | Δaccuracy | Δconfidence |", "| --- | --- | --- | --- |"]
+    for k, v in S.items():
+        if v.get("unavailable"):
+            L.append(f"| `{k}` | — | unavailable | unavailable |")
+            continue
+        L.append(f"| `{k}` | {v['n_questions']} | {fmt(v['delta_accuracy'])} | "
+                 f"{fmt(v['delta_confidence'])} |")
+    L += ["", "## Cross-regime: (streaming Δ) − (full-reprocess Δ)", "",
+          "Contrasts, not levels. The teaser's levels sit in an 11.5 pp band above the "
+          "no-evidence floor and are weak by construction; what survived there was the set of "
+          "paired contrasts, so those are what is differenced here.", "",
+          "| manipulation | n | Δaccuracy difference | Δconfidence difference |",
+          "| --- | --- | --- | --- |"]
+    for k, v in C.items():
+        if v.get("unavailable"):
+            L.append(f"| `{k}` | — | unavailable | unavailable |")
+            continue
+        L.append(f"| `{k}` | {v['n_questions']} | {fmt(v['diff_accuracy'])} | "
+                 f"{fmt(v['diff_confidence'])} |")
+
+    if out.get("timestamps_by_dt"):
+        L += ["", "## The time-blind test, bin by bin", "",
+              "X1b found the injected clock is legible only while it is still in the cache. "
+              "The prediction (EXTENDING.md §4a) is that `main` and `nots` are "
+              "indistinguishable at Δt ≥ 15 min, where the cache is saturated, and may differ "
+              "only at 1 and 5 min.", "",
+              "| Δt | n | Δaccuracy (on − off) | Δconfidence (on − off) |",
+              "| --- | --- | --- | --- |"]
+        for dt, v in out["timestamps_by_dt"].items():
+            L.append(f"| {int(dt)//60} min | {v['n']} | {fmt(v['delta_accuracy'])} | "
+                     f"{fmt(v['delta_confidence'])} |")
+
+    if out.get("budget_by_dt"):
+        L += ["", "## The context-length axis (`large` − `small`)", "",
+              "Recreated as a memory-budget arm because a bounded cache pins the token count: "
+              "context length is no longer ours to manipulate by choosing frames. "
+              "`retrieve_top_k` tracks the budget, without which the retriever re-equalises "
+              "every condition at query time.", "",
+              "| Δt | n | live tokens (large / small) | accuracy | confidence |",
+              "| --- | --- | --- | --- | --- |"]
+        for dt, v in out["budget_by_dt"].items():
+            lt = (f"{v['live_tokens_large']:,.0f} / {v['live_tokens_small']:,.0f}"
+                  if v["live_tokens_large"] else "—")
+            L.append(f"| {int(dt)//60} min | {v['n']} | {lt} | {fmt(v['delta_accuracy'])} | "
+                     f"{fmt(v['delta_confidence'])} |")
+
+    L += ["", "## Per-cell levels", "",
+          "| cell | n | accuracy | confidence | live tokens | presented tokens |",
+          "| --- | --- | --- | --- | --- | --- |"]
+    for k in sorted(X):
+        v = X[k]
+        L.append(f"| `{k}` | {v['n']} | {v['accuracy']:.3f} | {v['confidence']:.3f} | "
+                 f"{v['live_tokens']:,.0f} | {v['visual_tokens']:,.0f} |")
+    L += ["", "## Caveats that travel with these numbers", "",
+          "- **Elapsed time is not an input in this regime once the cache saturates** "
+          "(EXTENDING.md §4a). The elapsed-time contrasts are reported as unavailable rather "
+          "than null: an input the model cannot read is not a manipulation that failed.",
+          "- **This is streaming over the window, not over the 44 h life-log.** Each question "
+          "resets the cache and ingests from `evidence_min − PRE`, which preserves every arm "
+          "definition in PLAN.md but does not support claims about accumulated history.",
+          "- **Levels are not comparable across regimes** — the priming prompt replaces the "
+          "system prompt and the image path replaces the video path. Contrasts are.",
+          "- The `prior` floor is measured at Δt ∈ {1, 5, 15} min only and assumed flat beyond.",
+          ""]
+    path = ARTIFACTS / "x9_streaming.md"
+    path.write_text("\n".join(L))
+    print(f"X9 report -> {path}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--skip-m7", action="store_true", help="skip the per-condition M7 runs")
@@ -235,6 +349,38 @@ def main() -> None:
         d = diff_of_contrasts(idx_s, idx_f, ca, cb)
         out["cross_regime"][name] = d or {"unavailable": True, "cells": [ca, cb]}
 
+    # --- per-Δt breakdowns ---------------------------------------------------------------
+    # X8's confirmatory prediction (EXTENDING.md §4a): if the injected clock is unreadable once
+    # the cache saturates, `main` and `nots` must be indistinguishable at Δt >= 15 min and may
+    # differ only at 1 and 5 min, where the clock is still live. Pooling over Δt would hide
+    # exactly the pattern that tests it.
+    out["timestamps_by_dt"] = {}
+    for dt in DT_GRID_S:
+        c = contrast(idx_s, [("memory", "main", dt)], [("memory", "main@nots", dt)])
+        if c:
+            out["timestamps_by_dt"][dt] = {
+                "n": c["n_questions"],
+                "delta_accuracy": c["delta_accuracy"], "delta_confidence": c["delta_confidence"],
+            }
+    # the context-length axis, bin by bin: `small` saturates immediately, `large` only late, so
+    # the budgets separate most where the default cache is already pinned
+    out["budget_by_dt"] = {}
+    for dt in DT_GRID_S:
+        c = contrast(idx_s, [("memory", "main@large", dt)], [("memory", "main@small", dt)])
+        if c:
+            out["budget_by_dt"][dt] = {
+                "n": c["n_questions"],
+                "live_tokens_large": None, "live_tokens_small": None,
+                "accuracy_large": c["accuracy_a"], "accuracy_small": c["accuracy_b"],
+                "confidence_large": c["confidence_a"], "confidence_small": c["confidence_b"],
+                "delta_accuracy": c["delta_accuracy"], "delta_confidence": c["delta_confidence"],
+            }
+    for dt, v in out["budget_by_dt"].items():
+        for tag, arm in (("large", "main@large"), ("small", "main@small")):
+            rs = idx_s.get(("memory", arm, dt))
+            if rs:
+                v[f"live_tokens_{tag}"] = sum(r["live_tokens"] for r in rs.values()) / len(rs)
+
     # per-bin levels, for the figure and the floor
     levels: dict = {}
     for (kind, arm, dt), rows in index_cells(relabel(stream)).items():
@@ -256,6 +402,8 @@ def main() -> None:
         if not b:
             return "n/a"
         return f"{100*b['mean']:+.1f} [{100*b['lo95']:+.1f}, {100*b['hi95']:+.1f}]"
+
+    write_report(out, fmt)
 
     print("\nStreaming contrasts (Δaccuracy | Δconfidence, pp):")
     for k, v in out["streaming_contrasts"].items():
