@@ -31,7 +31,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from ..config import ARTIFACTS, BIG_ARTIFACTS, DT_GRID_S
+from ..config import ARTIFACTS, BIG_ARTIFACTS, DT_GRID_S, FIGURES
 from ..m7_analyze import cluster_bootstrap, contrast, index_cells, load
 from . import sconf
 
@@ -305,6 +305,16 @@ def main() -> None:
         # themselves and hand M7 a single-condition file.
         tmpdir = BIG_ARTIFACTS / "x9_tmp"
         tmpdir.mkdir(exist_ok=True)
+        # M7 writes artifacts/m7_metrics.json and figures/{headline,supp_sweep}.{pdf,png}
+        # unconditionally, so running it here overwrites the *teaser's* committed artifacts
+        # with streaming numbers. Snapshot them, then restore after each run and keep M7's
+        # output under a streaming name. Without this the full-reprocess figures silently
+        # become streaming figures with the same filenames — the quietest possible way to
+        # corrupt the completed experiment.
+        owned = [ARTIFACTS / "m7_metrics.json"]
+        owned += [FIGURES / f"{s}.{e}" for s in ("headline", "supp_sweep") for e in ("pdf", "png")]
+        snapshot = {p: p.read_bytes() for p in owned if p.exists()}
+
         for cond in a.conds.split(","):
             rows = [r for r in stream if r.get("cond", STREAM_COND) == cond]
             if not rows:
@@ -317,12 +327,23 @@ def main() -> None:
                 [sys.executable, "-m", "egovm.m7_analyze", "--records", str(tmp)],
                 cwd=str(ARTIFACTS.parent), capture_output=True, text=True)
             print(r.stdout[-3000:] or r.stderr[-3000:])
+            suffix = "" if cond == STREAM_COND else f"_{cond}"
             src = ARTIFACTS / "m7_metrics.json"
             if src.exists():
-                dst = ARTIFACTS / (f"m7_metrics_stream.json" if cond == STREAM_COND
-                                   else f"m7_metrics_stream_{cond}.json")
+                dst = ARTIFACTS / f"m7_metrics_stream{suffix}.json"
                 dst.write_text(src.read_text())
                 print(f"  -> {dst.name}")
+            for stem in ("headline", "supp_sweep"):
+                for ext in ("pdf", "png"):
+                    f = FIGURES / f"{stem}.{ext}"
+                    if f.exists():
+                        (FIGURES / f"{stem}_stream{suffix}.{ext}").write_bytes(f.read_bytes())
+            # put the teaser's own artifacts back exactly as they were
+            for p, blob in snapshot.items():
+                p.write_bytes(blob)
+            for p in owned:
+                if p not in snapshot and p.exists():
+                    p.unlink()
 
     # ---- 2. contrasts within streaming, then differenced against full-reprocess ----
     idx_s = index_cells(relabel(stream))
