@@ -49,6 +49,7 @@ M7_REQUIRED = (
 STREAM_FIELDS = (
     "cache_policy", "mutable_token_size", "budget_label", "live_tokens", "offloaded_tokens",
     "frames_ingested", "timestamps_injected", "ingest_s", "clone_s", "pass_id", "cond",
+    "retrieve_top_k",
 )
 
 
@@ -225,6 +226,10 @@ def main() -> None:
                         "cache_policy": policy,
                         "mutable_token_size": sconf.BUDGETS[p["budget_label"]],
                         "budget_label": p["budget_label"],
+                        # recorded so the budget arm is auditable: a top_k that does not track
+                        # the budget silently re-equalises the conditions at query time
+                        "retrieve_top_k": (cache.egovm_cfg.get("retrieve", {}) or {})
+                        .get("top_k_tokens"),
                         "offloaded_tokens": int(cache.get_offloaded_token_count())
                         if hasattr(cache, "get_offloaded_token_count") else 0,
                         "frames_ingested": int(cache.egovm_frames),

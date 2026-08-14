@@ -135,6 +135,14 @@ def cache_config(budget_label: str = sconf.DEFAULT_BUDGET, offload_dir: Path | N
     cfg = json.loads(sconf.UPSTREAM_CACHE_CONF.read_text())["cache"]
     cfg["mutable_token_size"] = sconf.BUDGETS[budget_label]
     cfg["hat_num_frames"] = sconf.HAT_NUM_FRAMES
+    # The retriever's top_k_tokens bounds how much it may pull back into the mutable region at
+    # query time. Upstream ships it equal to its own mutable_token_size (both 8,192); leaving it
+    # fixed while the budget varies silently NEUTRALISES the budget arm. Measured on the first
+    # run: query-time live_tokens was ~9,108 for all three budgets — `small` (cap 1,940) was
+    # re-inflated to 9,104 by retrieval, and `large` (cap 33,684) was truncated to 9,099 by the
+    # same bound. Tying it to the budget is what makes "memory budget" mean the same thing at
+    # ingestion and at query time.
+    cfg.setdefault("retrieve", {})["top_k_tokens"] = sconf.BUDGETS[budget_label]
     cfg["debug_cache_layout"] = False
     cfg["debug_tracking"] = False
     cfg["enable_disk_offload"] = bool(enable_offload)

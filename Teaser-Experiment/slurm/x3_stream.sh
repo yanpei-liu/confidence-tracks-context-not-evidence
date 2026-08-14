@@ -33,8 +33,14 @@ trap 'rm -rf "$EGOVM_OFFLOAD"' EXIT
 
 cd "$EGOVM_REPO"
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
+# '+' is the comma-safe separator submit_stream.sh uses: Slurm's --export list is itself
+# comma-separated and silently truncates a value containing one.
+EGOVM_KINDS="${EGOVM_KINDS:-main}"
+EGOVM_KINDS="${EGOVM_KINDS//+/,}"
+echo "kinds=${EGOVM_KINDS} tag=${EGOVM_TAG:-main} shard=${EGOVM_SHARD:-0/1}"
+
 ~/miniconda3/envs/egovm/bin/python -m egovm.streaming.x3_stream_score \
-    --kinds "${EGOVM_KINDS:-main}" \
+    --kinds "${EGOVM_KINDS}" \
     --tag "${EGOVM_TAG:-main}" \
     --shard "${EGOVM_SHARD:-0/1}" \
     --time-budget-s "${EGOVM_BUDGET:-9300}" ${EGOVM_XTRA:-}

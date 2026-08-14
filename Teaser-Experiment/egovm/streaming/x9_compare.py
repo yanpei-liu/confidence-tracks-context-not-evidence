@@ -29,6 +29,7 @@ import glob
 import json
 import subprocess
 import sys
+from pathlib import Path
 
 from ..config import ARTIFACTS, BIG_ARTIFACTS, DT_GRID_S
 from ..m7_analyze import cluster_bootstrap, contrast, index_cells, load
@@ -44,7 +45,7 @@ def is_stream(path: str) -> bool:
 def load_records(paths) -> list[dict]:
     seen = {}
     for p in paths:
-        for r in load(p):
+        for r in load(Path(p)):
             seen[r["record_id"]] = r
     return list(seen.values())
 
@@ -185,16 +186,21 @@ def main() -> None:
 
     # ---- 1. M7, one condition at a time ----
     if not a.skip_m7:
+        # A records *file* is not a condition: one budget shard holds both `small` and `large`
+        # rows, so selecting files by their first line would mix the two. Partition the records
+        # themselves and hand M7 a single-condition file.
+        tmpdir = BIG_ARTIFACTS / "x9_tmp"
+        tmpdir.mkdir(exist_ok=True)
         for cond in a.conds.split(","):
-            paths = [p for p in stream_paths
-                     if any(json.loads(l).get("cond", STREAM_COND) == cond
-                            for l in open(p).readlines()[:1] if l.strip())]
-            if not paths:
+            rows = [r for r in stream if r.get("cond", STREAM_COND) == cond]
+            if not rows:
                 print(f"  (no records for condition {cond!r}, skipping M7)")
                 continue
-            print(f"\n=== M7 on condition {cond!r}: {len(paths)} file(s) ===")
+            tmp = tmpdir / f"m6_records_stream_{cond}_merged.jsonl"
+            tmp.write_text("".join(json.dumps(r) + "\n" for r in rows))
+            print(f"\n=== M7 on condition {cond!r}: {len(rows):,} records ===")
             r = subprocess.run(
-                [sys.executable, "-m", "egovm.m7_analyze", "--records", *paths],
+                [sys.executable, "-m", "egovm.m7_analyze", "--records", str(tmp)],
                 cwd=str(ARTIFACTS.parent), capture_output=True, text=True)
             print(r.stdout[-3000:] or r.stderr[-3000:])
             src = ARTIFACTS / "m7_metrics.json"
