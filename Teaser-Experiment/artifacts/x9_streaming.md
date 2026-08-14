@@ -17,6 +17,7 @@ Generated from `x9_regime_comparison.json`; every number below is read from it, 
 | `context_length_default_vs_small` | 373 | -2.8 [-5.9, +0.1] | -7.4 [-8.9, -5.9] |
 | `evidence_vs_none` | 373 | +8.1 [+2.9, +13.1] | +0.5 [-1.5, +2.6] |
 | `evidence_thinned` | 373 | -1.9 [-4.6, +0.8] | -1.3 [-2.5, -0.1] |
+| `context_length_4x_tokens` | 373 | -2.4 [-5.9, +1.1] | -6.7 [-8.4, -5.0] |
 | `timestamps_on_vs_off` | 373 | -0.6 [-1.7, +0.5] | -0.7 [-1.2, -0.2] |
 | `control_vs_memory` | 373 | +18.4 [+13.5, +23.4] | +12.6 [+10.8, +14.4] |
 | `elapsed_time_raw` | 373 | +8.1 [+3.5, +12.6] | +12.1 [+10.0, +14.2] |
@@ -28,6 +29,7 @@ Contrasts, not levels. The teaser's levels sit in an 11.5 pp band above the no-e
 | manipulation | n | Δaccuracy difference | Δconfidence difference |
 | --- | --- | --- | --- |
 | `elapsed_time_fixed_frames` | 373 | -1.9 [-5.9, +1.9] | +3.5 [+1.7, +5.4] |
+| `context_length_4x_tokens` | 373 | +0.8 [-4.0, +5.4] | -6.1 [-8.1, -4.1] |
 | `evidence_vs_none` | 373 | -1.6 [-6.7, +3.5] | -2.8 [-5.1, -0.4] |
 | `evidence_thinned` | 373 | +0.8 [-3.2, +4.8] | -0.3 [-2.0, +1.3] |
 | `control_vs_memory` | 373 | +7.5 [+4.1, +11.0] | -1.7 [-3.3, -0.1] |

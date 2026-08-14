@@ -153,6 +153,35 @@
    },
    "description": "evidence thinned at fixed frame count (uniform@60 \u2212 evkeep@60)"
   },
+  "context_length_4x_tokens": {
+   "n_questions": 373,
+   "n_pairs": 373,
+   "accuracy_a": 0.34048257372654156,
+   "accuracy_b": 0.3646112600536193,
+   "confidence_a": 0.7218398954423593,
+   "confidence_b": 0.7888425576407503,
+   "tokens_a": 73357.10455764075,
+   "tokens_b": 19357.104557640752,
+   "delta_accuracy": {
+    "mean": -0.023942627345844583,
+    "lo95": -0.05898123324396781,
+    "hi95": 0.01072386058981234,
+    "p_two_sided_vs_0": 0.1972
+   },
+   "delta_confidence": {
+    "mean": -0.06710945887453065,
+    "lo95": -0.08423293297587131,
+    "hi95": -0.04965944504021469,
+    "p_two_sided_vs_0": 0.0
+   },
+   "delta_gap": {
+    "mean": -0.043166831528686445,
+    "lo95": -0.07919183646112637,
+    "hi95": -0.0076818793565684995,
+    "p_two_sided_vs_0": 0.0168
+   },
+   "description": "4x more presented tokens at fixed elapsed time (main@60 \u2212 evkeep@60) \u2014 the one context-length manipulation shared with the full-reprocess sweep"
+  },
   "timestamps_on_vs_off": {
    "n_questions": 373,
    "n_pairs": 1865,
@@ -268,6 +297,34 @@
     "lo95": -0.07075487935656866,
     "hi95": -0.006601093833779714,
     "p_two_sided_vs_0": 0.02
+   }
+  },
+  "context_length_4x_tokens": {
+   "n_questions": 375,
+   "n_pairs": 375,
+   "accuracy_a": 0.3626666666666667,
+   "accuracy_b": 0.39466666666666667,
+   "confidence_a": 0.6244804906666672,
+   "confidence_b": 0.6306558693333335,
+   "tokens_a": 36741.46666666667,
+   "tokens_b": 9741.466666666667,
+   "delta_accuracy": {
+    "mean": -0.031680533333333025,
+    "lo95": -0.061333333333333295,
+    "hi95": -0.0026666666666666505,
+    "p_two_sided_vs_0": 0.042
+   },
+   "delta_confidence": {
+    "mean": -0.006197542687999803,
+    "lo95": -0.0170741306666663,
+    "hi95": 0.005281312000000371,
+    "p_two_sided_vs_0": 0.2684
+   },
+   "delta_gap": {
+    "mean": 0.025482990645333537,
+    "lo95": -0.0034273946666662503,
+    "hi95": 0.054878634666666926,
+    "p_two_sided_vs_0": 0.0884
    }
   },
   "evidence_vs_none": {
@@ -401,6 +458,25 @@
     "lo95": 0.0171393002680974,
     "hi95": 0.05371690616622049,
     "p_two_sided_vs_0": 0.0004
+   }
+  },
+  "context_length_4x_tokens": {
+   "n_questions": 373,
+   "streaming_delta_accuracy": -0.024128686327077764,
+   "full_delta_accuracy": -0.03217158176943696,
+   "streaming_delta_confidence": -0.06700266219839102,
+   "full_delta_confidence": -0.0059428016085787405,
+   "diff_accuracy": {
+    "mean": 0.00806863270777476,
+    "lo95": -0.04021447721179622,
+    "hi95": 0.05361930294906164,
+    "p_two_sided_vs_0": 0.7512
+   },
+   "diff_confidence": {
+    "mean": -0.0612733780627348,
+    "lo95": -0.08084754423592588,
+    "hi95": -0.04143189544235959,
+    "p_two_sided_vs_0": 0.0
    }
   },
   "evidence_vs_none": {

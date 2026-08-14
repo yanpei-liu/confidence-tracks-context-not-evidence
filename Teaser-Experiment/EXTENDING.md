@@ -24,7 +24,11 @@ the teaser could not ask is the one this experiment exists to ask:
 **16,565 records over 373 questions, five arms, 100 % of the planned schedule, zero skips**
 (~9 GPU-h). [`artifacts/x9_streaming.md`](artifacts/x9_streaming.md) is generated from
 `x9_regime_comparison.json` and is **authoritative for every number**; the prose here is
-interpretation and may round. Verdict selected by the measured intervals among the four
+interpretation and may round.
+
+> **How to read these results — including what not to claim from them — is
+> [INTERPRETATION.md](INTERPRETATION.md).** Part 1 covers this experiment, Part 2 covers it
+> jointly with the full-reprocess sweep. Read it before quoting anything below. Verdict selected by the measured intervals among the four
 outcomes in §7: **Outcome 3 — the dissociation replicates.**
 
 **The answer to the question above is: no, and the reason is instructive.** Confidence does

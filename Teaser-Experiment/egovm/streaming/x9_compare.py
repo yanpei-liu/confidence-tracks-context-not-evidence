@@ -132,6 +132,10 @@ def streaming_specs() -> list[tuple]:
         ("evidence_thinned",
          "evidence thinned at fixed frame count (uniform@60 − evkeep@60)",
          [("memory", "tokmatch_uniform", 3600)], [("memory", "tokmatch_evkeep", 3600)]),
+        ("context_length_4x_tokens",
+         "4x more presented tokens at fixed elapsed time (main@60 − evkeep@60) — the one "
+         "context-length manipulation shared with the full-reprocess sweep",
+         [("memory", "main", 3600)], [("memory", "tokmatch_evkeep", 3600)]),
         ("timestamps_on_vs_off",
          "the same stream with and without an elapsed-time signal",
          [("memory", "main", dt) for dt in DT_GRID_S],
@@ -151,6 +155,13 @@ def cross_regime_specs() -> list[tuple]:
     return [
         ("elapsed_time_fixed_frames",
          [("memory", "tokmatch_evkeep", 3600)], [("memory", "main", 900)]),
+        # The one context-length manipulation the two regimes share. The budget arm is
+        # streaming-only (a bounded cache has no full-reprocess analogue), so without this row
+        # the rotation of confidence onto context volume could only be argued qualitatively.
+        # Δt=60 min only: streaming runs tokmatch at that bin alone, so it cannot be pooled
+        # over 30 and 60 the way M7's `fewer_tokens` is.
+        ("context_length_4x_tokens",
+         [("memory", "main", 3600)], [("memory", "tokmatch_evkeep", 3600)]),
         ("evidence_vs_none",
          [("memory", "main", 300)], [("memory", "prior", 300)]),
         ("evidence_thinned",
