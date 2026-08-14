@@ -256,10 +256,17 @@ decomposition; it is cheap (the records are on disk, no GPU needed) if that is w
 
 ## Supplementary experiments
 
-> **The next experiment is not one of these.** It is running this same design on a streaming
-> KV-cached VLM — see [EXTENDING.md](EXTENDING.md), which maps what transfers, what has to be
-> re-derived per backend, and the backbone-vs-regime confound to design against. S1–S4 below
-> remain available and unaffected; they extend the Qwen3-VL sweep rather than replacing it.
+> **The next experiment is not one of these, and it has now run.** The same design on a
+> streaming KV cache over the same Qwen3-VL-8B backbone — see [EXTENDING.md](EXTENDING.md) §0
+> for the result and `artifacts/x9_streaming.md` for the numbers. 16,565 records, 373 questions,
+> ~9 GPU-h. Headline: the dissociation replicates but **rotates** — accuracy responds to whether
+> the evidence is present (+8.1 pp) and confidence responds to how much context is in the window
+> (−15.2 pp for a 17× budget, with accuracy flat), while the elapsed-time axis this sweep found
+> for confidence is **absent** there (−0.1 pp [−1.7, +1.4]) because a saturated cache leaves the
+> model no readable clock.
+>
+> S1–S4 below remain available and unaffected; they extend the Qwen3-VL full-reprocess sweep
+> rather than replacing it.
 
 All 373 questions have ≥4 h of stream after their evidence, so **N = 373 with no attrition in every
 bin below** (checked against `m2_stream_index.json`, 187,004 s of stream). Costs are extrapolated

@@ -49,8 +49,13 @@ M7_REQUIRED = (
 STREAM_FIELDS = (
     "cache_policy", "mutable_token_size", "budget_label", "live_tokens", "offloaded_tokens",
     "frames_ingested", "timestamps_injected", "ingest_s", "clone_s", "pass_id", "cond",
-    "retrieve_top_k",
 )
+# Added with the retriever fix, so the `main`/`nots`/`prior`/`tokmatch` passes predate it. Its
+# value there is not ambiguous — those all run the default budget, where the shipped
+# top_k_tokens (8,192) already equals mutable_token_size, which is exactly why they did not
+# need re-running. Reported as a provenance gap rather than a schema failure, and never
+# back-filled: the records are the primary artifact and are not rewritten after the fact.
+LATE_FIELDS = {"retrieve_top_k": 8192}
 
 
 def cond_tag(p: dict) -> str:
@@ -85,6 +90,7 @@ def validate_file(path: Path) -> dict:
     plan_rows = {json.loads(l)["row_id"]
                  for l in (ARTIFACTS / "m4_eval_plan.jsonl").read_text().splitlines()}
     n, missing, bad_kind, off_plan, over_cap, ids = 0, set(), 0, 0, 0, set()
+    late_missing, budgets_seen = set(), set()
     caps = {b: sconf.live_cap(b) for b in sconf.BUDGETS}
     for line in path.read_text().splitlines():
         if not line.strip():
@@ -92,6 +98,8 @@ def validate_file(path: Path) -> dict:
         r = json.loads(line)
         n += 1
         missing |= {k for k in M7_REQUIRED + STREAM_FIELDS if k not in r}
+        late_missing |= {k for k in LATE_FIELDS if k not in r}
+        budgets_seen.add(r.get("budget_label"))
         if r["question_kind"] not in ("memory", "control"):
             bad_kind += 1
         if r["row_id"] not in plan_rows:
@@ -103,9 +111,20 @@ def validate_file(path: Path) -> dict:
         "file": str(path), "n_records": n, "n_unique_record_ids": len(ids),
         "missing_fields": sorted(missing), "records_with_bad_question_kind": bad_kind,
         "records_not_in_plan": off_plan, "records_over_cache_cap": over_cap,
+        "budgets": sorted(b for b in budgets_seen if b),
     }
+    if late_missing:
+        # only a real gap if a non-default budget is present, where the value could differ
+        non_default = [b for b in budgets_seen if b and b != sconf.DEFAULT_BUDGET]
+        rep["provenance_gap"] = {
+            "fields": sorted(late_missing),
+            "implied_values": {k: LATE_FIELDS[k] for k in sorted(late_missing)},
+            "note": "field postdates this pass; value is unambiguous at the default budget",
+            "blocking": bool(non_default),
+        }
+    blocking_gap = bool(late_missing) and rep.get("provenance_gap", {}).get("blocking")
     rep["ok"] = (n > 0 and not missing and bad_kind == 0 and off_plan == 0
-                 and over_cap == 0 and len(ids) == n)
+                 and over_cap == 0 and len(ids) == n and not blocking_gap)
     return rep
 
 

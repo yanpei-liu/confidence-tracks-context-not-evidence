@@ -19,6 +19,72 @@ the teaser could not ask is the one this experiment exists to ask:
 
 ---
 
+## 0. Result — the sweep is complete
+
+**16,565 records over 373 questions, five arms, 100 % of the planned schedule, zero skips**
+(~9 GPU-h). [`artifacts/x9_streaming.md`](artifacts/x9_streaming.md) is generated from
+`x9_regime_comparison.json` and is **authoritative for every number**; the prose here is
+interpretation and may round. Verdict selected by the measured intervals among the four
+outcomes in §7: **Outcome 3 — the dissociation replicates.**
+
+**The answer to the question above is: no, and the reason is instructive.** Confidence does
+*not* slide with elapsed time under streaming, and accuracy does not move with it either —
+because once the cache saturates the model has no elapsed-time input at all (§4a). What the
+regime change did was not destroy the dissociation but **rotate** it.
+
+| manipulation | Δaccuracy (pp) | Δconfidence (pp) |
+| --- | --- | --- |
+| +45 min elapsed, frames and evidence fixed (`evkeep@60 − main@15`) | −1.7 [−5.1, +1.6] | **−0.1 [−1.7, +1.4]** |
+| 17× live-token budget, elapsed time and frames fixed (`large − small` @60 min) | −1.9 [−6.4, +2.4] | **−15.2 [−17.5, −13.1]** |
+| evidence in context vs none (`main@5 − prior@5`) | **+8.1 [+2.9, +13.1]** | +0.5 [−1.5, +2.6] |
+| timestamps on vs off, pooled | −0.6 [−1.7, +0.5] | −0.7 [−1.2, −0.2] |
+
+Read together: **accuracy responds to whether the evidence is there and to nothing else;
+confidence responds to how much context is in the window and to nothing else.** The two
+measures are driven by disjoint variables. This is the teaser's finding with the confidence
+term re-pointed: there confidence moved on elapsed time (an input it could read), here it moves
+on context volume (the only input that still varies).
+
+Four results that sharpen it:
+
+- **The teaser's headline contrast does not replicate, and the failure is significant.** The
+  full-reprocess sweep's central claim — confidence slides with elapsed time at fixed tokens and
+  evidence — gave −3.7 pp there and **−0.1 pp [−1.7, +1.4]** here. Cross-regime difference
+  **+3.5 pp [+1.7, +5.4]**, excluding zero. X1b supplies the mechanism *independently and in
+  advance*: the injected clock is illegible once the cache saturates.
+- **A clean dose–response on confidence with a flat accuracy response.** As the live-token
+  ratio grows 1.7× → 17× across the Δt bins, Δconfidence grows monotonically −2.0 → −4.2 → −8.1
+  → −10.5 → **−15.2 pp**, while Δaccuracy sits at zero in every bin (widest point estimate
+  −1.9 pp, every CI containing 0). More context buys no accuracy and costs a great deal of
+  confidence.
+- **M7's decomposition closes almost exactly** — tighter than on the teaser's own data
+  (residual +0.05 pp accuracy, +0.02 pp confidence, against its 2 pp tolerance). The 15 → 60 min
+  confidence decline is −6.71 pp context and **−0.13 pp elapsed time**: the time term is not
+  merely small, it is absent.
+- **Discrimination degrades, which it did not under full-reprocess.** AUROC over the sweep
+  Δ = **−0.073 [−0.143, −0.003]**, p = 0.039, against +0.012 (flat) in the teaser. When evidence
+  is genuinely evicted rather than diluted, the confidence *ranking* decays too — not just its
+  level. This is the one place where the streaming regime shows something the teaser could not
+  produce.
+
+And one honest null, plus one prediction that failed:
+
+- **Item-level metamemory: suggestive, underpowered, not significant.** Among items correct at
+  the earlier bin, confidence fell −2.8 pp on items kept and −6.8 pp on items lost, difference
+  **−3.8 pp [−8.5, +1.1], p = 0.118**. The teaser found this flatly item-blind (+1.0, p = 0.62),
+  so streaming moves it in the direction of genuine metamemory — but on 103 lost items the CI
+  crosses zero and this must not be quoted as a positive finding.
+- **X8's confirmatory prediction was wrong in shape.** §4a predicted `main` ≈ `nots` at the
+  saturated bins and a difference only at Δt = 1 and 5 min. Observed: **no** difference at 1 min
+  (−0.2 [−1.1, +0.7]) and small but interval-excluding-zero confidence differences at 15, 30 and
+  60 min (−1.6, −1.2, −2.2 pp) — the opposite shape. The effects are an order of magnitude below
+  the context-length term and carry no accuracy difference, so the §4a conclusion that the clock
+  is not a usable input stands; but the specific prediction is recorded as **not confirmed**,
+  and the residual effect is most likely the markers' own ~5 % token cost changing what the
+  cache holds rather than any perception of time.
+
+---
+
 ## 1. Status of the port
 
 Everything in this section was measured, not inferred. The port smoke test
@@ -307,6 +373,17 @@ should be statistically indistinguishable at the saturated bins and may differ o
 and 5 min, where the clock is still live. That is a sharp, falsifiable prediction at the scale
 of the real sweep, on 373 questions rather than three probe points — and it is a strong internal
 validity check on the whole streaming condition. It runs on all questions, not a subset.
+
+> **Outcome: the prediction failed, in shape rather than in magnitude.** Measured per bin, the
+> confidence difference is −0.2 [−1.1, +0.7] at 1 min (no effect, where one was predicted) and
+> −1.6 / −1.2 / −2.2 pp at 15 / 30 / 60 min with intervals excluding zero (an effect, where none
+> was predicted). Accuracy is null in every bin. The effects are ~1/7 the size of the
+> context-length term, so §4a's conclusion — the clock is not a usable input — survives; the
+> sharp prediction built on top of it does not. The likeliest reading is mechanical rather than
+> perceptual: markers cost ~5 % of tokens, so at a fixed cap the two conditions hold slightly
+> different amounts of visual content, and confidence is strongly sensitive to exactly that.
+> Recorded here rather than quietly dropped, because a confirmatory test that only counts when
+> it confirms is not one.
 
 ## 5. Modules
 
