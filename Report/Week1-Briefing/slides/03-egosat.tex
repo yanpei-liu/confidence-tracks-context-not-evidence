@@ -1,0 +1,100 @@
+% B4.3 -- agenda item 3: EgoSAT, cross-validation and collision surface
+\setsecblurb{Prior art, not a scoop. It costs us one novelty claim\\and independently replicates our central finding.}
+\section{EgoSAT: collision and cross-validation}
+
+\begin{frame}[t]{What EgoSAT is, and what it costs us}{\EgosatCite}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      {\footnotesize A streaming egocentric benchmark: \EgosatScale, six tasks spanning retrospective / present / prospective under strict online prefix truncation, plus an answerability model for future events and a training-free ROI-based KV selection method.}
+      \vskip0.7em
+      {\footnotesize\textbf{Four places we actually collide:}}
+      \begin{itemize}\footnotesize\setlength\itemsep{0.12em}
+        \item \textbf{The confidence probe.} Their Eq.~6 is our definition verbatim. Hard collision --- cite and move on.
+        \item \textbf{Confidence vs temporal distance.} Same estimand, non-overlapping scale (\EgosatLag\ against our 1--60 min).
+        \item \textbf{Answerability-conditioned confidence.} Structurally our evidence contrast --- and it replicates.
+        \item \textbf{Online vs offline.} Same question as our regime pair, but cross-\emph{model}, not within-backbone.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \claim{\footnotesize\color{flagred}\textbf{Must fix in our framing}\\[0.4em]
+      \begin{itemize}\setlength\itemsep{0.2em}
+        \item Drop any \emph{``first to evaluate confidence in egocentric streaming''} claim --- their appendix explicitly claims that column.
+        \item Attribute the option-letter probe to Tsvilodub et al.\ 2024 / EgoSAT Eq.~6 rather than presenting it as our design decision.
+        \item Retire ``confidently wrong'' as phrasing --- it is their abstract's term.
+        \item Add EgoSAT and the six works it surfaces to our citation index.
+      \end{itemize}}
+      \vskip0.4em
+      {\scriptsize\color{inkmid}Position instead on \textbf{evidence age} and the \textbf{elapsed-time-vs-context-volume decomposition}, which nobody in this literature runs.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[t]{The win: our central finding replicates outside our lab}{Their answerability split, our evidence split --- different dataset, different backbones, same shape}
+  \begin{center}\footnotesize
+    \begin{tabular}{@{}lrrc@{}}
+      \toprule
+      \thead{model / experiment} & \thead{\acc{$\Delta$accuracy}} & \thead{\conf{$\Delta$confidence}} & \thead{under-reaction} \\
+      \midrule
+      Qwen2.5-VL-72B & \multicolumn{2}{c}{\EgosatSeventyTwo} & sign-flipped \\
+      Qwen2.5-VL-7B & \multicolumn{2}{c}{\EgosatSevenB} & 5.7$\times$ \\
+      TimeChat-Online-7B \emph{(streaming)} & \multicolumn{2}{c}{\EgosatTimeChat} & 5.6$\times$ \\
+      ROI-TimeChat-Online \emph{(streaming)} & \multicolumn{2}{c}{\EgosatRoi} & 7.3$\times$ \\
+      \midrule
+      \textbf{ours --- \Eone\ (full-reprocess)} & \acc{\EoneEvidenceAcc} & \conf{\EoneEvidenceConf} & \EoneEvidenceRatio \\
+      \textbf{ours --- \Etwo\ (streaming)} & \acc{\EtwoEvidenceAcc} & \conf{\EtwoEvidenceConf} & CI through zero \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vskip0.6em
+  \begin{columns}[T]
+    \begin{column}{0.63\textwidth}
+      {\footnotesize Three things line up: the \textbf{accuracy} effect band (theirs \EgosatAccBand, ours \EoneEvidenceAcc\ and \EtwoEvidenceAcc); the \textbf{confidence under-reaction} (theirs \EgosatUnderreact); and \textbf{streaming is the worse case in both} --- their two native streaming models separate correct from wrong answers by only \EgosatCcMinusCw\ confidence points, which is our AUROC decay in a coarser form.}
+    \end{column}
+    \begin{column}{0.34\textwidth}
+      \claim{\footnotesize\color{goodgreen}\textbf{Our headline is no longer a one-dataset, one-model result.} It should be cited as convergent evidence in exactly those terms.}
+    \end{column}
+  \end{columns}
+  \vskip0.35em
+  {\scriptsize\color{inkmid}Caveat to state rather than elide: their split is over intrinsic \emph{future predictability}, ours over presence of \emph{past evidence} --- the same claim only if ``answerability'' is accepted as the shared latent.}
+\end{frame}
+
+\begin{frame}[t]{Where they look like they contradict us --- and why they do not}
+  \begin{columns}[T]
+    \begin{column}{0.49\textwidth}
+      {\footnotesize\textbf{1. Confidence does not fall with distance in their table} (\EgosatSixOfEight\ slopes).}
+      \vskip0.3em
+      {\footnotesize\color{goodgreen}\emph{Against \Etwo: agreement.} Our streaming result is flat (\EtwoElapsedConf); their two streaming models are flat-to-positive (\EgosatStreamSlopes). Both say: under a real bounded cache, confidence does not fall with retrospective distance.}
+      \vskip0.5em
+      {\footnotesize\emph{Against \Eone: apparent disagreement}, for three reasons that are all estimand differences --- 45 min vs 16 s; their slope is fitted only on items where \emph{all three probes are correct}; and their point estimates carry no intervals.}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      {\footnotesize\textbf{2. Their accuracy declines with distance} (\EgosatAccDecline\ over 8\,$\rightarrow$\,24 s) \textbf{where our token-matched arms say elapsed time costs no accuracy.}}
+      \vskip0.3em
+      {\footnotesize Their decline over \emph{16 seconds} is the size of our entire raw 1\,$\rightarrow$\,60 min sweep. Their lag axis is not controlled for context volume or distractor difficulty --- and their own \emph{streaming} models, whose caches saturate so context stops growing, show the smallest or non-monotone declines. That is what our account predicts.}
+    \end{column}
+  \end{columns}
+  \vskip0.6em
+  \claim{\footnotesize \textbf{The defensible framing, in one sentence:} their uncontrolled lag axis reproduces our uncontrolled raw sweep --- and we have the control that says what it is made of (\Eone: the accuracy decline is \acc{\EoneDecompAccContext\ pp of context} against \acc{\EoneDecompAccElapsed\ pp of elapsed time}; \Etwo: the confidence decline is \conf{\EtwoDecompConfContext\ pp of context} of an observed \EtwoDecompConfObs, residual \EtwoDecompResid).}
+\end{frame}
+
+\begin{frame}[t]{What keeps its value}{Ranked by how much I would defend each in review}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \begin{enumerate}\footnotesize\setlength\itemsep{0.2em}
+        \item \textbf{The token-matched decomposition.} Nobody in this literature separates elapsed time from context volume, and the previous slide shows the omission is load-bearing for a published conclusion.
+        \item \textbf{Within-backbone streaming vs full-reprocess.} Their online-vs-offline comparison differs in backbone, training data and tuning at once, and cannot support the causal claim it makes; ours is a plug-in memory manager over frozen weights.
+        \item \textbf{Time scale.} 1--60 min of gap-aware \emph{stream} time on a 44 h life-log against their 8--24 s in 5-minute clips --- 40--450$\times$ the horizon, and the regime a life-logging assistant actually operates in.
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.43\textwidth}
+      \begin{enumerate}\footnotesize\setlength\itemsep{0.2em}
+        \setcounter{enumi}{3}
+        \item \textbf{Statistics.} Paired within-question contrasts, cluster bootstrap, decomposition-residual assertions, AUROC and ECE. Their tables are point estimates with no intervals and no pairing.
+        \item \textbf{A token-matched no-evidence floor.} Their blind baseline removes vision entirely, changing the token budget and the modality at once; ours removes only the evidence.
+        \item \textbf{Confidence on the memory-budget axis.} They vary the memory horizon and report \emph{accuracy only} (\EgosatMemHorizon) --- our \conf{\EtwoBudgetConf} confidence response is exactly the cell they leave empty.
+      \end{enumerate}
+    \end{column}
+  \end{columns}
+  \vskip0.4em
+  {\footnotesize\color{goodgreen}Their SFT result --- that fine-tuning improves calibration mainly by suppressing overconfident errors --- is supporting evidence for our recalibration angle, not competition for it.}
+\end{frame}

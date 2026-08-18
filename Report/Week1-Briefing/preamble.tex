@@ -1,0 +1,99 @@
+% B3 -- deck shell: theme, colours, and the semantic macros the slides use.
+\usetheme{default}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamersize{text margin left=1.0em,text margin right=1.0em}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{amssymb}
+
+% ---- palette, matched to the headline figures ------------------------------
+\definecolor{accblue}{RGB}{31,110,180}     % accuracy
+\definecolor{conforange}{RGB}{214,84,42}   % confidence
+\definecolor{inkdark}{RGB}{28,30,34}
+\definecolor{inkmid}{RGB}{95,100,108}
+\definecolor{inklight}{RGB}{150,155,163}
+\definecolor{rulegrey}{RGB}{214,217,222}
+\definecolor{washbg}{RGB}{245,246,248}
+\definecolor{flagred}{RGB}{170,40,40}
+\definecolor{goodgreen}{RGB}{35,110,75}
+
+\setbeamercolor{normal text}{fg=inkdark}
+\setbeamercolor{frametitle}{fg=inkdark}
+\setbeamercolor{structure}{fg=accblue}
+\setbeamercolor{itemize item}{fg=inkmid}
+\setbeamercolor{itemize subitem}{fg=inklight}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamerfont{framesubtitle}{size=\footnotesize,shape=\itshape}
+\setbeamercolor{framesubtitle}{fg=inkmid}
+\setbeamertemplate{itemize item}{\raisebox{0.12ex}{\scriptsize$\blacktriangleright$}}
+\setbeamertemplate{itemize subitem}{\raisebox{0.12ex}{\tiny$\bullet$}}
+
+% ---- frame furniture -------------------------------------------------------
+\makeatletter
+\setbeamertemplate{frametitle}{%
+  \vskip0.6em%
+  \begin{beamercolorbox}[wd=\paperwidth,leftskip=0.9em,rightskip=0.9em]{frametitle}%
+    \usebeamerfont{frametitle}\insertframetitle%
+    \ifx\insertframesubtitle\@empty\else\\[0.15em]\usebeamerfont{framesubtitle}\color{inkmid}\insertframesubtitle\fi%
+    \\[0.25em]{\color{rulegrey}\rule{\dimexpr\paperwidth-1.8em\relax}{0.6pt}}%
+  \end{beamercolorbox}%
+}
+\makeatother
+\setbeamertemplate{footline}{%
+  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.6ex,dp=1.8ex,leftskip=1.0em,rightskip=1.0em]{}%
+    {\color{inklight}\scriptsize\insertsection\hfill\insertframenumber}%
+  \end{beamercolorbox}}%
+}
+
+% ---- section dividers ------------------------------------------------------
+\AtBeginSection[]{%
+  \begin{frame}[plain,noframenumbering]
+    \vfill
+    \begin{center}
+      {\color{inklight}\footnotesize Part \insertsectionnumber}\\[0.4em]
+      {\Large\bfseries\color{inkdark}\insertsection}\\[0.6em]
+      {\color{accblue}\rule{3cm}{1.2pt}}\\[0.5em]
+      {\footnotesize\color{inkmid}\secblurb}
+    \end{center}
+    \vfill
+  \end{frame}%
+}
+\newcommand{\secblurb}{}
+\newcommand{\setsecblurb}[1]{\renewcommand{\secblurb}{#1}}
+
+% ---- semantic macros the slides use ---------------------------------------
+% every quoted number goes through \q so a contrast is visually distinct from prose
+\newcommand{\q}[1]{{\color{inkdark}#1}}
+\newcommand{\acc}[1]{{\color{accblue}\textbf{#1}}}
+\newcommand{\conf}[1]{{\color{conforange}\textbf{#1}}}
+\newcommand{\dt}{$\Delta t$}
+\newcommand{\Eone}{\textbf{E1}}
+\newcommand{\Etwo}{\textbf{E2}}
+\newcommand{\Eonelong}{\Eone\ (full-reprocess)}
+\newcommand{\Etwolong}{\Etwo\ (streaming KV cache)}
+
+% a claim box: the one thing the slide is for
+\newcommand{\claim}[1]{%
+  \par\vskip0.2em%
+  \colorbox{washbg}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{\vskip0.15em#1\vskip0.15em}}%
+  \par\vskip0.2em%
+}
+% a flagged caveat
+\newcommand{\caveat}[1]{{\color{flagred}\footnotesize\textbf{Caveat.}~#1}}
+% provenance line, bottom of a frame
+\newcommand{\source}[1]{\vfill{\color{inklight}\scriptsize Source: #1}}
+
+% table look
+\newcommand{\thead}[1]{{\color{inkmid}\footnotesize #1}}
+\setlength{\aboverulesep}{0.35ex}
+\setlength{\belowrulesep}{0.5ex}
+\renewcommand{\arraystretch}{1.15}
+
+\input{generated/numbers.tex}
+\input{generated/tables.tex}

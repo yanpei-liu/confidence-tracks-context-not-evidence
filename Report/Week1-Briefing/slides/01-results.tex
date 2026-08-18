@@ -1,0 +1,222 @@
+% B4.1 -- agenda item 1: interpretation of the two experiments
+\setsecblurb{Two regimes, same backbone, same questions. The prediction failed twice,\\and the replacement is a better claim.}
+\section{What the two experiments say}
+
+\begin{frame}[t]{The design, in one slide}{Everything is held fixed except how the context reaches the model}
+  \begin{columns}[T]
+    \begin{column}{0.56\textwidth}
+      \footnotesize
+      \begin{tabular}{@{}p{1.1cm}p{3.0cm}p{2.2cm}@{}}
+        \toprule
+        & \thead{how context reaches the model} & \thead{scored records} \\
+        \midrule
+        \Eone & re-encodes the whole window at every checkpoint & \NrecEone \\
+        \Etwo & one ingestion into a bounded KV cache, queried at checkpoints & \NrecEtwo \\
+        \bottomrule
+      \end{tabular}
+      \vskip0.8em
+      {\footnotesize Same frozen Qwen3-VL-8B, same \Nquestions\ EgoLifeQA questions, same frame bank, same analysis code. EgoStream is a plug-in memory manager over the same weights, so the regime comparison needs no bridge condition.}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \claim{\footnotesize\textbf{Two measures, read at every checkpoint}\\[0.4em]
+      \acc{accuracy} --- argmax over the option letters vs gold.\\[0.3em]
+      \conf{confidence} --- max softmax over the option-letter logits $\{$A,B,C,D$\}$ at the first generated position. No text generated. \emph{Not} a calibrated probability.}
+      \vskip0.6em
+      {\scriptsize\color{inkmid}Every $\Delta$ on the following slides is a \textbf{paired within-question contrast}, cluster-bootstrapped over questions (5{,}000 draws). Levels are weak by construction and are not compared across regimes.}
+    \end{column}
+  \end{columns}
+  \source{\texttt{artifacts/m8\_teaser.md}, \texttt{artifacts/x9\_streaming.md} --- both generated from the metrics JSON, both authoritative.}
+\end{frame}
+
+\begin{frame}[t]{The headline first: the hypothesis we set out to test is dead}{Tested twice, in the two regimes, and it failed in both}
+  \claim{\textbf{Prediction.} The gap between confidence and accuracy \emph{widens} as evidence ages --- the model does not know it forgot.}
+  \vskip0.9em
+  \begin{center}\footnotesize
+    \begin{tabular}{@{}lcc@{}}
+      \toprule
+      \thead{overconfidence gap, \dt\ 1\,$\rightarrow$\,60 min} & \thead{change (pp)} & \thead{$p$} \\
+      \midrule
+      \Eone\ --- full-reprocess & \EoneGap & \EoneGapP \\
+      \Etwo\ --- streaming KV cache, evidence genuinely evicted & \EtwoGap & \EtwoGapP \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vskip0.9em
+  {\footnotesize Both point mildly \emph{toward narrowing}. \Etwo\ was the setting the hypothesis most deserved --- a bounded cache actually destroys the evidence rather than diluting it --- and it still did not appear.}
+  \vskip0.5em
+  {\footnotesize\color{goodgreen}\textbf{The recommendation is to retire it rather than test it a third way.} What the controls found instead is a stronger claim, and the rest of Part 1 is that claim.}
+\end{frame}
+
+\begin{frame}[t]{\Eonelong: confidence tracks the wrong variable}
+  \begin{center}
+    \includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{figures/e1-full.pdf}
+  \end{center}
+  \source{\texttt{figures/headline.pdf} (M7), cut into panels by \texttt{modules/b2\_figures.py}. Nothing redrawn.}
+\end{frame}
+
+\begin{frame}[t]{\Eone\ --- the token-matched arms are what make this readable}{Elapsed time and context length are confounded in the raw sweep; two extra arms separate them}
+  \begin{center}\footnotesize
+    \begin{tabular}{@{}p{6.6cm}rr@{}}
+      \toprule
+      \thead{manipulation} & \thead{\acc{$\Delta$accuracy}} & \thead{\conf{$\Delta$confidence}} \\
+      \midrule
+      $+$45 min elapsed \emph{\scriptsize(tokens and evidence fixed)} & \EoneElapsedAcc & \EoneElapsedConf \\
+      4$\times$ fewer visual tokens \emph{\scriptsize(\dt\ and evidence fixed)} & \EoneTokensAcc & \EoneTokensConf \\
+      evidence in context vs none \emph{\scriptsize(token-matched, \dt\ = 5 min)} & \EoneEvidenceAcc & \EoneEvidenceConf \\
+      \midrule
+      raw \dt\ sweep 1\,$\rightarrow$\,60 min \emph{\scriptsize(confounded: both grow together)} & \EoneSweepAcc & \EoneSweepConf \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vskip0.7em
+  \claim{\footnotesize \conf{Confidence} moves on elapsed time --- the one manipulation that costs \emph{no} accuracy. \acc{Accuracy} moves on context length and on whether the evidence is there at all, and confidence barely registers either: the largest accuracy effect in the experiment is under-reacted to by \EoneEvidenceRatio.}
+  \vskip0.4em
+  {\scriptsize\color{inkmid}Read down the table: the two token-matched arms make elapsed time and context length separately identifiable, and they come apart. This is panel B of the previous figure, in numbers.}
+\end{frame}
+
+\begin{frame}[t]{\Etwolong: the same dissociation, rotated}{Accuracy responds to whether the evidence is in the window; confidence, to how much context is in it}
+  \begin{center}
+    \includegraphics[width=\textwidth,height=0.66\textheight,keepaspectratio]{figures/e2-a.pdf}
+  \end{center}
+  \vskip-0.2em
+  {\scriptsize\color{inkmid}The elapsed-time rows are drawn as an \emph{unavailable} axis, not a null --- see the slide after next. The whole figure, with its four lower panels, is in the backup.}
+  \source{\texttt{figures/streaming\_headline.pdf} (X10), drawn from \texttt{x9\_regime\_comparison.json}.}
+\end{frame}
+
+\begin{frame}[t]{\Etwo\ --- the positive result is a dose--response}{A bigger cache buys no accuracy and costs a great deal of confidence}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \scriptsize
+      \begin{tabular}{@{}crr@{}}
+        \toprule
+        \thead{\dt\ (min)} & \thead{\acc{$\Delta$accuracy}} & \thead{\conf{$\Delta$confidence}} \\
+        \midrule
+        \TabEtwoBudgetNarrow
+        \bottomrule
+      \end{tabular}
+      \vskip0.5em
+      {\footnotesize A monotone response on one measure with a flat response on the other is much harder to produce by accident than either endpoint alone --- and it rules out a threshold artefact.}
+      \claim{\footnotesize At \dt\ = 60 min a \EtwoBudgetRatio\ live-token budget (\EtwoBudgetLive\ live tokens, same frames presented) is worth \acc{\EtwoBudgetAcc} of accuracy and \conf{\EtwoBudgetConf} of confidence.}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \includegraphics[width=0.96\textwidth]{figures/e2-c.pdf}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[t]{The pair: the dissociation replicates, and its driver rotates}{Differenced contrasts --- the same manipulation run in both regimes, paired on the same questions}
+  \begin{center}\footnotesize
+    \begin{tabular}{@{}p{5.2cm}rrr@{}}
+      \toprule
+      \thead{manipulation, $\Delta$confidence} & \thead{\Eone} & \thead{\Etwo} & \thead{difference (\Etwo\,$-$\,\Eone)} \\
+      \midrule
+      \TabCrossRegime
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vskip0.7em
+  \begin{columns}[T]
+    \begin{column}{0.49\textwidth}
+      {\footnotesize\textbf{Invariant.} Accuracy responds to whether the evidence is present (\acc{\EoneEvidenceAcc} / \acc{\EtwoEvidenceAcc}); confidence does not. Changing the memory architecture did not fix evidence-blindness --- it \emph{deepened} it.}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      {\footnotesize\textbf{Rotated.} In \Eone\ confidence slid with elapsed time and ignored context volume. In \Etwo\ it ignores elapsed time and slides hard with context volume. Both halves of the swap exclude zero.}
+    \end{column}
+  \end{columns}
+  \vskip0.5em
+  {\scriptsize\color{inkmid}The third row is the sharpest single number either experiment produced: one manipulation, same frames, same token ratio, and the \emph{accuracy} cost is identical across regimes (\acc{\XregFourxAcc}) while the \emph{confidence} response differs by \conf{\XregFourxConf}. That rules out ``\Etwo\ is just a harder task''.}
+\end{frame}
+
+\begin{frame}[t]{What I think this adds up to}{One account, no extra assumptions}
+  \claim{\textbf{Confidence is computed from surface properties of the context} --- how much of it there is, and how long ago it says that was --- \textbf{not from whether the information needed to answer is present.} When several surface properties are available it latches onto whichever varies; remove one and it moves to another. What it never latches onto is evidence.}
+  \vskip0.8em
+  {\footnotesize It explains, without further assumptions:}
+  \begin{itemize}\footnotesize\setlength\itemsep{0.15em}
+    \item why evidence presence moves accuracy and not confidence in \emph{both} regimes;
+    \item why the driver swaps when the clock is removed;
+    \item why \Eone's confidence decline is \emph{item-blind} (\EoneItemDiff\ between items kept and items lost, $p$ = \EoneItemDiffP) --- a surface property of the whole context cannot distinguish items;
+    \item why the raw \dt\ sweep looks like forgetting in both regimes and is not.
+  \end{itemize}
+  \vskip0.5em
+  {\footnotesize\color{goodgreen}This is a harder problem than the one we proposed. ``Confidence stays flat while accuracy falls'' is a failure to update. What we see is confidence moving up to 15 points on variables that predict accuracy \emph{not at all} --- a failure of what is being tracked.}
+\end{frame}
+
+\begin{frame}[t]{The one genuinely new phenomenon in \Etwo}{With real eviction, the confidence \emph{ranking} decays --- not only its level}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      {\footnotesize AUROC of confidence against correctness:}
+      \vskip0.4em
+      \footnotesize
+      \begin{tabular}{@{}lrr@{}}
+        \toprule
+        & \thead{\Eone} & \thead{\Etwo} \\
+        \midrule
+        AUROC at \dt\ = 1 min & \EoneAurocLo & \EtwoAurocLo \\
+        AUROC at \dt\ = 60 min & \EoneAurocHi & \EtwoAurocHi \\
+        no-evidence floor & \EoneAurocFloor & \EtwoAurocFloor \\
+        \bottomrule
+      \end{tabular}
+      \vskip0.5em
+      {\footnotesize Change over the sweep: \Eone\ \EoneAurocDelta\ (flat) against \Etwo\ \EtwoAurocDelta, $p$ = \EtwoAurocP.}
+      \vskip0.4em
+      {\footnotesize \textbf{Why only here:} under full-reprocess the evidence is always present at \emph{some} resolution --- diluted, never removed. Under a bounded cache it is genuinely gone.}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \includegraphics[width=0.88\textwidth]{figures/e2-e.pdf}
+    \end{column}
+  \end{columns}
+  \vskip0.3em
+  \caveat{One test, interval nearly touching zero. \textbf{The change is the finding; the level is not.}}
+\end{frame}
+
+\begin{frame}[t]{Three readings I want to rule out before we write any of this}
+  \begin{enumerate}\footnotesize\setlength\itemsep{0.55em}
+    \item \textbf{``The elapsed-time effect disappeared under streaming.''} \emph{No.} EgoStream ingests through the image path, which carries no time markers, so we injected a clock as text --- and a separate probe (X1b) established \emph{before} the sweep ran that the model cannot read it once the cache saturates. The axis is \textbf{unavailable}, not null. An input the model cannot perceive is not a manipulation that failed.
+    \item \textbf{``Streaming makes the model more overconfident.''} \emph{Not supported.} That is a level, and \Etwo\ changes the system prompt and the ingestion path along with the regime. Contrasts are comparable across regimes; levels are not.
+    \item \textbf{``The model tracks the items it actually lost.''} \emph{Not yet.} \Etwo's difference between kept and lost items is \EtwoItemDiff, $p$ = \EtwoItemDiffP, on \EtwoItemLost\ lost items --- suggestive, underpowered, and the only hint of genuine metamemory anywhere in either experiment.
+  \end{enumerate}
+  \vskip0.4em
+  \claim{\footnotesize Calling an \textbf{unavailable} axis a \textbf{null} is the single most damaging misreading available here --- and it is the one a reviewer will make for us if we do not say it first.}
+\end{frame}
+
+\begin{frame}[t]{Where our own numbers are softer than the headline}{From this week's audit of the cache code --- found by us, not by a reviewer}
+  \scriptsize
+  \begin{tabular}{@{}p{4.5cm}p{9.9cm}@{}}
+    \toprule
+    \thead{issue} & \thead{what to do about it} \\
+    \midrule
+    The \conf{\EtwoBudgetConf} budget headline spans a \textbf{change of mechanism}, not just of size --- the small-budget arm is the only condition with offload and retrieval in play. &
+    Lead with the offload-free pair: \conf{\CleanBudgetConf} at \CleanBudgetRatio\ the live tokens, accuracy null throughout. The dose--response \emph{survives} inside one mechanism, which was the most plausible way for the headline to have been an artefact. \\
+    ``Context length'' names \textbf{two different variables}: how much the model \emph{holds}, and how much it \emph{threw away}. &
+    Relabel, and use the broader unifier: \emph{confidence falls with the amount of visual input the model has processed, whether or not it retained it.} Both rows fit it; the account gets stronger. \\
+    ``The evidence is genuinely evicted'' is \textbf{inferred}, and eviction is content-scored rather than recency-ordered. &
+    Measurable for a few GPU-minutes and one record field: surviving tokens on the evidence frames vs the window mean. It underpins the AUROC result, so it should be measured. \\
+    \bottomrule
+  \end{tabular}
+  \vskip0.5em
+  {\scriptsize\color{inklight}Source: \texttt{memo/STREAMING-CACHE.md} \S3--\S5 --- mechanism read from the EgoStream source, numbers recomputed on the committed records.}
+\end{frame}
+
+\begin{frame}[t]{What this does to the project's original claim}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      {\footnotesize\textbf{Half 1 --- ``a widening gap as evidence ages''}}
+      \vskip0.35em
+      {\footnotesize\color{flagred}\textbf{Rejected.} Twice, in two regimes, including the one where evidence is truly evicted. Retire it.}
+      \vskip1.0em
+      {\footnotesize\textbf{Half 2 --- ``a \dt/evidence-conditioned recalibration recovers most of the reliability at near-zero cost''}}
+      \vskip0.35em
+      {\footnotesize\color{flagred}\textbf{Needs revision on both variables.}}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \claim{\footnotesize\textbf{The corrected version}\\[0.4em]
+      \begin{itemize}\setlength\itemsep{0.3em}
+        \item \dt\ is the \emph{wrong conditioner}. It worked in \Eone\ by accident; in \Etwo\ the model cannot even read it. The variable that actually drives confidence is \textbf{\texttt{live\_tokens}} --- observable at inference time, and free.
+        \item ``Evidence-conditioned'' is \emph{not implementable}: it presumes knowing whether the evidence is in context, which is exactly what the model cannot report.
+        \item \textbf{The headroom differs by regime.} Recalibrating a level only works if the ranking survives: it does in \Eone\ (AUROC flat), and it does not in \Etwo\ (\EtwoAurocDelta).
+      \end{itemize}}
+    \end{column}
+  \end{columns}
+  \vskip0.4em
+  {\footnotesize\color{goodgreen}The last point is the most consequential thing the pair says, and it is only visible because both regimes were run: \textbf{the cheap fix looks cheaper the less realistic the memory system is.}}
+\end{frame}

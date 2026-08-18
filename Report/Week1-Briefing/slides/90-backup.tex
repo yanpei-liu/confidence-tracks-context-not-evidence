@@ -1,0 +1,115 @@
+% B4.9 -- backup: the raw material behind the claims
+\appendix
+\setsecblurb{The raw material behind each claim.}
+\section{Backup}
+
+\begin{frame}[t]{Backup --- \Eone, the raw \dt\ sweep}{Confounded by construction: the window grows with \dt. This is the material the decomposition consumes, not a result.}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \footnotesize
+      \begin{tabular}{@{}crrrr@{}}
+        \toprule
+        \thead{\dt\ (min)} & \thead{acc \%} & \thead{conf \%} & \thead{gap} & \thead{visual tokens} \\
+        \midrule
+        \TabEoneSweep
+        \bottomrule
+      \end{tabular}
+      \vskip0.7em
+      {\footnotesize\textbf{The usable dynamic range is narrow.} Bin-1 accuracy \EoneBinOneAcc\,\% sits \EoneRange\ pp above the no-evidence floor of \EoneFloorAcc\,\%, and chance is 25\,\%. \Etwo's band is the same width (\EtwoRange\ pp). Any statement about an accuracy \emph{level} is made inside that band --- which is why every headline here is a contrast.}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{figures/e1-a.pdf}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[t]{Backup --- the decomposition, in both regimes}{The one arithmetic that makes the raw sweep interpretable}
+  \begin{columns}[T]
+    \begin{column}{0.53\textwidth}
+      \footnotesize
+      \begin{tabular}{@{}lrr@{}}
+        \toprule
+        \thead{\Eone: contribution to \dt\ 15\,$\rightarrow$\,60 min} & \thead{\acc{acc}} & \thead{\conf{conf}} \\
+        \midrule
+        elapsed-time term \emph{\scriptsize(token-matched)} & \EoneDecompAccElapsed\ pp & \EoneDecompConfElapsed\ pp \\
+        context-length term \emph{\scriptsize(same \dt)} & \EoneDecompAccContext\ pp & \EoneDecompConfContext\ pp \\
+        \bottomrule
+      \end{tabular}
+      \vskip0.6em
+      {\footnotesize \textbf{Accuracy's decline is entirely the context term; confidence's is almost entirely the elapsed-time term.} The raw sweep is a composite of two effects pointing in different directions for the two measures --- which is why reading it as ``forgetting'' is wrong.}
+      \vskip0.5em
+      {\footnotesize In \Etwo\ (right) the same code gives \conf{\EtwoDecompConfContext\ pp} of context against \conf{\EtwoDecompConfElapsed\ pp} of elapsed time, observed \EtwoDecompConfObs\ pp, residual \EtwoDecompResid\ pp. The elapsed-time term is not merely small --- it is absent.}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \includegraphics[width=\textwidth]{figures/e2-d.pdf}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[t]{Backup --- \Etwo, the whole headline figure}
+  \begin{center}
+    \includegraphics[width=\textwidth,height=0.80\textheight,keepaspectratio]{figures/e2-full.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}[t]{Backup --- \Etwo, the streaming contrasts in full}
+  \begin{center}\footnotesize
+    \begin{tabular}{@{}p{6.4cm}rr@{}}
+      \toprule
+      \thead{manipulation} & \thead{\acc{$\Delta$accuracy}} & \thead{\conf{$\Delta$confidence}} \\
+      \midrule
+      evidence in context vs none & \EtwoEvidenceAcc & \EtwoEvidenceConf \\
+      $+$45 min elapsed, frames and evidence fixed & \EtwoElapsedAcc & \EtwoElapsedConf \\
+      3.8$\times$ more presented tokens & \EtwoFourxAcc & \EtwoFourxConf \\
+      3.7$\times$ live-token budget (offload-free pair) & \EtwoLargeDefaultAcc & \EtwoLargeDefaultConf \\
+      evidence frames thinned away & \EtwoThinnedAcc & \EtwoThinnedConf \\
+      injected clock on vs off & \EtwoTimestampsAcc & \EtwoTimestampsConf \\
+      \midrule
+      raw \dt\ sweep \emph{(confounded)} & \EtwoRawAcc & \EtwoRawConf \\
+      no-memory vs recall question \emph{(between-items)} & \EtwoKindAcc & \EtwoKindConf \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vskip0.5em
+  {\scriptsize\color{inkmid}All \Nquestions\ questions on every row, paired within-question, cluster-bootstrapped over questions (5{,}000 draws, seed 0).}
+  \source{\texttt{artifacts/x9\_streaming.md}, generated from \texttt{x9\_regime\_comparison.json}.}
+\end{frame}
+
+\begin{frame}[t]{Backup --- what the cache actually holds}{Why \Etwo\ is a different experiment and not just a slower one}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      {\footnotesize The cache is split into a pinned priming region, an evictable mutable region (the experiment's budget knob), and a protected hat holding the last two frames. On overflow the pruning pipeline drops the lowest-value and most redundant tokens.}
+      \vskip0.6em
+      {\footnotesize\textbf{Two consequences that are not visible from the config:}}
+      \begin{itemize}\footnotesize\setlength\itemsep{0.15em}
+        \item \textbf{Eviction is content-scored and global, not recency-ordered.} ``Older evidence is pushed out first'' is not this policy --- so a flat accuracy-vs-\dt\ response is what this cache \emph{predicts}.
+        \item \textbf{Eviction is permanent in the primary condition.} Audited over every streaming record: \OffloadDefault\ default and large rows offloaded anything, against \OffloadSmall\ small rows.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \claim{\footnotesize\textbf{The sweep crosses saturation at \SaturationPoint.} By \dt\ = 60 min only \SurvivingShare\ of the presented tokens survive, and the live token count is pinned at \LiveTokensIdentical\ in every bin from 15 min on.}
+      \vskip0.6em
+      {\footnotesize And \Eone's clock is \emph{text} the model tokenizes (\EoneClockIsText), not a positional encoding --- confirmed by decoding the prompt through \Eone's own input builder. That is why stripping it is a real experiment and a cheap one.}
+    \end{column}
+  \end{columns}
+  \source{\texttt{memo/STREAMING-CACHE.md} \S2, \S6--\S7 --- mechanism read from source, numbers recomputed from the committed records.}
+\end{frame}
+
+\begin{frame}[t]{Backup --- how this deck is built}{Same convention as the experiments: modules separated along verifiable-artifact boundaries}
+  \footnotesize
+  \begin{tabular}{@{}llp{6.0cm}@{}}
+    \toprule
+    \thead{module} & \thead{artifact} & \thead{what checks it} \\
+    \midrule
+    B1 \texttt{b1\_numbers.py} & \texttt{generated/numbers.tex} & Re-derives all \textbf{128} macros from the metrics JSON; memo-sourced values carry a literal that must still appear in the memo. \\
+    B2 \texttt{b2\_figures.py} & \texttt{figures/*.pdf} & Panels are crops, never redraws; manifest pins the source figures by sha256 and the crop boxes. \\
+    B3 \texttt{preamble.tex} & the theme & --- \\
+    B4 \texttt{slides/*.tex} & one file per agenda item & B5 compiles each file on its own, so a section can be edited without the rest. \\
+    B5 \texttt{b5\_verify.py} & the built PDF & Nine checks; fails on a stale generator, a changed source figure, a missing figure, an undefined macro, a LaTeX error, or a visibly overfull slide. \\
+    \bottomrule
+  \end{tabular}
+  \vskip0.7em
+  {\footnotesize\textbf{No number on any slide was typed by hand.} Each one is a macro whose value and provenance are recorded in \texttt{generated/numbers.json}; if an experiment is re-run, \texttt{make} rebuilds the deck and \texttt{make verify} fails until it is rebuilt.}
+  \vskip0.5em
+  {\scriptsize\color{inkmid}Precedence, as in the repo: \texttt{m8\_teaser.md} and \texttt{x9\_streaming.md} are authoritative for numbers; \texttt{INTERPRETATION.md} governs how to read them; this deck is interpretation on top of both.}
+\end{frame}

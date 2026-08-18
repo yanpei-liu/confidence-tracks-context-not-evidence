@@ -1,0 +1,32 @@
+% =============================================================================
+%  Week 1 briefing -- metamemory in streaming egocentric video-LLMs
+%
+%  Built by modules, along the same verifiable-artifact boundaries the
+%  experiments use.  See README.md for the module map.  Build with `make`.
+%
+%    B1  modules/b1_numbers.py  -> generated/numbers.tex, generated/tab-*.tex
+%    B2  modules/b2_figures.py  -> figures/*.pdf, figures/figures_manifest.json
+%    B3  preamble.tex           -> theme and semantic macros
+%    B4  slides/*.tex           -> one file per agenda item
+%    B5  modules/b5_verify.py   -> checks the built pdf against all of the above
+%
+%  No number is typed into a slide by hand: every one is a macro from B1.
+% =============================================================================
+\documentclass[aspectratio=169,10pt]{beamer}
+\input{preamble.tex}
+
+\title{Does a streaming video-LLM know what it has forgotten?}
+\subtitle{Week 1 briefing --- two experiments, one probe validation, one collision check}
+\author{yanpei-liu}
+\date{18 August 2026}
+
+\begin{document}
+
+\input{slides/00-title.tex}
+\input{slides/01-results.tex}
+\input{slides/02-confidence.tex}
+\input{slides/03-egosat.tex}
+\input{slides/04-next.tex}
+\input{slides/90-backup.tex}
+
+\end{document}
