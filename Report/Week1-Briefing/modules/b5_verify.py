@@ -20,7 +20,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 BRIEF = HERE.parent
 PDF = BRIEF / "build" / "week1-briefing.pdf"
 LOG = BRIEF / "build" / "week1-briefing.log"
-MIN_PAGES = 25
+MIN_PAGES = 20
 MAX_OVERFULL_PT = 12.0   # anything larger is visible on a slide
 
 FAILS: list[str] = []

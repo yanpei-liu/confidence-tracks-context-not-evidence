@@ -1,29 +1,31 @@
-% B4.4 -- what to do next, and what I need decided
-\setsecblurb{Four of the next five things cost under a GPU-hour.}
-\section{What I propose next}
+% B4.4 -- Part 4: next steps (concise, single slide)
+\setsecblurb{Proposed follow-ups ranked by what they settle per GPU-hour.}
+\section{Proposed next steps}
 
-\begin{frame}[t]{Ranked by what they change per GPU-hour}{Four of these six cost under a GPU-hour, and two cost none}
+\begin{frame}[t]{Ranked follow-ups and open decisions}
   \scriptsize
-  \begin{tabular}{@{}p{4.3cm}p{1.5cm}p{8.4cm}@{}}
+  \begin{tabular}{@{}p{3.8cm}p{1.3cm}p{9.1cm}@{}}
     \toprule
     \thead{experiment} & \thead{cost} & \thead{what it settles} \\
     \midrule
-    \textbf{Strip the timestamps from \Eone} and re-score the two token-matched cells & \TimestripCost &
-    Whether \Eone's elapsed-time effect is a response to printed time tokens \emph{at all}. If it is, the story stops depending on the memory architecture --- our most confounded claim. \\
-    \textbf{Recalibrate on \texttt{live\_tokens}}, per regime & free & The corrected Half-2 claim. The AUROC asymmetry predicts it succeeds in \Eone\ and partially fails in \Etwo\ --- sharp either way. \\
-    \textbf{Off-letter mass as a reported quantity}, plus a module regenerating this week's tables & free, CPU & Turns the abstention signal into a result, and puts the denominator sensitivity in an artifact rather than a memo. \\
-    \textbf{Re-probe the injected clock} in the native format & minutes & Whether ``cannot read the clock'' is a property of the cache or of the format we injected. \\
-    \textbf{Cyclic option-permutation arm} at one \dt\ bin & 4$\times$, one bin & The option-letter bias check EgoSAT runs and we do not. \\
-    \textbf{Explicit abstention} (a fifth option) & $\sim$2.4 GPU-h & Given the words to say ``not enough information'', does the model use them when the evidence is gone? \\
+    Strip timestamps from \Eone, re-score token-matched cells & \TimestripCost &
+    Whether \Eone's elapsed-time effect is a response to printed time tokens at all. \\
+    Recalibrate on \texttt{live\_tokens}, per regime & free &
+    The corrected Half-2 claim. AUROC asymmetry predicts success in \Eone, partial failure in \Etwo. \\
+    Off-letter mass as a reported quantity & free, CPU &
+    Turns the abstention signal into a result; surfaces the denominator sensitivity. \\
+    Cyclic option-permutation arm, one \dt\ bin & 4$\times$, one bin &
+    The option-letter bias check EgoSAT runs and this project does not. \\
+    Explicit abstention (a fifth option) & $\sim$2.4 GPU-h &
+    Given the words to say ``not enough information'', does the model use them? \\
     \bottomrule
   \end{tabular}
-\end{frame}
-
-\begin{frame}[t]{Decisions I would like from you}
-  \begin{enumerate}\setlength\itemsep{0.7em}
-    \item[\textbf{1.}] \textbf{Retire the original hypothesis?} It has now failed in both regimes, the second of which was the setting it most deserved. My recommendation is to retire it and lead with the dissociation and its rotation.
-    \item[\textbf{2.}] \textbf{Which follow-up first?} My order is: timestamps-off on \Eone, then recalibration on \texttt{live\_tokens}. The first is the cheapest thing that could change the story; the second is the corrected version of what we promised.
-    \item[\textbf{3.}] \textbf{How hard to position against EgoSAT?} They hold the ``confidence under streaming'' flag; we hold the decomposition, the within-backbone comparison, the time scale and the statistics. I would cite them as convergent evidence in the introduction rather than fight for the framing.
-    \item[\textbf{4.}] \textbf{Is the abstention channel worth a section?} It is free, it is a measured effect where we currently report a null, and it is the only genuinely metacognitive signal in either experiment --- but it is a 1.4\,\% tail and it needs the top-$k$ dump to say what those tokens are.
+  \vskip0.7em
+  {\footnotesize\textbf{Open decisions:}}
+  \begin{enumerate}\footnotesize\setlength\itemsep{0.15em}
+    \item Retire the original hypothesis and lead with the dissociation?
+    \item Which follow-up first? (Proposed order: timestamps-off, then recalibration.)
+    \item How hard to position against EgoSAT --- convergent evidence vs competing framing?
+    \item Is the abstention channel worth a section, given it rides on a 1.4\,\% tail?
   \end{enumerate}
 \end{frame}

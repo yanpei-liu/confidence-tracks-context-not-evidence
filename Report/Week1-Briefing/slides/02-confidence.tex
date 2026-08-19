@@ -1,108 +1,41 @@
-% B4.2 -- agenda item 2: validating the confidence probe
-\setsecblurb{Should confidence be a softmax over the four option letters,\\or over the whole vocabulary? Answered on the committed records, no GPU.}
-\section{Is the confidence probe the right construct?}
+% B4.2 -- Part 2: confidence probe validation (concise)
+\setsecblurb{The alternative denominator was computed on the committed records.\\one sensitivity found; it is a result, not a nuisance.}
+\section{Confidence probe validation}
 
-\begin{frame}[t]{The question, and the answer}{The alternative was already on disk --- both backends log the full-vocabulary logprobs at the letter ids}
+\begin{frame}[t]{Verdict: the restricted softmax holds}{Vocabulary-normalised alternative changes nothing --- except one number, for the wrong reason}
   \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      {\footnotesize With $M$ = the next-token mass on $\{$A,B,C,D$\}$, the vocabulary-normalised confidence is exactly $c_{\text{vocab}} = c_{\text{restricted}} \times M$, recoverable for every one of the \NrecEone\,+\,\NrecEtwo\ committed records at \textbf{zero GPU cost}. No re-run was needed and none was done.}
-      \vskip0.9em
-      {\footnotesize\textbf{Verdict: keep \texttt{max softmax(\{A,B,C,D\})} as the primary metric.}}
-      \begin{itemize}\footnotesize\setlength\itemsep{0.2em}
-        \item It is the \emph{coherent denominator} --- correctness is argmax over those four letters by construction, so ECE against MCQ correctness is only coherent for the restricted version.
-        \item It is \emph{field-standard}, not our idiosyncrasy: EgoSAT Eq.~6 is our definition verbatim, tracing to Tsvilodub et al.\ 2024.
-        \item The alternative changes nothing we report --- except one number, where it changes it for the wrong reason.
-      \end{itemize}
+    \begin{column}{0.48\textwidth}
+      {\footnotesize Mean mass on $\{$A,B,C,D$\}$: \MassEone\ (\Eone), \MassEtwo\ (\Etwo). Argmax disagreements: \textbf{\ArgmaxDisagree} records. Accuracy is identical under both definitions.}
+      \vskip0.5em
+      {\footnotesize AUROC is invariant to how the four-way distribution is collapsed:}
+      \vskip0.3em
+      \scriptsize
+      \begin{tabular}{@{}lrr@{}}
+        \toprule
+        \thead{discriminator} & \thead{\Eone} & \thead{\Etwo} \\
+        \midrule
+        max-p, restricted & \AurocRestrEone & \AurocRestrEtwo \\
+        max-p, vocab-normalised & \AurocVocabEone & \AurocVocabEtwo \\
+        negative entropy & 0.6228 & \AurocEntropyEtwo \\
+        margin (top1 $-$ top2) & 0.6254 & \AurocMarginEtwo \\
+        \bottomrule
+      \end{tabular}
     \end{column}
-    \begin{column}{0.45\textwidth}
-      \claim{\footnotesize\textbf{The design choice that actually deserves scrutiny is not the denominator.}\\[0.4em]
-      It is \textbf{option-letter bias}, and a second quantity the restricted softmax throws away turns out to carry a real signal. Both are on the next slides --- and the second is the cheapest positive result available to us.}
-      \vskip0.7em
-      {\scriptsize\color{inkmid}Everything here was recomputed with the \emph{unchanged} contrast machinery that produced the two authoritative artifacts, so it is directly comparable to the headline numbers.}
+    \begin{column}{0.50\textwidth}
+      {\footnotesize\textbf{The one sensitivity:} under vocabulary normalisation, \Etwo's evidence contrast flips from \RestrEvidenceEtwo\ to \VocabEvidenceEtwo\ --- rewriting the ``dissociation replicates'' verdict. The flip rides on a small, heavy-tailed minority (\HedgeRows\ with $>$10\,\% off-letter mass, specific to the bounded cache).}
+      \vskip0.5em
+      \claim{\scriptsize The fix is to make the sensitivity visible: assert the denominator in the module and emit both values alongside the verdict.}
     \end{column}
   \end{columns}
   \source{\texttt{memo/CONFIDENCE-PROBE.md}}
 \end{frame}
 
-\begin{frame}[t]{Where the choice makes no difference --- which is nearly everywhere}
+\begin{frame}[t]{Two by-products worth reporting}
   \begin{columns}[T]
-    \begin{column}{0.47\textwidth}
-      {\footnotesize\textbf{The model puts essentially all its mass on the letters.}}
-      \vskip0.4em
-      \footnotesize
-      \begin{tabular}{@{}lrr@{}}
-        \toprule
-        & \thead{\Eone} & \thead{\Etwo} \\
-        \midrule
-        mean mass on $\{$A,B,C,D$\}$ & \MassEone & \MassEtwo \\
-        \multicolumn{3}{@{}l}{argmax disagreements: \textbf{\ArgmaxDisagree} records} \\
-        \bottomrule
-      \end{tabular}
-      \vskip0.5em
-      {\footnotesize Prediction --- and therefore \emph{accuracy} --- is identical under the two definitions in every record we have.}
-      \vskip0.8em
-      {\footnotesize Every contrast in both experiments is unchanged to 0.01 pp, including the two headlines: \Etwo's context-length effect and its null on elapsed time at fixed frames.}
-    \end{column}
-    \begin{column}{0.50\textwidth}
-      {\footnotesize\textbf{And the ranking does not care how you collapse the four-way distribution to a scalar.}}
-      \vskip0.4em
-      {\footnotesize AUROC against correctness, memory rows:}
+    \begin{column}{0.49\textwidth}
+      {\footnotesize\textbf{Implicit abstention.} Off-letter mass is a metacognitive signal living where max-p is silent:}
       \vskip0.3em
-      \footnotesize
-      \begin{tabular}{@{}lrr@{}}
-        \toprule
-        \thead{discriminator} & \thead{\Eone} & \thead{\Etwo} \\
-        \midrule
-        max-p, restricted (as shipped) & \AurocRestrEone & \AurocRestrEtwo \\
-        max-p, vocabulary-normalised & \AurocVocabEone & \AurocVocabEtwo \\
-        negative entropy & 0.6228 & \AurocEntropyEtwo \\
-        top1 $-$ top2 margin & 0.6254 & \AurocMarginEtwo \\
-        \bottomrule
-      \end{tabular}
-      \vskip0.5em
-      \claim{\footnotesize The stronger robustness statement: \textbf{however the distribution is collapsed to a scalar, the answer is the same to 2--3 decimals.} No conclusion rests on choosing max over entropy or margin.}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-\begin{frame}[t]{The one place it does matter --- and it would silently rewrite a verdict}
-  \begin{center}\footnotesize
-    \begin{tabular}{@{}lrr@{}}
-      \toprule
-      \thead{evidence in context vs none, $\Delta$confidence} & \thead{\Eone} & \thead{\Etwo} \\
-      \midrule
-      restricted (as shipped) & \EoneEvidenceBoth & \RestrEvidenceEtwo \\
-      vocabulary-normalised & \EoneEvidenceBoth & \VocabEvidenceEtwo \\
-      \bottomrule
-    \end{tabular}
-  \end{center}
-  \vskip0.8em
-  {\footnotesize Under vocabulary normalisation \Etwo's confidence \emph{stops} being evidence-blind. Three things we have written down would change:}
-  \begin{itemize}\footnotesize\setlength\itemsep{0.15em}
-    \item the streaming module's verdict selector flips from \emph{``the dissociation replicates''} to \emph{``confidence tracks eviction''} --- it reads that interval's sign directly;
-    \item the cross-regime claim that confidence's evidence response is \emph{weaker} under streaming (\XregEvidenceConf) loses significance;
-    \item our position in the EgoSAT comparison moves from the extreme band to the middle of it.
-  \end{itemize}
-  \vskip0.6em
-  \claim{\footnotesize\textbf{So: do not switch the denominator quietly --- it is not a cosmetic normalisation.} The fix is to make the sensitivity visible in the artifact: assert the denominator in the module, or emit both values alongside the verdict.}
-\end{frame}
-
-\begin{frame}[t]{What the flip is actually made of --- and it is a result, not a nuisance}{Implicit abstention: with a bounded cache and no evidence, the model sometimes stops wanting to emit a letter at all}
-  \begin{columns}[T]
-    \begin{column}{0.50\textwidth}
-      {\footnotesize The effect is not a smooth rescaling --- flooring the letter mass at 0.90 removes it (\WinsorNinety). It rides on a small, heavy-tailed minority of rows:}
-      \vskip0.4em
-      \begin{itemize}\footnotesize\setlength\itemsep{0.15em}
-        \item \HedgeRows\ carry more than 10\,\% off-letter mass;
-        \item \HedgePrior\ of \emph{no-evidence} rows, against \HedgeMain\ of evidence rows;
-        \item none at all at \dt\ = 30 or 60 min;
-        \item in \Eone\ the maximum over every record is \HedgeEoneMax\ --- \textbf{the phenomenon does not exist there.} It is specific to the bounded cache.
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-      {\footnotesize Paired within-question, on \emph{off-letter} mass (positive = more hedging):}
-      \vskip0.4em
-      \footnotesize
+      \scriptsize
       \begin{tabular}{@{}lr@{}}
         \toprule
         \thead{contrast} & \thead{\Etwo\ $\Delta$off-letter} \\
@@ -111,39 +44,15 @@
         raw \dt\ sweep & \OffLetterSweep \\
         \bottomrule
       \end{tabular}
-      \claim{\footnotesize \textbf{This converts one of \Etwo's nulls into a measured effect} --- a metacognitive signal living exactly where max-p is silent, at no GPU cost.\\[0.35em]
-      Report it as \textbf{abstention}, not confidence: the two channels move in \emph{opposite} directions across \dt, and folding them lets a 1.4\,\% tail rewrite the previous slide's verdict.}
+      \vskip0.4em
+      {\footnotesize The phenomenon does not exist in \Eone\ (max off-letter mass \HedgeEoneMax). It converts one of \Etwo's nulls into a measured effect --- at zero GPU cost.}
     \end{column}
-  \end{columns}
-\end{frame}
-
-\begin{frame}[t]{The construct threat that is real --- option-letter bias}
-  \begin{center}\footnotesize
-    \begin{tabular}{@{}lll@{}}
-      \toprule
-      & \thead{gold letters} & \thead{what the model predicts} \\
-      \midrule
-      \Eone & \BiasGold & \BiasPredEone \\
-      \Etwo & \BiasGold & \BiasPredEtwo \\
-      \bottomrule
-    \end{tabular}
-  \end{center}
-  \vskip0.5em
-  {\footnotesize In \Eone\ that is \BiasAccEone. With \emph{no evidence in the window at all}, the model still predicts the same skewed letters at mean confidence \PriorArmConfEone\ (\Eone) and \PriorArmConfEtwo\ (\Etwo).}
-  \vskip0.7em
-  \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-      {\footnotesize\color{goodgreen}\textbf{This is good news twice over.}}
-      \begin{itemize}\footnotesize\setlength\itemsep{0.15em}
-        \item It is a \emph{mechanism} for evidence-blind confidence, which we currently report only phenomenologically. A content-independent option prior does not move when evidence is removed.
-        \item \textbf{The paired design largely survives it.} The letter prior is a property of the question, held fixed across arms, so it differences out of every within-question contrast to first order.
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-      \claim{\footnotesize\textbf{It will be asked, and EgoSAT already runs the check we do not} (their option-order re-shuffle).\\[0.4em]
-      Cheap strengthener: a \textbf{cyclic option-permutation arm} at one \dt\ bin on the evidence and no-evidence arms, averaging per-option probability across permutations before the softmax. 4$\times$ cost on a subset.}
+    \begin{column}{0.49\textwidth}
+      {\footnotesize\textbf{Option-letter bias.} Gold: \BiasGold. Predicted: \BiasPredEone\ (\Eone), \BiasPredEtwo\ (\Etwo). With no evidence the model predicts the same skewed letters at \PriorArmConfEone\ confidence.}
       \vskip0.5em
-      {\scriptsize\color{inkmid}It is also a further reason the level claims are weak and the contrasts are not --- which is already our stated reading.}
+      {\footnotesize The paired design survives: the letter prior is a property of the question, fixed across arms, and differences out to first order. But EgoSAT already runs the check this project does not (option-order re-shuffle).}
+      \vskip0.3em
+      \claim{\scriptsize A \textbf{cyclic permutation arm} at one \dt\ bin would close this gap at 4$\times$ cost on a subset.}
     \end{column}
   \end{columns}
 \end{frame}
