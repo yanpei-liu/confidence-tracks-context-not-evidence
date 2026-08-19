@@ -28,6 +28,28 @@
   \end{columns}
 \end{frame}
 
+\begin{frame}[t]{Confidence vs temporal distance: their Table 2 and our $\Delta t$ sweep}{Their conf slope is fitted on multi-step retrospection at \EgosatLag; ours spans 1--60 min}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      {\footnotesize\textbf{Their finding (Table 2, retrospection):} \EgosatSixOfEight\ confidence slopes are flat or positive. Expected: negative. Their conclusion: ``confidence does not reliably track temporal difficulty.''}
+      \vskip0.5em
+      {\footnotesize\textbf{Against \Etwo: agreement.} Our streaming elapsed-time contrast is flat (\conf{\EtwoElapsedConf}). Their two native streaming models give \EgosatStreamSlopes. Both say: under a bounded cache, confidence does not fall with retrospective distance.}
+      \vskip0.5em
+      {\footnotesize\textbf{Against \Eone: apparent disagreement.} Our full-reprocess elapsed-time contrast is \conf{\EoneElapsedConf} --- a clear decline, where their offline models are flat.}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      {\footnotesize\textbf{Three estimand differences that dissolve it:}}
+      \begin{enumerate}\footnotesize\setlength\itemsep{0.15em}
+        \item 45 min of elapsed time vs 16 s --- 170$\times$ the horizon.
+        \item Their slope is fitted only on items where \textbf{all three probes are correct} --- a correctness-selected subsample that truncates the range and selects high-confidence items; ours is unconditional over all \Nquestions\ questions.
+        \item Their point estimates carry no intervals; half the table sits within rounding distance of zero.
+      \end{enumerate}
+      \vskip0.3em
+      \claim{\scriptsize A difference in estimand, not a contradiction. But it is the first thing a reviewer will cite against \Eone, so the paper should name Table 2 and state all three differences.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \begin{frame}[t]{The central finding replicates outside this lab}{Their answerability split, our evidence split --- different dataset, different backbones, same shape}
   \begin{center}\footnotesize
     \begin{tabular}{@{}lrrc@{}}
