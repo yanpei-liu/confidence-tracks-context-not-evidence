@@ -10,7 +10,7 @@
       {\footnotesize\textbf{Collision surface:}}
       \begin{itemize}\footnotesize\setlength\itemsep{0.1em}
         \item The confidence probe (their Eq.~6 $=$ our definition verbatim).
-        \item Confidence vs temporal distance (same estimand, \EgosatLag\ vs 1--60 min).
+        \item Confidence vs temporal distance (overlapping question, \EgosatLag\ vs 1--60 min).
         \item Answerability-conditioned confidence $\approx$ our evidence contrast.
         \item Online vs offline (our regime pair, but cross-model not within-backbone).
       \end{itemize}
@@ -28,24 +28,24 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}[t]{Confidence vs temporal distance: their Table 2 and our $\Delta t$ sweep}{Their conf slope is fitted on multi-step retrospection at \EgosatLag; ours spans 1--60 min}
+\begin{frame}[t]{Confidence vs temporal distance: their Table 2 and our $\Delta t$ sweep}{Their conf slope is the raw correlation at \EgosatLag; ours decomposes it over 1--60 min}
   \begin{columns}[T]
     \begin{column}{0.50\textwidth}
       {\footnotesize\textbf{Their finding (Table 2, retrospection):} \EgosatSixOfEight\ confidence slopes are flat or positive. Expected: negative. Their conclusion: ``confidence does not reliably track temporal difficulty.''}
       \vskip0.5em
-      {\footnotesize\textbf{Against \Etwo: agreement.} Our streaming elapsed-time contrast is flat (\conf{\EtwoElapsedConf}). Their two native streaming models give \EgosatStreamSlopes. Both say: under a bounded cache, confidence does not fall with retrospective distance.}
+      {\footnotesize\textbf{What the slope measures.} The raw correlation of mean confidence with retrospective distance (\EgosatLag), across all items. For offline models the context window \textbf{grows} with lag (evidence always present, diluting frames accumulate). For streaming models the cache is bounded, but evidence may be partially evicted. Neither is controlled for token count or evidence presence.}
       \vskip0.5em
-      {\footnotesize\textbf{Against \Eone: apparent disagreement.} Our full-reprocess elapsed-time contrast is \conf{\EoneElapsedConf} --- a clear decline, where their offline models are flat.}
+      {\footnotesize\textbf{Streaming: qualitative agreement.} Their two streaming models give slopes of \EgosatStreamSlopes; our \Etwo\ also shows flat confidence across $\Delta t$. Both are consistent with ``bounded cache removes the temporal signal.''}
     \end{column}
     \begin{column}{0.48\textwidth}
-      {\footnotesize\textbf{Three estimand differences that dissolve it:}}
+      {\footnotesize\textbf{Offline: apparent disagreement with \Eone.} Their offline slopes are flat; our elapsed-time contrast is \conf{\EoneElapsedConf}. Three reasons this is not a contradiction:}
       \begin{enumerate}\footnotesize\setlength\itemsep{0.15em}
         \item 45 min of elapsed time vs 16 s --- 170$\times$ the horizon.
-        \item Their slope is fitted only on items where \textbf{all three probes are correct} --- a correctness-selected subsample that truncates the range and selects high-confidence items; ours is unconditional over all \Nquestions\ questions.
+        \item Their slope is the \textbf{raw} effect: elapsed time and context growth are confounded. Our token-matched evkeep arm \textbf{isolates} elapsed time --- that decomposition is the contribution.
         \item Their point estimates carry no intervals; half the table sits within rounding distance of zero.
       \end{enumerate}
       \vskip0.3em
-      \claim{\scriptsize A difference in estimand, not a contradiction. But it is the first thing a reviewer will cite against \Eone, so the paper should name Table 2 and state all three differences.}
+      \claim{\scriptsize A difference in estimand, not a contradiction. But it is the first thing a reviewer will cite against \Eone, so the paper should name Table 2 and state the differences.}
     \end{column}
   \end{columns}
 \end{frame}
