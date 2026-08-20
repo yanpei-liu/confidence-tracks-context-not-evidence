@@ -464,19 +464,59 @@ because both regimes were run.
 
 ### 2.8 Where this goes next
 
-Ordered by how much they would change the story per GPU-hour:
+**This list is canonical.** The week-1 briefing deck's *Ranked follow-ups* slide
+(`Report/Week1-Briefing/slides/04-next.tex`) is a dated snapshot of it, and the three memos' *should
+add* sections feed into it. Ranked by what each settles per GPU-hour, cheapest first.
 
-1. **Restore a readable clock under streaming** — timestamps in the sink region, or a clock token
-   refreshed per batch and protected from eviction. This is the missing cell of the design: it
-   would make E1 and E2 comparable on the elapsed-time axis and directly test whether the
-   rotation in §2.3 is about the clock's *availability* rather than the regime.
-2. **Recalibrate on `live_tokens`** and measure the reliability recovered, separately per regime.
-   Free — the records are on disk. It is the corrected version of the project's Half-2 claim and
-   the AUROC asymmetry predicts it will succeed in E1 and partially fail in E2, which is a sharp
-   test.
-3. **Explicit abstention (PLAN.md S4, ~2.4 GPU-h, unrun).** The natural follow-up to
-   evidence-blind confidence: given the vocabulary to say "not enough information", does the
-   model use it when the evidence is absent? This attacks §2.6's elicitation caveat directly.
-4. **Power the item-level test.** E2's −3.8 pp [−8.5, +1.1] on 107 lost items is the only hint of
-   genuine metamemory anywhere in either experiment. More Δt steps, or the extended bins, would
-   roughly double the transition count.
+#### Free — the records are already on disk, CPU only
+
+1. **Recalibrate on `live_tokens`, separately per regime.** The corrected version of the project's
+   Half-2 claim, and the sharpest cheap test available: the AUROC asymmetry predicts it recovers a
+   lot in E1 (ranking intact, Δ +0.012) and only partly in E2 (ranking decays, Δ −0.073). If that
+   asymmetry holds, "the cheap fix gets cheaper-looking the less realistic the memory system is"
+   stops being a synthesis and becomes a measurement.
+2. **Off-letter mass as a reported quantity.** Derivable from `letter_logprobs` already on every
+   record. It turns §0.1's denominator sensitivity from a caveat into a result: the `prior` arm
+   hedges on 8.76 % of streaming rows against `main`'s 0.42 %, contrast −3.01 pp [−4.40, −1.82].
+   Promote it to a named field `off_letter_mass` and a contrast in X9.
+3. **`x11_confidence_robustness.py` and `x12_cache_forensics.py`.** Regenerate the two memos'
+   tables — the probe robustness sweep and the offload/cache audit — into
+   `artifacts/x11_*.{json,md}` and `artifacts/x12_*.{json,md}`, so they meet the standard M8/X9/X10
+   already meet. Today 52 of the deck's 130 macros are memo literals behind a substring tripwire;
+   this moves them to derived.
+4. **Three small integrity fixes.** Emit both denominators alongside `x9_compare.verdict` rather
+   than leaving the sensitivity in a memo (§0.1); add `surviving_frame_tokens` to the record schema
+   with an evidence-frame-vs-window-mean contrast; and footnote the `cache_policy` label, where
+   `+rekv_retrieve` is nominal at the default and large budgets because nothing is offloaded and
+   `top_k` ≥ live length.
+
+#### Cheap — about 1 GPU-hour each
+
+5. **Strip the timestamps from E1 and re-score the token-matched cells.** The highest value per
+   GPU-hour on this list. E1's clock is *text* — `<150.0 seconds>` markers on the video path, with
+   no seconds anywhere in RoPE — so the headline −3.7 pp elapsed-time slide may be a response to
+   printed numbers rather than to elapsed time as such. It also separates §1.3's two live
+   explanations for E2's failure: if E1's effect survives marker removal, eviction is the story; if
+   it vanishes, the lexical channel is.
+6. **Top-k vocabulary dump on the `prior` arm at Δt ∈ {1, 5} min.** Identifies *which* tokens take
+   the mass in the 8.8 % of evidence-free streaming rows that hedge. If they are refusal or hedging
+   tokens, item 2 becomes a much stronger claim; if they are formatting artefacts, it becomes a
+   caveat. Currently unknown.
+
+#### Larger
+
+7. **Restore a readable clock under streaming** — timestamps in the sink region, or a clock token
+   refreshed per batch and protected from eviction. The missing cell of the design: it would make
+   E1 and E2 comparable on the elapsed-time axis and test directly whether §2.3's rotation is about
+   the clock's *availability* rather than the regime. Best run after item 5, which tells you what
+   form the clock has to take.
+8. **Explicit abstention (PLAN.md S4, ~2.4 GPU-h, unrun).** The natural follow-up to evidence-blind
+   confidence: given the vocabulary to say "not enough information", does the model use it when the
+   evidence is absent? Attacks §2.6's elicitation caveat directly.
+9. **Cyclic option-permutation arm, one Δt bin (4× the rows of one bin).** The option-letter bias
+   check EgoSAT runs and this project does not: E1 predicts `C` on 43.5 % of items and E2 predicts
+   `B` on 34.2 %, against near-uniform gold. Every headline contrast is paired within-question so
+   the bias cancels by construction — but it will be asked, and the answer should be measured.
+10. **Power the item-level test.** E2's −3.8 pp [−8.5, +1.1] on 107 lost items is the only hint of
+    genuine metamemory anywhere in either experiment. More Δt steps, or the extended bins, would
+    roughly double the transition count.

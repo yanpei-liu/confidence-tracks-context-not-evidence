@@ -32,7 +32,7 @@ slide in `90-backup`); they are correct but ungated. Closing both gaps is
 | **B1** numbers | `modules/b1_numbers.py` | `generated/numbers.tex`, `generated/tables.tex`, `generated/numbers.json` | `--check` re-derives all 130 macros from the metrics JSON and fails if the committed output is stale. Values that exist only in a memo carry a literal string that must still appear in that memo. |
 | **B2** figures | `modules/b2_figures.py` | `figures/*.pdf`, `figures/figures_manifest.json` | `--check` re-cuts every panel into a temp dir and fails if a source figure's sha256 or a crop box changed. Panels are **crops, never redraws**, so a panel on a slide is bit-for-bit the panel in the committed figure. |
 | **B3** shell | `preamble.tex` | theme, palette, semantic macros | — |
-| **B4** content | `slides/*.tex` | one file per agenda item | `00-title`, `01-results`, `02-confidence`, `03-egosat`, `04-next`, `90-backup` |
+| **B4** content | `slides/*.tex` | one file per agenda item; `04-next` is a dated snapshot of the canonical roadmap in [`INTERPRETATION.md` §2.8](../../Teaser-Experiment/INTERPRETATION.md), not a second copy of it | `00-title`, `01-results`, `02-confidence`, `03-egosat`, `04-next`, `90-backup` |
 | **B5** verify | `modules/b5_verify.py` | the checked PDF | nine checks: B1 current, B2 current, every macro defined, every figure present, **each slide file compiles on its own**, the PDF built, and the log clean (no errors, no undefined refs, no overfull box above 12 pt). |
 
 ## Sources
