@@ -50,7 +50,12 @@ def scan() -> dict:
             "sha256": h.hexdigest(),
         })
     return {
-        "note": "inputs to m7_analyze; the files themselves stay outside the repo",
+        "note": ("inputs to m7_analyze, both regimes: m6_records_*.jsonl is E1 "
+                 "(full-reprocess) and m6_records_stream_*.jsonl is E2 (streaming KV "
+                 "cache). The files themselves stay outside the repo. The glob is "
+                 "non-recursive, so superseded runs parked in subdirectories -- e.g. "
+                 "superseded_budget_fixedtopk/, the neutralised top_k pass -- are "
+                 "deliberately excluded."),
         "dir": str(BIG_ARTIFACTS),
         "files": files,
         "total_lines": sum(f["lines"] for f in files),
