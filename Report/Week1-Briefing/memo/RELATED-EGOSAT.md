@@ -1,8 +1,8 @@
 # EgoSAT (Lei et al., arXiv 2606.24422, 23 Jun 2026) — collision surface and cross-validation
 
-*Vendored PDF: [`Misc/Lei et al. - 2026 - EgoSAT ...pdf`](../Misc/Lei%20et%20al.%20-%202026%20-%20EgoSAT%20A%20Comprehensive%20Benchmark%20of%20Egocentric%20Streaming%20Interaction%20Understanding.pdf).
-Our numbers throughout come from [`artifacts/m8_teaser.md`](artifacts/m8_teaser.md) (E1, full-reprocess)
-and [`artifacts/x9_streaming.md`](artifacts/x9_streaming.md) (E2, streaming KV cache); their numbers
+*Vendored PDF: [`Misc/Lei et al. - 2026 - EgoSAT ...pdf`](../../../Misc/Lei%20et%20al.%20-%202026%20-%20EgoSAT%20A%20Comprehensive%20Benchmark%20of%20Egocentric%20Streaming%20Interaction%20Understanding.pdf).
+Our numbers throughout come from [`artifacts/m8_teaser.md`](../../../Teaser-Experiment/artifacts/m8_teaser.md) (E1, full-reprocess)
+and [`artifacts/x9_streaming.md`](../../../Teaser-Experiment/artifacts/x9_streaming.md) (E2, streaming KV cache); their numbers
 are read off Tables 1, 2, 3, A1, A3, A7, A9. Derived quantities (Δ, ratios, `conf_correct − conf_wrong`)
 are computed here and marked as such — they are not in the paper.*
 
@@ -101,7 +101,7 @@ Their Table 2, multi-step retrospection (derived column: monotonicity of the acc
 Their own reading: "confidence slopes are often inconsistent with the expected negative trend" —
 six of eight are ≥ 0.
 
-**Against E2 (`streaming_headline.pdf`, panel A, elapsed-time block): agreement.** Our
+**Against E2 (revised 2026-08-20: *consistent but uninformative*, not agreement) (`streaming_headline.pdf`, panel A, elapsed-time block): agreement.** Our
 `elapsed_time_fixed_frames` gives Δconf −0.1 pp [−1.7, +1.4] — flat. Their two native streaming
 models give +0.99 and +4.61 — flat-to-positive. Both regimes say: *under a real bounded cache,
 confidence does not fall with retrospective distance.* This corroborates E2's most surprising
@@ -207,6 +207,15 @@ work, and it is worth stating in exactly one sentence in the paper rather than a
 ---
 
 ## 4. What has to change on our side
+
+*Status as of 2026-08-20 — all **must fix** items below are actioned; see the pointers.*
+
+| # | landed in |
+| --- | --- |
+| 1 | No document made the claim — checked repo-wide. The positioning is now explicit in the root `README.md`: evidence age and the elapsed-time-vs-context-volume decomposition |
+| 2 | `CLAUDE.md` *Design decisions that held → Confidence* |
+| 3 | No document used the phrase — checked repo-wide; recorded so it stays that way |
+| 4 | `Planning/[v1+] …` §A, dated bullet |
 
 **Must fix (novelty / attribution):**
 

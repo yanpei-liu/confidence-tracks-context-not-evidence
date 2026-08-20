@@ -68,7 +68,11 @@ Four results that sharpen it:
   ratio grows 1.7× → 17× across the Δt bins, Δconfidence grows monotonically −2.0 → −4.2 → −8.1
   → −10.5 → **−15.2 pp**, while Δaccuracy sits at zero in every bin (widest point estimate
   −1.9 pp, every CI containing 0). More context buys no accuracy and costs a great deal of
-  confidence.
+  confidence. **Carry the mechanism caveat with the endpoint:** `small`'s 1,024 mutable tokens sit
+  below one 1,600-token ingestion batch, so it is the only condition that offloads (3,675/3,675
+  rows, against 0/12,890 for default and large) and the only one with retrieval in play. The
+  clean single-mechanism contrast is `large − default` at 60 min, **−6.0 pp [−7.3, −4.7] at 3.7×**.
+  Quote −15.2 for the span of the axis, −6.0 when the claim needs one mechanism.
 - **M7's decomposition closes almost exactly** — tighter than on the teaser's own data
   (residual +0.05 pp accuracy, +0.02 pp confidence, against its 2 pp tolerance). The 15 → 60 min
   confidence decline is −6.71 pp context and **−0.13 pp elapsed time**: the time term is not
@@ -140,9 +144,13 @@ probe was re-run 2026-08-14 on CPU against the local processor.
    At `INPUT_RES=320` that is **100 tokens/frame, not 50**. Nothing errors; the numbers are
    just someone else's.
 2. **The model cannot perceive elapsed time at all.** Qwen3-VL interleaves `<t>` markers
-   between frames only on the *video* path. On the image path nothing carries a clock, so the
-   only time signal is token position — and a bounded cache is precisely what destroys token
-   position. **Our headline finding is that confidence moves on elapsed time.** Unmodified,
+   between frames only on the *video* path; on the image path nothing carries a clock.
+   *(Corrected after the fact: this section originally said the only remaining time signal is
+   token position and that a bounded cache destroys it. That is not what the code does — keys are
+   stored post-RoPE and `global_token_counter` advances by presented length, so positions survive
+   eviction, and the token-matched contrast holds positional distance fixed anyway. The channel
+   that fails is the lexical one. See `STREAMING-CACHE.md` §6, and §4a below for what actually
+   happened.)* **Our headline finding is that confidence moves on elapsed time.** Unmodified,
    this backend has no elapsed-time input at all, so the experiment would be measuring
    something else entirely. §4 makes timestamp injection a first-class, validated condition.
 3. **`hat_tokens_size` is hardcoded to 896×512.** `model_operations.py:173` computes
@@ -382,6 +390,18 @@ as a null result — an input the model cannot read is not a manipulation that f
 `<t seconds>` stays the primary format: it is the one with any legibility, and it matches what
 the full-reprocess sweep receives via `VideoMetadata`.
 
+> **Eviction is one of two live explanations, and this design cannot separate them.** Checked
+> afterwards by running E1's own `scoring.py:build_inputs` on the local processor: E1's clock is
+> ordinary text, `<150.0 seconds>`, emitted **once per merged frame pair** and valued at the
+> pair's mean — and Qwen3-VL carries no seconds in RoPE at all, since transformers
+> `modeling_qwen3_vl.py:1483` removed Qwen2.5-VL's temporal scaling in favour of these markers.
+> E2's hand-injected channel differs from that in three ways at once — integer rather than
+> decimal, placed before each frame's own vision block rather than between wrapper groups, and
+> one marker per *frame* rather than per pair — and, unlike E1's, it is prunable. X1b's single
+> tracking cell was the format closest to native, **unevicted**. So "the cache evicted the clock"
+> and "the clock was never in a form this model reads" both fit the evidence, and §8.1's
+> timestamps-off arm on E1 is what would separate them. See `STREAMING-CACHE.md` §7.
+
 **X8 is promoted from ablation to confirmatory test.** If the above is right, `main` and `nots`
 should be statistically indistinguishable at the saturated bins and may differ only at Δt = 1
 and 5 min, where the clock is still live. That is a sharp, falsifiable prediction at the scale
@@ -516,6 +536,15 @@ asserting a hypothesis — the standard M8 already holds:
 
 Outcome 4 is the live risk, and it is the reason the `prior` floor (X7) is not optional and the
 pilot gate (X4) checks the Δt=1 min level before anything scales.
+
+**The verdict is denominator-sensitive and the module does not say so.** `x9_compare.verdict`
+selects between these outcomes off E2's `evidence_vs_none` Δconfidence, which is
++0.55 [−1.52, +2.65] under the restricted option-letter softmax (→ Outcome 3, as reported) and
++2.61 [+0.33, +4.94] under a vocabulary-normalised one (→ Outcome 1). The restricted probe is the
+published standard and is inert on every other quantity measured — argmax agrees on 23,687 of
+23,687 rows — so Outcome 3 stands; but the module should emit both values alongside the verdict
+rather than leaving the sensitivity in a memo. Logged in INTERPRETATION.md §2.8.
+See `CONFIDENCE-PROBE.md` §4.
 
 ## 8. Unaffected
 

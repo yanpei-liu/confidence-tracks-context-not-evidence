@@ -242,6 +242,16 @@ and significance are not. AUROC is the rank-based backstop and is already report
 
 ## 8. What has to change on our side
 
+*Status as of 2026-08-20 — all **must fix** items below are actioned; see the pointers.*
+
+| # | landed in |
+| --- | --- |
+| 1 | `INTERPRETATION.md` §0.1 — denominator named, the one sensitive cell quoted, and §2.7 carries it on the ladder |
+| 2 | `EXTENDING.md` §7 records the sensitivity; emitting both values from `x9_compare` is a code change, on the roadmap |
+| 3 | `CLAUDE.md` *Design decisions that held → Confidence* |
+| 4 | `INTERPRETATION.md` §2.6 (bias table + the pairing defence) |
+| 5–7 | not actioned; carried on the roadmap, `INTERPRETATION.md` §2.8 |
+
 **Must fix:**
 
 1. **`INTERPRETATION.md` 0.1** — extend the ground rule from "not a calibrated probability" to state

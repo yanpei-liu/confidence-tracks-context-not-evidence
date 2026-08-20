@@ -24,6 +24,19 @@ claim lives.
 `max softmax({A,B,C,D})` at the first generated position, with no text generated. Always report
 it as *model confidence (option-letter softmax)*. ECE is reported alongside it, but the quantity
 was never calibrated and nothing here should be read as a claim about calibrated probabilities.
+The probe follows Tsvilodub et al. 2024 and EgoSAT Eq. 6; it is the published standard, not an
+invention here.
+
+**The denominator is a reported choice, not an assumption.** The softmax is restricted to the four
+option letters, so mass the model puts anywhere else is renormalised away. The
+vocabulary-normalised alternative was computed on the committed records and is **inert almost
+everywhere** — argmax agrees on 23,687 of 23,687 rows, and AUROC moves in the fourth decimal
+(0.6276 → 0.6275 in E1, 0.6199 → 0.6203 in E2). It is *not* inert in one place: E2's
+`evidence_vs_none` Δconfidence goes **+0.55 [−1.52, +2.65] → +2.61 [+0.33, +4.94]**, which is
+enough to move `x9_compare`'s verdict from Outcome 3 to Outcome 1. The reason is that the
+evidence-free `prior` arm hedges — 8.76 % of its streaming rows put real mass off the letters,
+against 0.42 % for `main`. §2.7 carries this as a stated sensitivity.
+See [`CONFIDENCE-PROBE.md`](../Report/Week1-Briefing/memo/CONFIDENCE-PROBE.md).
 
 **0.2 Quote contrasts, not levels.** Every headline number in both experiments is a **paired,
 within-question** difference between two conditions, cluster-bootstrapped over questions (5,000
@@ -55,27 +68,43 @@ it gets its own section.
 ### 1.1 The one-sentence reading
 
 **Accuracy responds to whether the evidence is in the window and to nothing else; confidence
-responds to how much context is in the window and to nothing else.** The two measures are driven
-by disjoint variables.
+responds to how much visual input the model has processed — whether or not it retained it — and
+to nothing else.** The two measures are driven by disjoint variables.
+
+The second clause has to be said that carefully, because *two different* manipulations move
+confidence and it is tempting to call both "context length":
+
+| | what varies | what is held | Δconfidence |
+| --- | --- | --- | --- |
+| **live context** | how much the model *holds* (`mutable_token_size`, 1,940 → 33,684) | frames presented | −15.2 pp at 17× |
+| **presented volume** | how much it *processed and threw away* (`main@60 − evkeep@60`) | **live tokens, identical at 9,108** | −6.7 pp at 3.8× |
+
+Both push confidence down, which is why the finding is unharmed — but they are not one axis, and
+**the −6.71 pp context term in §1.4's decomposition is the second one**, where the live cache is
+byte-for-byte the same size on both sides. The unifier above covers both. See
+[`STREAMING-CACHE.md` §5](../Report/Week1-Briefing/memo/STREAMING-CACHE.md) for the measurement.
+(`figures/streaming_headline.pdf` panel A groups these under one heading, *context volume in the
+window*, and separates them by row; the prose here is the more precise reading of the same rows.)
 
 The figure that says exactly this and nothing more is
 [`figures/streaming_headline.pdf`](figures/streaming_headline.pdf) (X10): §1.2's rows are its
 panel A, §1.4's dose–response and decomposition are panels C and D, §1.6's AUROC is panel E, and
-§1.3's *unavailable* axis is drawn as such rather than as a null. `figures/headline_stream.*` is
-M7's template on these records and carries the full-reprocess sweep's panel titles — two of
-which are false here; see EXTENDING.md §0.
+§1.3's *unavailable* axis is drawn as such rather than as a null. (X9 also runs M7's own
+template over these records, writing `figures/headline_stream.*`. Those are **not committed** and
+are git-ignored: they carry the full-reprocess sweep's panel titles, two of which are false here.
+See EXTENDING.md §0.)
 
 ### 1.2 Read the axes in this order
 
 | axis | manipulation | Δaccuracy (pp) | Δconfidence (pp) | status |
 | --- | --- | --- | --- | --- |
 | evidence | evidence in context vs none (`main@5 − prior@5`) | **+8.1 [+2.9, +13.1]** | +0.5 [−1.5, +2.6] | real effect, accuracy only |
-| context length | 17× live-token budget @60 min (`large − small`) | −1.9 [−6.4, +2.4] | **−15.2 [−17.5, −13.1]** | real effect, confidence only |
-| context length | 3.8× presented tokens @60 min (`main − evkeep`) | −2.4 [−5.9, +1.1] | **−6.7 [−8.4, −5.0]** | same, on the manipulation E1 shares |
+| live context | 17× live-token budget @60 min (`large − small`) | −1.9 [−6.4, +2.4] | **−15.2 [−17.5, −13.1]** | real effect, confidence only — but see §1.4's caveat |
+| presented volume | 3.8× presented tokens @60 min (`main − evkeep`), live tokens fixed at 9,108 | −2.4 [−5.9, +1.1] | **−6.7 [−8.4, −5.0]** | same direction, different variable; the manipulation E1 shares, and the decomposition's context term |
 | elapsed time | +45 min at fixed frames and evidence | −1.7 [−5.1, +1.6] | −0.1 [−1.7, +1.4] | **unavailable** (§1.3) |
 | time signal | timestamps on vs off, pooled | −0.6 [−1.7, +0.5] | −0.7 [−1.2, −0.2] | present but ~1/20 the context term |
 
-Everything else in E2 is a consequence of these four rows.
+Everything else in E2 is a consequence of these four axes.
 
 ### 1.3 The elapsed-time axis is *unavailable*, not null
 
@@ -100,11 +129,23 @@ Three consequences that must travel with any use of E2:
 1. **E2 cannot test E1's headline claim.** Do not report "the elapsed-time effect disappeared"
    as a failure to replicate a psychological finding. Report it as: the input that carried the
    effect in E1 is absent in E2, and the effect is absent with it.
-2. **This is a property of the cache, not of streaming per se.** A streaming architecture that
+2. **Eviction is one of two live explanations, and the design cannot yet separate them.** E1's
+   clock is ordinary text on the video path — `<150.0 seconds>`, one marker per *merged frame
+   pair*, valued at the pair mean — and Qwen3-VL carries no seconds in its RoPE at all
+   (transformers `modeling_qwen3_vl.py:1483` removed Qwen2.5-VL's temporal scaling in favour of
+   these markers). E2 injects the same channel by hand, and it differs from native in **three ways
+   at once**: decimal vs integer format, position relative to the vision wrappers, and one marker
+   per frame rather than per merged pair — plus it is prunable where E1's is re-encoded every
+   query. X1b's single tracking cell was the format closest to native, *unevicted*. So "the cache
+   evicted the clock" and "the clock was never in a form this model reads" are both consistent
+   with the evidence. See [`STREAMING-CACHE.md` §7](../Report/Week1-Briefing/memo/STREAMING-CACHE.md);
+   §2.8's first roadmap item is designed to separate them.
+3. **This is a property of this cache and this clock, not of streaming per se.** A streaming
+   architecture that
    preserved a readable clock — timestamps in the sink region, a positional encoding that
    survives eviction, a running clock token refreshed each batch — could restore the axis. That
    is a concrete follow-up, not a limitation to apologise for.
-3. **X1b ran before the contrast was computed.** The mechanism is not a post-hoc explanation
+4. **X1b ran before the contrast was computed.** The mechanism is not a post-hoc explanation
    fitted to a null; it was established independently and predicted the null. That ordering is
    what makes the interpretation credible and is worth stating explicitly in any write-up.
 
@@ -127,6 +168,18 @@ A monotone dose–response on one measure with a flat response on the other is m
 evidence than either endpoint alone: it is hard to produce by accident and it rules out a
 threshold artefact. Read it as **more context in the window buys no accuracy and costs a great
 deal of confidence.**
+
+> **The −15.2 pp endpoint spans two mechanisms; the single-mechanism number is −6.0 pp.**
+> `small` sets `mutable_token_size` to 1,024, which is **below one 1,600-token ingestion batch**,
+> so it is the only condition in the sweep that overflows to the offload store and the only one
+> where ReKV retrieval is actually selecting anything: measured, `offloaded_tokens` is 0 on
+> **12,890 of 12,890** default and large rows and non-zero on **3,675 of 3,675** `small` rows
+> (§1.7). The `large − small` contrast therefore mixes a budget change with a
+> retrieval-vs-no-retrieval change. The clean, single-mechanism contrast is
+> **`large − default` at 60 min: −6.0 pp [−7.3, −4.7] for a 3.7× budget** — both sides
+> offload-free. Quote −15.2 for the full span of the axis and −6.0 when the claim needs one
+> mechanism. Neither disturbs the accuracy null, which is flat in both.
+> See [`STREAMING-CACHE.md` §2.2 and §4](../Report/Week1-Briefing/memo/STREAMING-CACHE.md).
 
 M7's decomposition, run unchanged on E2's records, says the same thing from the other direction
 and closes almost exactly (residual +0.05 pp accuracy, +0.02 pp confidence, against a 2 pp
@@ -189,10 +242,16 @@ retriever — which is enabled — has only live blocks to select from. Eviction
 recoverable.
 
 This matters because "the evidence is genuinely evicted" is doing real work in the argument
-(§1.6). It is supported for the primary condition by this measurement. **The mechanism producing
-the difference between budgets is not fully characterised** — a smaller mutable region appears to
-route overflow through the storage/offload step where a larger one does not — so do not
-generalise the claim to the `small` arm, where retrieval may be recovering content.
+(§1.6). It is supported for the primary condition by this measurement, and the audit is now
+exhaustive rather than a median: **0 of 12,890** default and large rows offloaded anything;
+**3,675 of 3,675** `small` rows did.
+
+The mechanism is also characterised. `small`'s 1,024-token mutable region is smaller than one
+1,600-token ingestion batch, so a single batch overruns it and overflow is routed through the
+storage step; the default (8,192) and large (32,768) regions absorb a batch without spilling.
+That is why the claim does **not** generalise to the `small` arm, where retrieval may be
+recovering content — and why §1.4's clean budget contrast excludes it.
+See [`STREAMING-CACHE.md` §2.2](../Report/Week1-Briefing/memo/STREAMING-CACHE.md).
 
 ### 1.8 Three things not to claim from E2
 
@@ -356,7 +415,12 @@ because both regimes were run.
 - **That the model has no metamemory.** Both experiments measure one proxy (option-letter
   softmax) under one elicitation. A model asked to *say* how sure it is, or offered an explicit
   abstention (PLAN.md S4, unrun), might behave differently. E2's item-level result is a hint in
-  that direction and is underpowered.
+  that direction and is underpowered. The elicitation also carries a position bias worth stating:
+  against near-uniform gold (A .222 / B .256 / C .261 / D .261) the model predicts `C .435` in E1
+  and `B .342` in E2, and E1's accuracy runs 21.4 % on gold-A against 58.6 % on gold-C. Every
+  headline contrast is paired within-question, so the bias cancels — but it means no *level* here
+  should be read as this model's competence.
+  See [`CONFIDENCE-PROBE.md` §6](../Report/Week1-Briefing/memo/CONFIDENCE-PROBE.md).
 - **Anything about elapsed time in streaming systems generally.** See §1.3. One cache, one clock
   representation.
 - **Generalisation beyond one participant and one model.** N per bin is bounded by the single
@@ -372,18 +436,25 @@ because both regimes were run.
 - On the one context-length manipulation shared by both regimes, the accuracy cost is the same
   (difference +0.8 pp [−4.0, +5.4]) while the confidence response differs by −6.1 pp
   [−8.1, −4.1].
-- Under a bounded cache, confidence falls monotonically with live-token budget (−15.2 pp at 17×)
-  while accuracy does not move.
-- The confidence decline over E2's sweep decomposes entirely onto context length (−6.71 of
-  −6.82 pp), with the decomposition closing to +0.02 pp.
+- Under a bounded cache, confidence falls monotonically with live-token budget while accuracy
+  does not move: −15.2 pp over the full 17× span, −6.0 pp [−7.3, −4.7] on the offload-free 3.7×
+  pair (§1.4).
+- The confidence decline over E2's sweep decomposes entirely onto **presented volume** — not live
+  context — at −6.71 of −6.82 pp, with the decomposition closing to +0.02 pp (§1.1).
 
 **Defensible with the stated caveat:**
 - Confidence tracks surface properties of the context rather than evidence state (§2.4) — a
   synthesis across two regimes, not a single measured quantity.
 - Confidence ranking degrades when evidence is genuinely evicted (AUROC −0.073, p = 0.039) —
   one test, CI nearly touching zero, wants replication.
-- Eviction is permanent in E2's primary condition (`offloaded_tokens` = 0) — measured, but the
-  cross-budget mechanism is uncharacterised.
+- Eviction is permanent in E2's default and large conditions — measured exhaustively,
+  `offloaded_tokens` = 0 on 12,890 of 12,890 rows. It is *not* claimed for `small`, whose 1,024
+  mutable tokens sit below one ingestion batch (§1.7).
+- E2's evidence-blindness is **denominator-sensitive**: the restricted softmax gives Δconfidence
+  +0.55 [−1.52, +2.65], the vocabulary-normalised one +2.61 [+0.33, +4.94]. The restricted probe
+  is the published standard and is inert everywhere else, but this single cell must be reported
+  with the claim rather than left for a reviewer to find (§0.1). Nothing about E1, and nothing
+  about the accuracy side, moves.
 
 **Not supported:**
 - "Streaming models don't know they forgot" in the original sense — the gap does not widen.

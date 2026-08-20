@@ -407,6 +407,10 @@
   "value": "3.7$\\times$",
   "source": "STREAMING-CACHE.md (literal check)"
  },
+ "CleanBudgetAcc": {
+  "value": "null in every bin",
+  "source": "STREAMING-CACHE.md (literal check)"
+ },
  "OffloadDefault": {
   "value": "0 of 12,890",
   "source": "STREAMING-CACHE.md (literal check)"

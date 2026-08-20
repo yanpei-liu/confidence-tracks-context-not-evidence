@@ -115,6 +115,8 @@ MEMO_FACTS: list[tuple[str, str, str, str]] = [
     # -- STREAMING-CACHE.md
     ("CleanBudgetConf", f"{MINUS}6.0 [{MINUS}7.3, {MINUS}4.7]", "cache", "**−6.0 [−7.3, −4.7]**"),
     ("CleanBudgetRatio", "3.7$\\times$", "cache", "**−6.0 pp at 3.7× is the clean, single-mechanism number**"),
+    ("CleanBudgetAcc", "null in every bin", "cache",
+     "Accuracy is null throughout on the clean pair"),
     ("OffloadDefault", "0 of 12,890", "cache", "0 of 12,890 default+large rows offloaded anything"),
     ("OffloadSmall", "3,675 of 3,675", "cache", "3,675 of 3,675 `small` rows"),
     ("SaturationPoint", "$\\approx$85 frames ($\\approx$7 min)", "cache", "The sweep crosses saturation at ≈85 frames (≈7 min)"),

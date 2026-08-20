@@ -61,7 +61,8 @@
       evidence in context vs none & \EtwoEvidenceAcc & \EtwoEvidenceConf \\
       $+$45 min elapsed, frames and evidence fixed & \EtwoElapsedAcc & \EtwoElapsedConf \\
       3.8$\times$ more presented tokens & \EtwoFourxAcc & \EtwoFourxConf \\
-      3.7$\times$ live-token budget (offload-free pair) & \EtwoLargeDefaultAcc & \EtwoLargeDefaultConf \\
+      \CleanBudgetRatio\ live-token budget (offload-free pair, 60 min) & \emph{\CleanBudgetAcc} & \CleanBudgetConf \\
+      17$\times$ live-token budget (spans the offload boundary) & \EtwoBudgetAcc & \EtwoBudgetConf \\
       evidence frames thinned away & \EtwoThinnedAcc & \EtwoThinnedConf \\
       injected clock on vs off & \EtwoTimestampsAcc & \EtwoTimestampsConf \\
       \midrule
@@ -88,7 +89,7 @@
     \begin{column}{0.49\textwidth}
       {\footnotesize\textbf{1. Confidence does not fall with distance in their table} (\EgosatSixOfEight\ slopes).}
       \vskip0.3em
-      {\footnotesize Against \Etwo: agreement --- both say confidence is flat under a bounded cache. Against \Eone: apparent disagreement, for three estimand differences (45 min vs 16 s; slope fitted on all-correct items only; no intervals).}
+      {\footnotesize Against \Etwo: consistent but uninformative --- neither evidence state nor token count changes between their three probes, so their flat slope is the expected null, not a replication. Against \Eone: apparent disagreement, for three estimand differences (45 min vs 16 s; slope fitted on all-correct items only; no intervals).}
     \end{column}
     \begin{column}{0.49\textwidth}
       {\footnotesize\textbf{2. Their accuracy declines with distance} (\EgosatAccDecline\ over 8\,$\rightarrow$\,24 s) \textbf{where our token-matched arms say elapsed time costs no accuracy.}}
@@ -114,6 +115,42 @@
     \end{column}
   \end{columns}
   \source{\texttt{memo/STREAMING-CACHE.md} \S2, \S6--\S7.}
+\end{frame}
+
+\begin{frame}[t]{Backup --- dataset curation: 500 $\rightarrow$ 373 questions}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \footnotesize
+      \begin{tabular}{@{}p{3.8cm}rrl@{}}
+        \toprule
+        \thead{step} & \thead{in} & \thead{out} & \thead{reason} \\
+        \midrule
+        EgoLifeQA A1 (full) & 500 & --- & \\
+        Drop TaskMaster & 500 & 437 & prospective \\
+        Screen HabitInsight & 437 & 376 & no single anchor \\
+        Evidence span $>$\,15\,min & 376 & 373 & ambiguous \dt \\
+        \bottomrule
+      \end{tabular}
+      \vskip0.4em
+      {\footnotesize\textbf{What survives.} EntityLog\,/\,EventRecall\,/\,RelationMap at 125\,/\,124\,/\,124. Answer letters 83\,:\,96\,:\,97\,:\,97. All 373 appear in every \dt\ bin and every arm; no per-bin attrition.}
+      \vskip0.25em
+      {\footnotesize\textbf{Token matching.} Matched arms hold visual tokens exactly at the \dt\,=\,15\,min level (mean 9,679) across all bins. Prior arms frame-matched to \texttt{main} with zero difference.}
+      \vskip0.25em
+      {\footnotesize\textbf{Flagged, not dropped.} \texttt{need\_audio}\,=\,true on 110/373 (29.5\,\%); results reported with and without.}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      {\footnotesize\textbf{Why the drops are defensible.}}
+      \vskip0.25em
+      {\footnotesize\textbf{TaskMaster} (63): questions about future plans --- incompatible with a retrospective \dt\ sweep. 93.7\,\% require audio; the vision-only model is near-blind on them independently.}
+      \vskip0.25em
+      {\footnotesize\textbf{HabitInsight} (61): habitual patterns with no single evidence event to anchor \dt. Scored separately, not dropped.}
+      \vskip0.25em
+      {\footnotesize\textbf{Span exclusions} (3): q482 spans 50.7\,h (3 evidence points across two days; alone 13\,\% of frame-encodes). q189/q346 at 19/21\,min. Next-closest is 11.6\,min --- clean gap below the 15\,min threshold.}
+      \vskip0.25em
+      \claim{\scriptsize 96.5\,\% have a single evidence point (span\,=\,0). The span filter affects a small tail; ``\dt\ since evidence'' is unambiguous for the rest.}
+    \end{column}
+  \end{columns}
+  \source{M1 \texttt{m1\_questions.py}, M4 \texttt{m4\_plan.py}; verified from \texttt{m1\_questions.jsonl} and \texttt{m4\_eval\_plan.jsonl}.}
 \end{frame}
 
 \begin{frame}[t]{Backup --- how this deck is built}

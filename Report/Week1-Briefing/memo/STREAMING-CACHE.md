@@ -317,6 +317,16 @@ inference into a measurement.
 
 ## 9. What has to change on our side
 
+*Status as of 2026-08-20 — all **must fix** items below are actioned; see the pointers.*
+
+| # | landed in |
+| --- | --- |
+| 1 | `INTERPRETATION.md` §1.1 (new *live context* / *presented volume* table + the unifier) and §1.2 (rows relabelled) |
+| 2 | `INTERPRETATION.md` §1.4 (caveat block, −6.0 pp at 3.7×), `EXTENDING.md` §0, `90-backup.tex` (row now prints `\CleanBudgetConf`) |
+| 3 | `EXTENDING.md` §1a claim 2 — corrected inline, with the original error named |
+| 4 | `EXTENDING.md` §4a (caveat block) and `INTERPRETATION.md` §1.3 (consequence 2) |
+| 5–8 | not actioned; carried on the roadmap, `INTERPRETATION.md` §2.8 |
+
 **Must fix:**
 
 1. **`INTERPRETATION.md` §1.2 and §1.1** — split the two "context length" rows into *live context*
