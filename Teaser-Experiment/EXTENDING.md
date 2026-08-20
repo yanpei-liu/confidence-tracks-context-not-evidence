@@ -169,8 +169,9 @@ bank rather than their sampler, but it must be stubbed before the import succeed
 The EgoStream checkout ships **no LICENSE file** and is not a git repository, so there is no
 upstream commit to pin and no grant permitting redistribution. **Its source is therefore not
 vendored into this repo and not committed.** X0 instead writes a thin adapter that imports
-EgoStream from an external path (`$EGOVM_EGOSTREAM`, default `<repo>/../EgoStream/...`, which is
-already untracked), applies the shims at import time from our own code, and records a checksum
+EgoStream from a path outside the packaged source (`$EGOVM_EGOSTREAM`, default
+`<repo>/EgoStream/Online_Cache_Optimization` -- inside the working tree but gitignored, so it is
+never committed), applies the shims at import time from our own code, and records a checksum
 manifest of the upstream files it depends on. Only our adapter is committed. This mirrors the
 existing rule that dataset content lives outside the repo, and it is why the plan has no
 "vendor and pin" step of the kind the earlier sketch proposed.

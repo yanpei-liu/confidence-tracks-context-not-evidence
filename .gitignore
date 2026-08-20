@@ -5,3 +5,9 @@ __pycache__/
 # They carry the full-reprocess sweep's panel titles, two of which are false on E2 records
 # (EXTENDING.md section 0). streaming_headline.pdf (X10) is the figure to show.
 Teaser-Experiment/figures/headline_stream*
+
+# Upstream EgoStream checkout (E2's streaming cache backend). Ships no LICENSE and is not a
+# git checkout, so it is imported from $EGOVM_EGOSTREAM and checksummed by X0 rather than
+# vendored -- see EXTENDING.md section 1b. Never commit it: the source and the full-text
+# paper PDF are both un-redistributable.
+EgoStream/
