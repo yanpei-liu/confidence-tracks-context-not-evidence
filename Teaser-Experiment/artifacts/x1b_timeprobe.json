@@ -1,0 +1,522 @@
+{
+  "cap": 9108,
+  "host": "xgph1",
+  "note": "markers verified present in the token stream; this asks whether they are used",
+  "conditions": [
+    {
+      "n_frames": 32,
+      "question": "readout",
+      "format": "angle_seconds",
+      "presented_tokens": 3200,
+      "evicted": false,
+      "preds": [
+        "C",
+        "B",
+        "C"
+      ],
+      "n_distinct": 2,
+      "n_correct": 2,
+      "detail": {
+        "60": {
+          "gold": "A",
+          "pred": "C",
+          "p_gold": 0.141249,
+          "confidence": 0.493007,
+          "live_tokens": 3916
+        },
+        "600": {
+          "gold": "B",
+          "pred": "B",
+          "p_gold": 0.457813,
+          "confidence": 0.457813,
+          "live_tokens": 3916
+        },
+        "3600": {
+          "gold": "C",
+          "pred": "C",
+          "p_gold": 0.60946,
+          "confidence": 0.60946,
+          "live_tokens": 3916
+        }
+      }
+    },
+    {
+      "n_frames": 32,
+      "question": "readout",
+      "format": "bracket_clock",
+      "presented_tokens": 3200,
+      "evicted": false,
+      "preds": [
+        "B",
+        "C",
+        "C"
+      ],
+      "n_distinct": 2,
+      "n_correct": 1,
+      "detail": {
+        "60": {
+          "gold": "A",
+          "pred": "B",
+          "p_gold": 0.009917,
+          "confidence": 0.541447,
+          "live_tokens": 3916
+        },
+        "600": {
+          "gold": "B",
+          "pred": "C",
+          "p_gold": 0.072893,
+          "confidence": 0.888015,
+          "live_tokens": 3916
+        },
+        "3600": {
+          "gold": "C",
+          "pred": "C",
+          "p_gold": 0.915746,
+          "confidence": 0.915746,
+          "live_tokens": 3916
+        }
+      }
+    },
+    {
+      "n_frames": 32,
+      "question": "readout",
+      "format": "prose",
+      "presented_tokens": 3200,
+      "evicted": false,
+      "preds": [
+        "C",
+        "C",
+        "C"
+      ],
+      "n_distinct": 1,
+      "n_correct": 1,
+      "detail": {
+        "60": {
+          "gold": "A",
+          "pred": "C",
+          "p_gold": 0.010811,
+          "confidence": 0.757875,
+          "live_tokens": 3916
+        },
+        "600": {
+          "gold": "B",
+          "pred": "C",
+          "p_gold": 0.115594,
+          "confidence": 0.854131,
+          "live_tokens": 3916
+        },
+        "3600": {
+          "gold": "C",
+          "pred": "C",
+          "p_gold": 0.678665,
+          "confidence": 0.678665,
+          "live_tokens": 3916
+        }
+      }
+    },
+    {
+      "n_frames": 32,
+      "question": "elapsed",
+      "format": "angle_seconds",
+      "presented_tokens": 3200,
+      "evicted": false,
+      "preds": [
+        "B",
+        "B",
+        "B"
+      ],
+      "n_distinct": 1,
+      "n_correct": 1,
+      "detail": {
+        "60": {
+          "gold": "A",
+          "pred": "B",
+          "p_gold": 0.000911,
+          "confidence": 0.999012,
+          "live_tokens": 3916
+        },
+        "600": {
+          "gold": "B",
+          "pred": "B",
+          "p_gold": 0.999662,
+          "confidence": 0.999662,
+          "live_tokens": 3916
+        },
+        "3600": {
+          "gold": "C",
+          "pred": "B",
+          "p_gold": 0.000203,
+          "confidence": 0.999636,
+          "live_tokens": 3916
+        }
+      }
+    },
+    {
+      "n_frames": 32,
+      "question": "elapsed",
+      "format": "bracket_clock",
+      "presented_tokens": 3200,
+      "evicted": false,
+      "preds": [
+        "B",
+        "B",
+        "B"
+      ],
+      "n_distinct": 1,
+      "n_correct": 1,
+      "detail": {
+        "60": {
+          "gold": "A",
+          "pred": "B",
+          "p_gold": 5e-06,
+          "confidence": 0.999973,
+          "live_tokens": 3916
+        },
+        "600": {
+          "gold": "B",
+          "pred": "B",
+          "p_gold": 0.999839,
+          "confidence": 0.999839,
+          "live_tokens": 3916
+        },
+        "3600": {
+          "gold": "C",
+          "pred": "B",
+          "p_gold": 0.00071,
+          "confidence": 0.999284,
+          "live_tokens": 3916
+        }
+      }
+    },
+    {
+      "n_frames": 32,
+      "question": "elapsed",
+      "format": "prose",
+      "presented_tokens": 3200,
+      "evicted": false,
+      "preds": [
+        "B",
+        "B",
+        "B"
+      ],
+      "n_distinct": 1,
+      "n_correct": 1,
+      "detail": {
+        "60": {
+          "gold": "A",
+          "pred": "B",
+          "p_gold": 1.7e-05,
+          "confidence": 0.99997,
+          "live_tokens": 3916
+        },
+        "600": {
+          "gold": "B",
+          "pred": "B",
+          "p_gold": 0.999976,
+          "confidence": 0.999976,
+          "live_tokens": 3916
+        },
+        "3600": {
+          "gold": "C",
+          "pred": "B",
+          "p_gold": 1e-05,
+          "confidence": 0.999988,
+          "live_tokens": 3916
+        }
+      }
+    },
+    {
+      "n_frames": 120,
+      "question": "readout",
+      "format": "angle_seconds",
+      "presented_tokens": 12000,
+      "evicted": true,
+      "preds": [
+        "C",
+        "C",
+        "C"
+      ],
+      "n_distinct": 1,
+      "n_correct": 1,
+      "detail": {
+        "60": {
+          "gold": "A",
+          "pred": "C",
+          "p_gold": 0.099592,
+          "confidence": 0.735891,
+          "live_tokens": 9108
+        },
+        "600": {
+          "gold": "B",
+          "pred": "C",
+          "p_gold": 0.135989,
+          "confidence": 0.60946,
+          "live_tokens": 9108
+        },
+        "3600": {
+          "gold": "C",
+          "pred": "C",
+          "p_gold": 0.763682,
+          "confidence": 0.763682,
+          "live_tokens": 9108
+        }
+      }
+    },
+    {
+      "n_frames": 120,
+      "question": "readout",
+      "format": "bracket_clock",
+      "presented_tokens": 12000,
+      "evicted": true,
+      "preds": [
+        "C",
+        "C",
+        "C"
+      ],
+      "n_distinct": 1,
+      "n_correct": 1,
+      "detail": {
+        "60": {
+          "gold": "A",
+          "pred": "C",
+          "p_gold": 0.084817,
+          "confidence": 0.626718,
+          "live_tokens": 9108
+        },
+        "600": {
+          "gold": "B",
+          "pred": "C",
+          "p_gold": 0.040966,
+          "confidence": 0.822829,
+          "live_tokens": 9108
+        },
+        "3600": {
+          "gold": "C",
+          "pred": "C",
+          "p_gold": 0.800608,
+          "confidence": 0.800608,
+          "live_tokens": 9108
+        }
+      }
+    },
+    {
+      "n_frames": 120,
+      "question": "readout",
+      "format": "prose",
+      "presented_tokens": 12000,
+      "evicted": true,
+      "preds": [
+        "C",
+        "C",
+        "C"
+      ],
+      "n_distinct": 1,
+      "n_correct": 1,
+      "detail": {
+        "60": {
+          "gold": "A",
+          "pred": "C",
+          "p_gold": 0.087144,
+          "confidence": 0.643914,
+          "live_tokens": 9108
+        },
+        "600": {
+          "gold": "B",
+          "pred": "C",
+          "p_gold": 0.137661,
+          "confidence": 0.792183,
+          "live_tokens": 9108
+        },
+        "3600": {
+          "gold": "C",
+          "pred": "C",
+          "p_gold": 0.610296,
+          "confidence": 0.610296,
+          "live_tokens": 9108
+        }
+      }
+    },
+    {
+      "n_frames": 120,
+      "question": "elapsed",
+      "format": "angle_seconds",
+      "presented_tokens": 12000,
+      "evicted": true,
+      "preds": [
+        "B",
+        "B",
+        "B"
+      ],
+      "n_distinct": 1,
+      "n_correct": 1,
+      "detail": {
+        "60": {
+          "gold": "A",
+          "pred": "B",
+          "p_gold": 0.000123,
+          "confidence": 0.999672,
+          "live_tokens": 9108
+        },
+        "600": {
+          "gold": "B",
+          "pred": "B",
+          "p_gold": 0.999409,
+          "confidence": 0.999409,
+          "live_tokens": 9108
+        },
+        "3600": {
+          "gold": "C",
+          "pred": "B",
+          "p_gold": 0.000911,
+          "confidence": 0.999075,
+          "live_tokens": 9108
+        }
+      }
+    },
+    {
+      "n_frames": 120,
+      "question": "elapsed",
+      "format": "bracket_clock",
+      "presented_tokens": 12000,
+      "evicted": true,
+      "preds": [
+        "B",
+        "B",
+        "B"
+      ],
+      "n_distinct": 1,
+      "n_correct": 1,
+      "detail": {
+        "60": {
+          "gold": "A",
+          "pred": "B",
+          "p_gold": 2.1e-05,
+          "confidence": 0.999546,
+          "live_tokens": 9108
+        },
+        "600": {
+          "gold": "B",
+          "pred": "B",
+          "p_gold": 0.988989,
+          "confidence": 0.988989,
+          "live_tokens": 9108
+        },
+        "3600": {
+          "gold": "C",
+          "pred": "B",
+          "p_gold": 0.008577,
+          "confidence": 0.991408,
+          "live_tokens": 9108
+        }
+      }
+    },
+    {
+      "n_frames": 120,
+      "question": "elapsed",
+      "format": "prose",
+      "presented_tokens": 12000,
+      "evicted": true,
+      "preds": [
+        "B",
+        "B",
+        "B"
+      ],
+      "n_distinct": 1,
+      "n_correct": 1,
+      "detail": {
+        "60": {
+          "gold": "A",
+          "pred": "B",
+          "p_gold": 0.000158,
+          "confidence": 0.999636,
+          "live_tokens": 9108
+        },
+        "600": {
+          "gold": "B",
+          "pred": "B",
+          "p_gold": 0.999437,
+          "confidence": 0.999437,
+          "live_tokens": 9108
+        },
+        "3600": {
+          "gold": "C",
+          "pred": "B",
+          "p_gold": 0.001501,
+          "confidence": 0.998491,
+          "live_tokens": 9108
+        }
+      }
+    },
+    {
+      "n_frames": 32,
+      "question": "elapsed",
+      "format": "MARKERS_OFF",
+      "presented_tokens": 3200,
+      "evicted": false,
+      "preds": [
+        "B",
+        "B",
+        "B"
+      ],
+      "n_distinct": 1,
+      "n_correct": 1,
+      "detail": {
+        "60": {
+          "gold": "A",
+          "pred": "B",
+          "p_gold": 2.1e-05
+        },
+        "600": {
+          "gold": "B",
+          "pred": "B",
+          "p_gold": 0.99997
+        },
+        "3600": {
+          "gold": "C",
+          "pred": "B",
+          "p_gold": 8e-06
+        }
+      }
+    },
+    {
+      "n_frames": 120,
+      "question": "elapsed",
+      "format": "MARKERS_OFF",
+      "presented_tokens": 12000,
+      "evicted": true,
+      "preds": [
+        "B",
+        "B",
+        "B"
+      ],
+      "n_distinct": 1,
+      "n_correct": 1,
+      "detail": {
+        "60": {
+          "gold": "A",
+          "pred": "B",
+          "p_gold": 6e-06
+        },
+        "600": {
+          "gold": "B",
+          "pred": "B",
+          "p_gold": 0.999896
+        },
+        "3600": {
+          "gold": "C",
+          "pred": "B",
+          "p_gold": 9.6e-05
+        }
+      }
+    }
+  ],
+  "best_condition": {
+    "n_frames": 32,
+    "question": "readout",
+    "format": "angle_seconds",
+    "n_distinct": 2,
+    "n_correct": 2
+  },
+  "any_condition_tracks_clock": true,
+  "elapsed_s": 114.9
+}

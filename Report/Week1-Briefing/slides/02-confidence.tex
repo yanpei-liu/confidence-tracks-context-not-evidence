@@ -1,0 +1,58 @@
+% B4.2 -- Part 2: confidence probe validation (concise)
+\setsecblurb{The alternative denominator was computed on the committed records.\\one sensitivity found; it is a result, not a nuisance.}
+\section{Confidence probe validation}
+
+\begin{frame}[t]{Verdict: the restricted softmax holds}{Vocabulary-normalised alternative changes nothing --- except one number, for the wrong reason}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      {\footnotesize Mean mass on $\{$A,B,C,D$\}$: \MassEone\ (\Eone), \MassEtwo\ (\Etwo). Argmax disagreements: \textbf{\ArgmaxDisagree} records. Accuracy is identical under both definitions.}
+      \vskip0.5em
+      {\footnotesize AUROC is invariant to how the four-way distribution is collapsed:}
+      \vskip0.3em
+      \scriptsize
+      \begin{tabular}{@{}lrr@{}}
+        \toprule
+        \thead{discriminator} & \thead{\Eone} & \thead{\Etwo} \\
+        \midrule
+        max-p, restricted & \AurocRestrEone & \AurocRestrEtwo \\
+        max-p, vocab-normalised & \AurocVocabEone & \AurocVocabEtwo \\
+        negative entropy & 0.6228 & \AurocEntropyEtwo \\
+        margin (top1 $-$ top2) & 0.6254 & \AurocMarginEtwo \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      {\footnotesize\textbf{The one sensitivity:} under vocabulary normalisation, \Etwo's evidence contrast flips from \RestrEvidenceEtwo\ to \VocabEvidenceEtwo\ --- rewriting the ``dissociation replicates'' verdict. The flip rides on a small, heavy-tailed minority (\HedgeRows\ with $>$10\,\% off-letter mass, specific to the bounded cache).}
+      \vskip0.5em
+      \claim{\scriptsize The fix is to make the sensitivity visible: assert the denominator in the module and emit both values alongside the verdict.}
+    \end{column}
+  \end{columns}
+  \source{\texttt{memo/CONFIDENCE-PROBE.md}}
+\end{frame}
+
+\begin{frame}[t]{Two by-products worth reporting}
+  \begin{columns}[T]
+    \begin{column}{0.49\textwidth}
+      {\footnotesize\textbf{Implicit abstention.} Off-letter mass is a metacognitive signal living where max-p is silent:}
+      \vskip0.3em
+      \scriptsize
+      \begin{tabular}{@{}lr@{}}
+        \toprule
+        \thead{contrast} & \thead{\Etwo\ $\Delta$off-letter} \\
+        \midrule
+        evidence removed & \OffLetterEvidenceEtwo \\
+        raw \dt\ sweep & \OffLetterSweep \\
+        \bottomrule
+      \end{tabular}
+      \vskip0.4em
+      {\footnotesize The phenomenon does not exist in \Eone\ (max off-letter mass \HedgeEoneMax). It converts one of \Etwo's nulls into a measured effect --- at zero GPU cost.}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      {\footnotesize\textbf{Option-letter bias.} Gold: \BiasGold. Predicted: \BiasPredEone\ (\Eone), \BiasPredEtwo\ (\Etwo). With no evidence the model predicts the same skewed letters at \PriorArmConfEone\ confidence.}
+      \vskip0.5em
+      {\footnotesize The paired design survives: the letter prior is a property of the question, fixed across arms, and differences out to first order. But EgoSAT already runs the check this project does not (option-order re-shuffle).}
+      \vskip0.3em
+      \claim{\scriptsize A \textbf{cyclic permutation arm} at one \dt\ bin would close this gap at 4$\times$ cost on a subset.}
+    \end{column}
+  \end{columns}
+\end{frame}

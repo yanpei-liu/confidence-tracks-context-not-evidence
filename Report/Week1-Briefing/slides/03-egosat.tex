@@ -1,0 +1,71 @@
+% B4.3 -- Part 3: EgoSAT (concise)
+\setsecblurb{Prior art, not a scoop. It costs one novelty claim\\and independently replicates the central finding.}
+\section{EgoSAT: collision and cross-validation}
+
+\begin{frame}[t]{What EgoSAT is, and where it collides}{\EgosatCite}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      {\footnotesize A streaming egocentric benchmark: \EgosatScale, six tasks spanning retrospective / present / prospective, plus an answerability model and a training-free KV selection method.}
+      \vskip0.5em
+      {\footnotesize\textbf{Collision surface:}}
+      \begin{itemize}\footnotesize\setlength\itemsep{0.1em}
+        \item The confidence probe (their Eq.~6 $=$ our definition verbatim).
+        \item Confidence vs temporal distance (same estimand, \EgosatLag\ vs 1--60 min).
+        \item Answerability-conditioned confidence $\approx$ our evidence contrast.
+        \item Online vs offline (our regime pair, but cross-model not within-backbone).
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.43\textwidth}
+      \claim{\footnotesize\color{flagred}\textbf{Must fix in framing}\\[0.3em]
+      \begin{itemize}\setlength\itemsep{0.15em}
+        \item Drop ``first to evaluate confidence in egocentric streaming.''
+        \item Attribute the probe to Tsvilodub et al.\ 2024 / EgoSAT Eq.~6.
+        \item Retire ``confidently wrong'' as phrasing.
+      \end{itemize}}
+      \vskip0.4em
+      {\scriptsize\color{inkmid}Position instead on \textbf{evidence age} and the \textbf{elapsed-time-vs-context-volume decomposition}.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[t]{Confidence vs temporal distance: their Table 2 and our $\Delta t$ sweep}{Their conf slope is fitted on multi-step retrospection at \EgosatLag; ours spans 1--60 min}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      {\footnotesize\textbf{Their finding (Table 2, retrospection):} \EgosatSixOfEight\ confidence slopes are flat or positive. Expected: negative. Their conclusion: ``confidence does not reliably track temporal difficulty.''}
+      \vskip0.5em
+      {\footnotesize\textbf{Against \Etwo: consistent but uninformative.} Our streaming elapsed-time contrast is flat (\conf{\EtwoElapsedConf}); their streaming models give \EgosatStreamSlopes. But their 16 s lag in ${\sim}$300 s sessions means evidence either survived the full session's eviction pressure or was dropped before the first probe --- neither evidence state nor token count changes between the three probes. The flat slope is the expected null. Our \Etwo\ carries the finding: 45 min, evidence controlled, within-backbone.}
+      \vskip0.5em
+      {\footnotesize\textbf{Against \Eone: apparent disagreement.} Our full-reprocess elapsed-time contrast is \conf{\EoneElapsedConf} --- a clear decline, where their offline models are flat.}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      {\footnotesize\textbf{Three estimand differences that dissolve the \Eone\ gap:}}
+      \begin{enumerate}\footnotesize\setlength\itemsep{0.15em}
+        \item 45 min of elapsed time vs 16 s --- 170$\times$ the horizon.
+        \item Their slope is fitted only on items where \textbf{all three probes are correct} --- a correctness-selected subsample that truncates the range and selects high-confidence items; ours is unconditional over all \Nquestions\ questions.
+        \item Their point estimates carry no intervals; half the table sits within rounding distance of zero.
+      \end{enumerate}
+      \vskip0.3em
+      \claim{\scriptsize Against \Eone: a difference in estimand, not a contradiction --- but the first thing a reviewer will cite, so name Table 2 and state all three differences. Against \Etwo: too short-ranged to count as independent support.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[t]{The central finding replicates outside this lab}{Their answerability split, our evidence split --- different dataset, different backbones, same shape}
+  \begin{center}\footnotesize
+    \begin{tabular}{@{}lrrc@{}}
+      \toprule
+      \thead{model / experiment} & \thead{\acc{$\Delta$accuracy}} & \thead{\conf{$\Delta$confidence}} & \thead{under-reaction} \\
+      \midrule
+      Qwen2.5-VL-72B & \multicolumn{2}{c}{\EgosatSeventyTwo} & sign-flipped \\
+      Qwen2.5-VL-7B & \multicolumn{2}{c}{\EgosatSevenB} & 5.7$\times$ \\
+      TimeChat-Online-7B \emph{(streaming)} & \multicolumn{2}{c}{\EgosatTimeChat} & 5.6$\times$ \\
+      ROI-TimeChat-Online \emph{(streaming)} & \multicolumn{2}{c}{\EgosatRoi} & 7.3$\times$ \\
+      \midrule
+      \textbf{ours --- \Eone} & \acc{\EoneEvidenceAcc} & \conf{\EoneEvidenceConf} & \EoneEvidenceRatio \\
+      \textbf{ours --- \Etwo} & \acc{\EtwoEvidenceAcc} & \conf{\EtwoEvidenceConf} & CI through zero \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vskip0.5em
+  \claim{\footnotesize\color{goodgreen}\textbf{No longer a one-dataset, one-model result.} Cite as convergent evidence. Remaining differentiators: the token-matched decomposition, the within-backbone regime pair, the time scale (40--450$\times$), and the statistics.}
+\end{frame}

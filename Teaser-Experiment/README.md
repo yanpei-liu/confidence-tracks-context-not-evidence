@@ -1,13 +1,22 @@
 # Teaser-Experiment
 
-Accuracy–confidence-vs-Δt sweep for streaming egocentric metamemory, on EgoLifeQA A1 with
-Qwen3-VL-8B-Instruct. **Complete**: 5,540 records over 373 questions, ten modules M0–M9.
+Accuracy–confidence-vs-Δt sweeps for egocentric metamemory, on EgoLifeQA A1 with
+Qwen3-VL-8B-Instruct. **Two experiments, both complete**, over the same 373 questions and the same
+frozen backbone — they differ only in how the context reaches the model.
 
-- [PLAN.md](PLAN.md) — the design, the module decomposition, and what the sweep found.
-- [artifacts/m8_teaser.md](artifacts/m8_teaser.md) — the write-up, generated from the metrics.
-  **Authoritative for every number.**
-- [EXTENDING.md](EXTENDING.md) — porting this design to a second backend (the next experiment
-  is a streaming KV-cached VLM).
+| | regime | records | modules | design doc | authoritative artifact |
+| --- | --- | --- | --- | --- | --- |
+| **E1** | full-reprocess per checkpoint | 5,540 | M0–M9 | [PLAN.md](PLAN.md) | [artifacts/m8_teaser.md](artifacts/m8_teaser.md) |
+| **E2** | streaming KV cache (EgoStream) | 16,565 | X0–X10 | [EXTENDING.md](EXTENDING.md) | [artifacts/x9_streaming.md](artifacts/x9_streaming.md) |
+
+Both artifacts are generated from the metrics JSON and are **authoritative for every number**.
+
+- [INTERPRETATION.md](INTERPRETATION.md) — **how to read both, and what not to claim.** Read it
+  before quoting anything. §2.8 is the canonical roadmap.
+- [../README.md](../README.md) — where the project stands overall.
+
+Directory name: this began as a 2-day teaser and kept the name. Both experiments are still a
+teaser for the wider project.
 
 ## Layout
 
@@ -24,15 +33,31 @@ egovm/m5_controls.py      no-memory control MCQ from DenseCaption
 egovm/m6_score.py         option-letter logprob sweep  (GPU, resumable)
 egovm/m7_analyze.py       per-bin acc/conf/ECE, paired manipulation contrasts, figures
 egovm/m8_report.py        the write-up, rendered from m7_metrics.json
-egovm/m9_page.py          standalone shareable HTML, rendered from metrics + figure
+egovm/m9_page.py          standalone shareable HTML, rendered from metrics + figure  (E1 only)
+
+egovm/streaming/sconf.py       streaming config: budgets, cache policy, marker formats
+egovm/streaming/backend.py     EgoStream FlexibleCache + ReKV over the frozen Qwen3-VL-8B
+egovm/streaming/x0_report.py   backend provenance + sha256 of the imported EgoStream source
+egovm/streaming/x1_calibrate.py   measured token cost, throughput, live caps, clone cost
+egovm/streaming/x1b_timeprobe.py  can the model read the injected clock?  (it cannot -- see 4a)
+egovm/streaming/x2_schedule.py    per-question ingestion schedule; asserts main nests, prior does not
+egovm/streaming/x3_stream_score.py  the sweep  (GPU, resumable, sharded on qid)
+egovm/streaming/x4_pilot.py       the gate: Δt=1 min level before anything scales
+egovm/streaming/x9_compare.py     M7 per-condition + cross-regime differenced contrasts
+egovm/streaming/x10_figure.py     the standalone headline figure; computes nothing
+
 scripts/                  provisioning, submission helpers, incl. submit_supplements.sh (S1-S4)
 slurm/                    batch scripts
 requirements.txt          the versions the committed artifacts were produced on
 artifacts/                small, committed artifacts (no dataset content)
-figures/                  headline.pdf (3 panels: pinned-context sweep / dissociation map /
-                          item transitions + AUROC) and supp_sweep.pdf (the original 2-panel
-                          Δt sweep, kept as supplementary)
+figures/                  headline.pdf            E1, M7's 3-panel template
+                          streaming_headline.pdf  E2, purpose-built by X10 -- the one to show
+                          supp_sweep*.pdf         the raw 2-panel Δt sweeps, supplementary
 ```
+
+`figures/headline_stream*` is M7's E1 template applied to E2's records. It is **git-ignored and
+not committed**: two of its panel titles are false on those records (see EXTENDING.md §0). X9
+regenerates it as a mechanical cross-check; do not put it in front of a reader.
 
 Data (video, frames, raw records) lives at `$EGOVM_DATA`
 (default `~/Files/EgoVM-data`) and is **not** committed: EgoLife is
@@ -84,6 +109,16 @@ $PY -m egovm.m8_report      # -> artifacts/m8_teaser.md
 $PY -m egovm.m9_page        # -> artifacts/m9_teaser.html
 ```
 
+### Running E2 (streaming)
+
+```bash
+$PY -m egovm.streaming.x0_report        # backend provenance    (CPU)
+sbatch slurm/x1_calibrate.sh            # measured token cost, caps, throughput
+sbatch slurm/x1b_timeprobe.sh           # is the injected clock readable?
+$PY -m egovm.streaming.x2_schedule      # ingestion schedule    (CPU)
+scripts/submit_stream.sh                # the sweep -- note: commas in EGOVM_KINDS are '+'
+```
+
 `m6_score.py` skips any `record_id` already present in **any** `m6_records*.jsonl` in the output
 directory, so re-submitting after the partition wall limit continues where it stopped and
 sharded jobs do not redo each other's rows. `--shard i/n` splits the plan across concurrent
@@ -91,10 +126,24 @@ jobs writing to separate output files.
 
 ### Reproducing the analysis without a GPU
 
-M7→M8→M9 need only the record files, not the model or the video. With
-`$EGOVM_DATA/artifacts/m6_records*.jsonl` in place, the three commands above regenerate every
-committed artifact and both figures. The cluster bootstrap is seeded (`m7_analyze.py:69`), so
-the metrics are deterministic — a rerun that changes a number means the inputs changed.
+Neither experiment's analysis needs the model or the video — only the record files.
+
+```bash
+# E1: M7 -> M8 -> M9   (needs $DATA/artifacts/m6_records_*.jsonl)
+$PY -m egovm.m7_analyze && $PY -m egovm.m8_report && $PY -m egovm.m9_page
+
+# E2: X9 -> X10        (needs $DATA/artifacts/m6_records_stream_*.jsonl)
+$PY -m egovm.streaming.x9_compare    # -> m7_metrics_stream*.json, x9_regime_comparison.json,
+                                     #    x9_streaming.md
+$PY -m egovm.streaming.x10_figure    # -> figures/streaming_headline.{pdf,png}, ~2 s
+```
+
+The cluster bootstrap is seeded (`m7_analyze.py:69`), so the metrics are deterministic — a rerun
+that changes a number means the inputs changed.
+
+**Never run M7 directly against `$DATA/artifacts/`.** It globs `m6_records*.jsonl` and writes
+`m7_metrics.json` and `figures/headline.*` to fixed paths, so unguarded it pools the two regimes
+and overwrites E1's committed figures. X9 drives it per-condition and restores those paths.
 
 ### The raw records
 
@@ -127,6 +176,27 @@ python scripts/records_manifest.py --check    # against artifacts/m6_records_man
   window needs a single ~12 GB vision-tower allocation and thrashes there; the headline arms
   run on `a100-80` / `h100-96` / `h200-141`.
 
+## Streaming gotchas that cost time here
+
+All of these fail silently.
+
+- **The image path costs `(res//32)²` tokens/frame, not `/2`** — 100 at `INPUT_RES=320`, double
+  E1's. `m4_eval_plan.jsonl`'s `visual_tokens` column is stale by 2× for this backend; X2
+  recomputes it.
+- **The ReKV retriever's `top_k_tokens` must track `mutable_token_size`.** Left at its shipped
+  8,192 while the budget varied, it re-equalised every condition at query time — measured live
+  tokens 9,104 / 9,108 / 9,099 for budgets meant to span 1,940 → 33,684. A 17× axis became 1.0×
+  with no error raised. Always check the *realised* `live_tokens`, not the configured budget.
+- **`--export` splits on commas here too**, and `EGOVM_KINDS=prior,tokmatch` silently runs only
+  `prior` and exits 0. `scripts/submit_stream.sh` carries commas as `+`.
+- **Querying mutates the cache and there is no rollback**, so every query runs against a
+  `copy.deepcopy` clone (0.016 s). The paper describes this master/secondary split; the released
+  code does not ship it.
+- **`hat_tokens_size` is hardcoded to 896×512.** At 320×320 the protected recent-frame region is
+  4.5× oversized unless corrected, with no error.
+- **EgoStream has no LICENSE and is not a git checkout**, so its source is imported from
+  `$EGOVM_EGOSTREAM` and checksummed by X0 — never vendored, never committed.
+
 ## Notes for whoever picks this up
 
 - **Δt is stream time, not wall-clock.** The A1 recording has 31 gaps including six overnight
@@ -138,8 +208,13 @@ python scripts/records_manifest.py --check    # against artifacts/m6_records_man
   items, contrary to `Planning/[v2-a]`. See `artifacts/m1_schema_report.md`.
 - Confidence is the option-letter softmax max — a proxy, reported with ECE, never as a
   calibrated probability.
-- **`scoring.py` is the only module that names a model.** See [EXTENDING.md](EXTENDING.md)
-  before swapping it.
+- **`scoring.py` is the only module that names a model** in E1; `streaming/backend.py` is its E2
+  counterpart. M1–M5 and M7–M9 transfer untouched to any backend emitting the documented record
+  schema — that is what made E2 cost ~9 GPU-h rather than a rebuild.
+- **Streaming breaks row independence.** Rows for one question at different Δt share a cache and
+  must run in ascending Δt order on one worker, so shard on `qid`. `main`'s five Δt windows nest
+  exactly (one 733-frame ingestion yields all five checkpoints); `prior`'s do not, so each bin
+  costs its own pass. X2 asserts both.
 - A further ~20 ad-hoc `watch_*.sh` / `submit_*.sh` scripts from the original run remain at the
   data root and are deliberately not vendored — they are one-off job babysitters, superseded by
   the helpers in `scripts/`.

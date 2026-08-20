@@ -1,5 +1,5 @@
 {
- "note": "inputs to m7_analyze; the files themselves stay outside the repo",
+ "note": "inputs to m7_analyze, both regimes: m6_records_*.jsonl is E1 (full-reprocess) and m6_records_stream_*.jsonl is E2 (streaming KV cache). The files themselves stay outside the repo. The glob is non-recursive, so superseded runs parked in subdirectories -- e.g. superseded_budget_fixedtopk/, the neutralised top_k pass -- are deliberately excluded.",
  "dir": "~/Files/EgoVM-data/artifacts",
  "files": [
   {
@@ -71,8 +71,155 @@
    "lines": 1581,
    "unique_record_ids": 1540,
    "sha256": "23566abd628fb2d1863520755072695b1c29a09e7e04f370c81e348ba73c3c65"
+  },
+  {
+   "name": "m6_records_stream_budget_0of6.jsonl",
+   "bytes": 1304657,
+   "lines": 1184,
+   "unique_record_ids": 1184,
+   "sha256": "70e719062e1a6cfddbdb781b81b85e8aa3e120880bded1d55ca812bd2e7ee6c4"
+  },
+  {
+   "name": "m6_records_stream_budget_1of6.jsonl",
+   "bytes": 1362812,
+   "lines": 1238,
+   "unique_record_ids": 1238,
+   "sha256": "90cb4c21b34e68b06bc532944fb6a34da643ebcd4ae94489c583b607c1ce98e3"
+  },
+  {
+   "name": "m6_records_stream_budget_2of6.jsonl",
+   "bytes": 1325718,
+   "lines": 1204,
+   "unique_record_ids": 1204,
+   "sha256": "b2fd969754c998495e29f6749954e151dd4581008546569e8d874bbc42715149"
+  },
+  {
+   "name": "m6_records_stream_budget_3of6.jsonl",
+   "bytes": 1296281,
+   "lines": 1178,
+   "unique_record_ids": 1178,
+   "sha256": "8102d8a9d5a6ccf8f0b5ce579d0fc59925dbd88123b7213147c8ffb7694edc2a"
+  },
+  {
+   "name": "m6_records_stream_budget_4of6.jsonl",
+   "bytes": 1457974,
+   "lines": 1324,
+   "unique_record_ids": 1324,
+   "sha256": "48df0e3f875f4a9a291a0e21f158114e7f18078b7b5120ecc64d9c0adc15599e"
+  },
+  {
+   "name": "m6_records_stream_budget_5of6.jsonl",
+   "bytes": 1345608,
+   "lines": 1222,
+   "unique_record_ids": 1222,
+   "sha256": "b6bf069050aad7bd099cea2200e6d6b6c6e9345174a18bb79944f9437edf5173"
+  },
+  {
+   "name": "m6_records_stream_main_0of4.jsonl",
+   "bytes": 907155,
+   "lines": 848,
+   "unique_record_ids": 848,
+   "sha256": "6ffcd9c1f3c9b7da84172611cf1a7324b88c9ddc996f27b29e5f2bbcbfcc3a1f"
+  },
+  {
+   "name": "m6_records_stream_main_1of4.jsonl",
+   "bytes": 862456,
+   "lines": 806,
+   "unique_record_ids": 806,
+   "sha256": "53569cc9276c05f717e0d7e78a2a7bc698c6e89e01175da57de33de92244b8eb"
+  },
+  {
+   "name": "m6_records_stream_main_2of4.jsonl",
+   "bytes": 973211,
+   "lines": 909,
+   "unique_record_ids": 909,
+   "sha256": "f5edf760a1c8282b32324b23522cb2217b5adcd14f71d783f52cd751f11475e1"
+  },
+  {
+   "name": "m6_records_stream_main_3of4.jsonl",
+   "bytes": 978712,
+   "lines": 915,
+   "unique_record_ids": 915,
+   "sha256": "960dfda96f6652a6f4ebfec9b02b62f1f62b7155dd95cabe34313d7c07cc05ae"
+  },
+  {
+   "name": "m6_records_stream_nots_0of4.jsonl",
+   "bytes": 946774,
+   "lines": 888,
+   "unique_record_ids": 888,
+   "sha256": "3efa592dd61e1da08844cb7f143b776ca27081deb4590408d889e70568de285a"
+  },
+  {
+   "name": "m6_records_stream_nots_1of4.jsonl",
+   "bytes": 910664,
+   "lines": 854,
+   "unique_record_ids": 854,
+   "sha256": "7606b851e592e41a52fdff4d5dc2fb1b7989a68b585cdeb7e83aafe68850cf58"
+  },
+  {
+   "name": "m6_records_stream_nots_2of4.jsonl",
+   "bytes": 1032677,
+   "lines": 968,
+   "unique_record_ids": 968,
+   "sha256": "8c179368a6b30d2995d42a9d0200b874a97a22ffac3587c7800c253fe4c73afc"
+  },
+  {
+   "name": "m6_records_stream_nots_3of4.jsonl",
+   "bytes": 1028970,
+   "lines": 965,
+   "unique_record_ids": 965,
+   "sha256": "a05c6755c4bbc448cc16912c69a05367d90ac7ddc8a9e8e53067007f631eb327"
+  },
+  {
+   "name": "m6_records_stream_pilot_0of1.jsonl",
+   "bytes": 209165,
+   "lines": 197,
+   "unique_record_ids": 197,
+   "sha256": "6720286a858848f183b80c21a8f0e82b0f60e040b89ab5e45a083ee416a3fe04"
+  },
+  {
+   "name": "m6_records_stream_pt_0of4.jsonl",
+   "bytes": 287314,
+   "lines": 270,
+   "unique_record_ids": 270,
+   "sha256": "ed2a11c49f754293fcca7300acf02ab0ac6c7731aebdf2d48dfda827ae3c32ae"
+  },
+  {
+   "name": "m6_records_stream_pt_1of4.jsonl",
+   "bytes": 277731,
+   "lines": 261,
+   "unique_record_ids": 261,
+   "sha256": "0d1d5d3bf0908c236626f9a41d18e2690c97c973c2c1830fc204ef7eeffcf1b7"
+  },
+  {
+   "name": "m6_records_stream_pt_2of4.jsonl",
+   "bytes": 313183,
+   "lines": 294,
+   "unique_record_ids": 294,
+   "sha256": "be76f122332ea9d8cf164ac872972ddad6dd442310adf89839a47dad0cee4389"
+  },
+  {
+   "name": "m6_records_stream_pt_3of4.jsonl",
+   "bytes": 312910,
+   "lines": 294,
+   "unique_record_ids": 294,
+   "sha256": "ba8525f98d4f500e80d3ca03c09857537a144b2f2c02ce85283170f1d8990590"
+  },
+  {
+   "name": "m6_records_stream_tok_0of2.jsonl",
+   "bytes": 419292,
+   "lines": 376,
+   "unique_record_ids": 376,
+   "sha256": "259b8db797813da48debe52ac5c74c2af5d971573c5a416f90581021ed79dfa5"
+  },
+  {
+   "name": "m6_records_stream_tok_1of2.jsonl",
+   "bytes": 421166,
+   "lines": 370,
+   "unique_record_ids": 370,
+   "sha256": "a9fe109f329a038fb9144b71093438bc1f0fe032e865e74b010da5ad89c939ac"
   }
  ],
- "total_lines": 7122,
- "unique_record_ids": 5562
+ "total_lines": 23687,
+ "unique_record_ids": 22127
 }

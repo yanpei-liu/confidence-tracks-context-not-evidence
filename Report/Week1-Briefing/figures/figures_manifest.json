@@ -1,0 +1,200 @@
+{
+ "source_figures": {
+  "headline.pdf": {
+   "sha256": "912463b791670fb437ff1b22fb7779dc742d825aa4276aa11b4667aadea738c5",
+   "width_pt": 1051.2,
+   "height_pt": 511.2,
+   "path": "Teaser-Experiment/figures/headline.pdf"
+  },
+  "streaming_headline.pdf": {
+   "sha256": "e4961b4aa11d878f1a01439fc2f459efc8bc518ad0efec2e235b105b89e19eb5",
+   "width_pt": 1123.2,
+   "height_pt": 763.2,
+   "path": "Teaser-Experiment/figures/streaming_headline.pdf"
+  }
+ },
+ "panels": {
+  "e1-full": {
+   "source": "headline.pdf",
+   "caption": "E1 headline, whole figure",
+   "crop_box_pt": [
+    0.0,
+    0.0,
+    1051.2,
+    511.2
+   ],
+   "width_pt": 1051.2,
+   "height_pt": 511.2,
+   "aspect": 2.056,
+   "sha256": "f72704028cdf8931bf4c69af0c15f7291684baa79fe954376d3147cd87e7d30b"
+  },
+  "e1-head": {
+   "source": "headline.pdf",
+   "caption": "E1 title and subtitle",
+   "crop_box_pt": [
+    0.0,
+    442.19,
+    1051.2,
+    511.2
+   ],
+   "width_pt": 1051.2,
+   "height_pt": 69.01,
+   "aspect": 15.233,
+   "sha256": "a97916bf9c9236386efe8b183cf9dace98ebb15b46835fe68deb96d21460c85f"
+  },
+  "e1-a": {
+   "source": "headline.pdf",
+   "caption": "E1 panel A -- pin the context, the accuracy decline goes away",
+   "crop_box_pt": [
+    18.92,
+    0.0,
+    352.15,
+    439.63
+   ],
+   "width_pt": 333.23,
+   "height_pt": 439.63,
+   "aspect": 0.758,
+   "sha256": "ad54bb2320c971fbbd4e67ef74989c72dbf883b2c76265f5a687ef52b9ecb0cb"
+  },
+  "e1-b": {
+   "source": "headline.pdf",
+   "caption": "E1 panel B -- what each manipulation moves",
+   "crop_box_pt": [
+    346.9,
+    0.0,
+    758.97,
+    439.63
+   ],
+   "width_pt": 412.07,
+   "height_pt": 439.63,
+   "aspect": 0.937,
+   "sha256": "dceb5e6ddbf17e6008e282913da3ad626d53099a1f00ceca1ae850df183859ef"
+  },
+  "e1-c": {
+   "source": "headline.pdf",
+   "caption": "E1 panel C upper -- kept vs lost items",
+   "crop_box_pt": [
+    751.61,
+    255.6,
+    1051.2,
+    439.63
+   ],
+   "width_pt": 299.59,
+   "height_pt": 184.03,
+   "aspect": 1.628,
+   "sha256": "823bdab103c902071d6f573048d50d89d9165b68880e0f2a0602dc2ce5d9c8b3"
+  },
+  "e1-d": {
+   "source": "headline.pdf",
+   "caption": "E1 panel C lower -- AUROC across the sweep",
+   "crop_box_pt": [
+    751.61,
+    0.0,
+    1051.2,
+    258.16
+   ],
+   "width_pt": 299.59,
+   "height_pt": 258.16,
+   "aspect": 1.16,
+   "sha256": "f79646968c10cfdbcde162d7fb5530c6562ddc854d5acaf08fa4938d52ab0aee"
+  },
+  "e2-full": {
+   "source": "streaming_headline.pdf",
+   "caption": "E2 headline, whole figure",
+   "crop_box_pt": [
+    0.0,
+    0.0,
+    1123.2,
+    763.2
+   ],
+   "width_pt": 1123.2,
+   "height_pt": 763.2,
+   "aspect": 1.472,
+   "sha256": "e99161fd6c5f25e0f069525a641c053954c7c86cb033dc27cd99f5670f3c5153"
+  },
+  "e2-head": {
+   "source": "streaming_headline.pdf",
+   "caption": "E2 title and subtitle",
+   "crop_box_pt": [
+    0.0,
+    686.88,
+    1123.2,
+    763.2
+   ],
+   "width_pt": 1123.2,
+   "height_pt": 76.32,
+   "aspect": 14.717,
+   "sha256": "0004074ce1b7bdc261d8d41e035dbeaa1d1a6e5bc936797be319f66f0158d246"
+  },
+  "e2-a": {
+   "source": "streaming_headline.pdf",
+   "caption": "E2 panel A -- what each manipulation moves",
+   "crop_box_pt": [
+    0.0,
+    354.89,
+    1123.2,
+    688.41
+   ],
+   "width_pt": 1123.2,
+   "height_pt": 333.52,
+   "aspect": 3.368,
+   "sha256": "4271baf79ec530d885330f381186af8c3248f88e853c714159f9a0d78a70062b"
+  },
+  "e2-b": {
+   "source": "streaming_headline.pdf",
+   "caption": "E2 panel B -- the raw sweep settles nothing",
+   "crop_box_pt": [
+    39.31,
+    100.74,
+    286.42,
+    354.89
+   ],
+   "width_pt": 247.11,
+   "height_pt": 254.15,
+   "aspect": 0.972,
+   "sha256": "e469858714a83a7573c7b2d3d6944e16d25ad4567c19edf204ccf92bf5c770d5"
+  },
+  "e2-c": {
+   "source": "streaming_headline.pdf",
+   "caption": "E2 panel C -- a bigger cache buys no accuracy",
+   "crop_box_pt": [
+    283.05,
+    100.74,
+    561.6,
+    354.89
+   ],
+   "width_pt": 278.55,
+   "height_pt": 254.15,
+   "aspect": 1.096,
+   "sha256": "49fd4adf297481e14c32edc919b4e77f5e354c4e62af4572d88c224a350d12a8"
+  },
+  "e2-d": {
+   "source": "streaming_headline.pdf",
+   "caption": "E2 panel D -- the decline is all context",
+   "crop_box_pt": [
+    567.22,
+    100.74,
+    855.88,
+    354.89
+   ],
+   "width_pt": 288.66,
+   "height_pt": 254.15,
+   "aspect": 1.136,
+   "sha256": "383a737adbb80c4f62ea0eaaa4f50c87f015a1bafa2c5f108b296e3ae8b76d92"
+  },
+  "e2-e": {
+   "source": "streaming_headline.pdf",
+   "caption": "E2 panel E -- the confidence ordering decays",
+   "crop_box_pt": [
+    836.78,
+    100.74,
+    1123.2,
+    354.89
+   ],
+   "width_pt": 286.42,
+   "height_pt": 254.15,
+   "aspect": 1.127,
+   "sha256": "94a4fbf6ff040485302d7e8b22685b8eed91d6867da29587c03c1e0b8c22967c"
+  }
+ }
+}

@@ -1,0 +1,522 @@
+{
+ "NrecEone": {
+  "value": "5,540",
+  "source": "m7_metrics.json all_questions.n_records"
+ },
+ "NrecEtwo": {
+  "value": "16,565",
+  "source": "x9_regime_comparison.json n_streaming_records"
+ },
+ "Nquestions": {
+  "value": "373",
+  "source": "m7_metrics.json headline.n_paired_questions"
+ },
+ "EoneGap": {
+  "value": "$-$3.2 [$-$7.5, $+$1.0]",
+  "source": "m7_metrics.json headline.delta_gap"
+ },
+ "EoneGapP": {
+  "value": "0.138",
+  "source": "m7_metrics.json headline.delta_gap"
+ },
+ "EtwoGap": {
+  "value": "$-$4.0 [$-$9.0, $+$1.0]",
+  "source": "m7_metrics_stream.json headline.delta_gap"
+ },
+ "EtwoGapP": {
+  "value": "0.105",
+  "source": "m7_metrics_stream.json headline.delta_gap"
+ },
+ "EoneSweepAcc": {
+  "value": "$-$6.4 [$-$10.5, $-$2.4]",
+  "source": "m7_metrics.json headline.delta_accuracy"
+ },
+ "EoneSweepConf": {
+  "value": "$-$9.7 [$-$11.5, $-$7.9]",
+  "source": "m7_metrics.json headline.delta_confidence"
+ },
+ "EoneElapsedAcc": {
+  "value": "$+$0.3 [$-$2.9, $+$3.2]",
+  "source": "m7_metrics.json contrasts.more_elapsed_time_60min.delta_accuracy"
+ },
+ "EoneElapsedConf": {
+  "value": "$-$3.7 [$-$4.9, $-$2.4]",
+  "source": "m7_metrics.json contrasts.more_elapsed_time_60min.delta_confidence"
+ },
+ "EoneTokensAcc": {
+  "value": "$+$2.4 [$+$0.3, $+$4.7]",
+  "source": "m7_metrics.json contrasts.fewer_tokens.delta_accuracy"
+ },
+ "EoneTokensConf": {
+  "value": "$+$0.3 [$-$0.5, $+$1.1]",
+  "source": "m7_metrics.json contrasts.fewer_tokens.delta_confidence"
+ },
+ "EoneEvidenceAcc": {
+  "value": "$+$9.7 [$+$4.8, $+$14.5]",
+  "source": "m7_metrics.json contrasts.evidence_present.delta_accuracy"
+ },
+ "EoneEvidenceConf": {
+  "value": "$+$3.3 [$+$1.2, $+$5.4]",
+  "source": "m7_metrics.json contrasts.evidence_present.delta_confidence"
+ },
+ "EoneEvResAcc": {
+  "value": "$+$2.9 [$+$0.8, $+$5.1]",
+  "source": "m7_metrics.json contrasts.evidence_resolution.delta_accuracy"
+ },
+ "EoneEvResConf": {
+  "value": "$+$1.1 [$+$0.3, $+$2.0]",
+  "source": "m7_metrics.json contrasts.evidence_resolution.delta_confidence"
+ },
+ "EoneKindAcc": {
+  "value": "$+$10.4 [$+$3.3, $+$17.2]",
+  "source": "m7_metrics.json contrasts.question_kind_1min.delta_accuracy"
+ },
+ "EoneKindConf": {
+  "value": "$+$13.9 [$+$10.9, $+$16.9]",
+  "source": "m7_metrics.json contrasts.question_kind_1min.delta_confidence"
+ },
+ "EoneEvidenceRatio": {
+  "value": "2.9$\\times$",
+  "source": "m7_metrics.json evidence_awareness (derived ratio)"
+ },
+ "EoneBinOneAcc": {
+  "value": "42.9",
+  "source": "m7_metrics.json bins.memory/main.60.accuracy"
+ },
+ "EoneBinOneConf": {
+  "value": "72.1",
+  "source": "m7_metrics.json bins.memory/main.60.mean_confidence"
+ },
+ "EoneFloorAcc": {
+  "value": "31.4",
+  "source": "m7_metrics.json evidence_awareness.accuracy_without"
+ },
+ "EoneFloorConf": {
+  "value": "66.0",
+  "source": "m7_metrics.json evidence_awareness.confidence_without"
+ },
+ "EoneRange": {
+  "value": "11.5",
+  "source": "m7_metrics.json bins.memory/main.60.accuracy - evidence_awareness.accuracy_without (derived)"
+ },
+ "EtwoRange": {
+  "value": "11.8",
+  "source": "m7_metrics_stream.json bins.memory/main.60.accuracy - bins.memory/prior.300.accuracy (derived)"
+ },
+ "EoneDecompAccElapsed": {
+  "value": "$+$0.3",
+  "source": "m7_metrics.json decomposition.accuracy.elapsed_time"
+ },
+ "EoneDecompAccContext": {
+  "value": "$-$2.4",
+  "source": "m7_metrics.json decomposition.accuracy.context_length"
+ },
+ "EoneDecompConfElapsed": {
+  "value": "$-$3.7",
+  "source": "m7_metrics.json decomposition.confidence.elapsed_time"
+ },
+ "EoneDecompConfContext": {
+  "value": "$-$0.3",
+  "source": "m7_metrics.json decomposition.confidence.context_length"
+ },
+ "EoneAurocLo": {
+  "value": "0.643",
+  "source": "m7_metrics.json discrimination.memory/main/60.auroc"
+ },
+ "EoneAurocHi": {
+  "value": "0.655",
+  "source": "m7_metrics.json discrimination.memory/main/3600.auroc"
+ },
+ "EoneAurocFloor": {
+  "value": "0.568",
+  "source": "m7_metrics.json discrimination.memory/prior/300.auroc"
+ },
+ "EoneAurocDelta": {
+  "value": "$+$0.012 [$-$0.046, $+$0.071]",
+  "source": "m7_metrics.json discrimination.delta_auroc_sweep"
+ },
+ "EoneItemDiff": {
+  "value": "$+$1.0 [$-$2.8, $+$4.9]",
+  "source": "m7_metrics.json item_transitions.difference"
+ },
+ "EoneItemDiffP": {
+  "value": "0.618",
+  "source": "m7_metrics.json item_transitions.difference"
+ },
+ "EtwoEvidenceAcc": {
+  "value": "$+$8.1 [$+$2.9, $+$13.1]",
+  "source": "x9_regime_comparison.json streaming_contrasts.evidence_vs_none.delta_accuracy"
+ },
+ "EtwoEvidenceConf": {
+  "value": "$+$0.5 [$-$1.5, $+$2.6]",
+  "source": "x9_regime_comparison.json streaming_contrasts.evidence_vs_none.delta_confidence"
+ },
+ "EtwoElapsedAcc": {
+  "value": "$-$1.7 [$-$5.1, $+$1.6]",
+  "source": "x9_regime_comparison.json streaming_contrasts.elapsed_time_fixed_frames.delta_accuracy"
+ },
+ "EtwoElapsedConf": {
+  "value": "$-$0.1 [$-$1.7, $+$1.4]",
+  "source": "x9_regime_comparison.json streaming_contrasts.elapsed_time_fixed_frames.delta_confidence"
+ },
+ "EtwoFourxAcc": {
+  "value": "$-$2.4 [$-$5.9, $+$1.1]",
+  "source": "x9_regime_comparison.json streaming_contrasts.context_length_4x_tokens.delta_accuracy"
+ },
+ "EtwoFourxConf": {
+  "value": "$-$6.7 [$-$8.4, $-$5.0]",
+  "source": "x9_regime_comparison.json streaming_contrasts.context_length_4x_tokens.delta_confidence"
+ },
+ "EtwoThinnedAcc": {
+  "value": "$-$1.9 [$-$4.6, $+$0.8]",
+  "source": "x9_regime_comparison.json streaming_contrasts.evidence_thinned.delta_accuracy"
+ },
+ "EtwoThinnedConf": {
+  "value": "$-$1.3 [$-$2.5, $-$0.1]",
+  "source": "x9_regime_comparison.json streaming_contrasts.evidence_thinned.delta_confidence"
+ },
+ "EtwoTimestampsAcc": {
+  "value": "$-$0.6 [$-$1.7, $+$0.5]",
+  "source": "x9_regime_comparison.json streaming_contrasts.timestamps_on_vs_off.delta_accuracy"
+ },
+ "EtwoTimestampsConf": {
+  "value": "$-$0.7 [$-$1.2, $-$0.2]",
+  "source": "x9_regime_comparison.json streaming_contrasts.timestamps_on_vs_off.delta_confidence"
+ },
+ "EtwoKindAcc": {
+  "value": "$+$18.4 [$+$13.5, $+$23.4]",
+  "source": "x9_regime_comparison.json streaming_contrasts.control_vs_memory.delta_accuracy"
+ },
+ "EtwoKindConf": {
+  "value": "$+$12.6 [$+$10.8, $+$14.4]",
+  "source": "x9_regime_comparison.json streaming_contrasts.control_vs_memory.delta_confidence"
+ },
+ "EtwoRawAcc": {
+  "value": "$+$8.1 [$+$3.5, $+$12.6]",
+  "source": "x9_regime_comparison.json streaming_contrasts.elapsed_time_raw.delta_accuracy"
+ },
+ "EtwoRawConf": {
+  "value": "$+$12.1 [$+$10.0, $+$14.2]",
+  "source": "x9_regime_comparison.json streaming_contrasts.elapsed_time_raw.delta_confidence"
+ },
+ "EtwoLargeDefaultAcc": {
+  "value": "$+$1.8 [$-$0.4, $+$4.0]",
+  "source": "x9_regime_comparison.json streaming_contrasts.context_length_large_vs_default.delta_accuracy"
+ },
+ "EtwoLargeDefaultConf": {
+  "value": "$-$5.4 [$-$6.5, $-$4.4]",
+  "source": "x9_regime_comparison.json streaming_contrasts.context_length_large_vs_default.delta_confidence"
+ },
+ "EtwoBudgetAcc": {
+  "value": "$-$1.9 [$-$6.4, $+$2.4]",
+  "source": "x9_regime_comparison.json budget_by_dt.3600.delta_accuracy"
+ },
+ "EtwoBudgetConf": {
+  "value": "$-$15.2 [$-$17.5, $-$13.1]",
+  "source": "x9_regime_comparison.json budget_by_dt.3600.delta_confidence"
+ },
+ "EtwoBudgetRatio": {
+  "value": "17$\\times$",
+  "source": "x9_regime_comparison.json budget_by_dt.3600 (derived)"
+ },
+ "EtwoBudgetLive": {
+  "value": "33,684 vs 1,940",
+  "source": "x9_regime_comparison.json budget_by_dt.3600 live_tokens_*"
+ },
+ "EtwoDecompConfElapsed": {
+  "value": "$-$0.13",
+  "source": "m7_metrics_stream.json decomposition.confidence.elapsed_time"
+ },
+ "EtwoDecompConfContext": {
+  "value": "$-$6.71",
+  "source": "m7_metrics_stream.json decomposition.confidence.context_length"
+ },
+ "EtwoDecompConfObs": {
+  "value": "$-$6.82",
+  "source": "m7_metrics_stream.json decomposition.confidence.observed"
+ },
+ "EtwoDecompResid": {
+  "value": "$+$0.02",
+  "source": "m7_metrics_stream.json decomposition.confidence.residual"
+ },
+ "EtwoAurocLo": {
+  "value": "0.654",
+  "source": "m7_metrics_stream.json discrimination.memory/main/60.auroc"
+ },
+ "EtwoAurocHi": {
+  "value": "0.581",
+  "source": "m7_metrics_stream.json discrimination.memory/main/3600.auroc"
+ },
+ "EtwoAurocFloor": {
+  "value": "0.574",
+  "source": "m7_metrics_stream.json discrimination.memory/prior/300.auroc"
+ },
+ "EtwoAurocDelta": {
+  "value": "$-$0.073 [$-$0.143, $-$0.003]",
+  "source": "m7_metrics_stream.json discrimination.delta_auroc_sweep"
+ },
+ "EtwoAurocP": {
+  "value": "0.039",
+  "source": "m7_metrics_stream.json discrimination.delta_auroc_sweep"
+ },
+ "EtwoItemDiff": {
+  "value": "$-$3.8 [$-$8.5, $+$1.1]",
+  "source": "m7_metrics_stream.json item_transitions.difference"
+ },
+ "EtwoItemDiffP": {
+  "value": "0.118",
+  "source": "m7_metrics_stream.json item_transitions.difference"
+ },
+ "EtwoItemLost": {
+  "value": "107",
+  "source": "m7_metrics_stream.json item_transitions.n_lost"
+ },
+ "EtwoBinOneAcc": {
+  "value": "42.1",
+  "source": "m7_metrics_stream.json bins.memory/main.60.accuracy"
+ },
+ "EtwoFloorAcc": {
+  "value": "30.3",
+  "source": "m7_metrics_stream.json bins.memory/prior.300.accuracy"
+ },
+ "XregElapsedAcc": {
+  "value": "$-$1.9 [$-$5.9, $+$1.9]",
+  "source": "x9_regime_comparison.json cross_regime.elapsed_time_fixed_frames.diff_accuracy"
+ },
+ "XregElapsedConf": {
+  "value": "$+$3.5 [$+$1.7, $+$5.4]",
+  "source": "x9_regime_comparison.json cross_regime.elapsed_time_fixed_frames.diff_confidence"
+ },
+ "XregFourxAcc": {
+  "value": "$+$0.8 [$-$4.0, $+$5.4]",
+  "source": "x9_regime_comparison.json cross_regime.context_length_4x_tokens.diff_accuracy"
+ },
+ "XregFourxConf": {
+  "value": "$-$6.1 [$-$8.1, $-$4.1]",
+  "source": "x9_regime_comparison.json cross_regime.context_length_4x_tokens.diff_confidence"
+ },
+ "XregEvidenceAcc": {
+  "value": "$-$1.6 [$-$6.7, $+$3.5]",
+  "source": "x9_regime_comparison.json cross_regime.evidence_vs_none.diff_accuracy"
+ },
+ "XregEvidenceConf": {
+  "value": "$-$2.8 [$-$5.1, $-$0.4]",
+  "source": "x9_regime_comparison.json cross_regime.evidence_vs_none.diff_confidence"
+ },
+ "XregKindAcc": {
+  "value": "$+$7.5 [$+$4.1, $+$11.0]",
+  "source": "x9_regime_comparison.json cross_regime.control_vs_memory.diff_accuracy"
+ },
+ "XregKindConf": {
+  "value": "$-$1.7 [$-$3.3, $-$0.1]",
+  "source": "x9_regime_comparison.json cross_regime.control_vs_memory.diff_confidence"
+ },
+ "MassEone": {
+  "value": "0.99988",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "MassEtwo": {
+  "value": "0.99530",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "ArgmaxDisagree": {
+  "value": "0 of 23,687",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "AurocRestrEone": {
+  "value": "0.6276",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "AurocVocabEone": {
+  "value": "0.6275",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "AurocRestrEtwo": {
+  "value": "0.6199",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "AurocVocabEtwo": {
+  "value": "0.6203",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "AurocEntropyEtwo": {
+  "value": "0.6215",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "AurocMarginEtwo": {
+  "value": "0.6171",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "VocabEvidenceEtwo": {
+  "value": "$+$2.61 [$+$0.33, $+$4.94]",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "RestrEvidenceEtwo": {
+  "value": "$+$0.55 [$-$1.52, $+$2.65]",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "OffLetterEvidenceEtwo": {
+  "value": "$-$3.01 [$-$4.40, $-$1.82]",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "HedgeRows": {
+  "value": "129 rows (1.38\\%), over 79 of 373 questions",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "HedgePrior": {
+  "value": "8.76\\%",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "HedgeMain": {
+  "value": "0.42\\%",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "HedgeEoneMax": {
+  "value": "0.0034",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "BiasPredEone": {
+  "value": "A .124 \\quad B .280 \\quad \\textbf{C .435} \\quad D .161",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "BiasPredEtwo": {
+  "value": "A .134 \\quad \\textbf{B .342} \\quad C .330 \\quad D .194",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "BiasGold": {
+  "value": "A .222 \\quad B .256 \\quad C .261 \\quad D .261",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "BiasAccEone": {
+  "value": "21.4\\% on gold-A vs 58.6\\% on gold-C",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "PriorArmConfEone": {
+  "value": "0.659",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "PriorArmConfEtwo": {
+  "value": "0.803",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "CleanBudgetConf": {
+  "value": "$-$6.0 [$-$7.3, $-$4.7]",
+  "source": "STREAMING-CACHE.md (literal check)"
+ },
+ "CleanBudgetRatio": {
+  "value": "3.7$\\times$",
+  "source": "STREAMING-CACHE.md (literal check)"
+ },
+ "CleanBudgetAcc": {
+  "value": "null in every bin",
+  "source": "STREAMING-CACHE.md (literal check)"
+ },
+ "OffloadDefault": {
+  "value": "0 of 12,890",
+  "source": "STREAMING-CACHE.md (literal check)"
+ },
+ "OffloadSmall": {
+  "value": "3,675 of 3,675",
+  "source": "STREAMING-CACHE.md (literal check)"
+ },
+ "SaturationPoint": {
+  "value": "$\\approx$85 frames ($\\approx$7 min)",
+  "source": "STREAMING-CACHE.md (literal check)"
+ },
+ "SurvivingShare": {
+  "value": "$\\approx$11\\%",
+  "source": "STREAMING-CACHE.md (literal check)"
+ },
+ "SmallBatchNote": {
+  "value": "1,024 mutable tokens vs a 1,600-token ingestion batch",
+  "source": "STREAMING-CACHE.md (literal check)"
+ },
+ "LiveTokensIdentical": {
+  "value": "9,108",
+  "source": "STREAMING-CACHE.md (literal check)"
+ },
+ "EoneClockIsText": {
+  "value": "$<$150.0 seconds$>$",
+  "source": "STREAMING-CACHE.md (literal check)"
+ },
+ "TimestripCost": {
+  "value": "$\\approx$1 GPU-h",
+  "source": "STREAMING-CACHE.md (literal check)"
+ },
+ "EgosatCite": {
+  "value": "Lei et al., arXiv 2606.24422, 23 Jun 2026",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "EgosatScale": {
+  "value": "1,997 Ego4D sessions, 165 h, $\\sim$4,800 MCQ",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "EgosatLag": {
+  "value": "8 / 16 / 24 s",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "EgosatUnderreact": {
+  "value": "3--7$\\times$, or an outright sign flip",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "EgosatAccBand": {
+  "value": "$+$4.5 to $+$11.6 pp",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "EgosatConfBand": {
+  "value": "$-$4.6 to $+$3.3 pp",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "EgosatStreamSlopes": {
+  "value": "$+$0.99 and $+$4.61",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "EgosatSixOfEight": {
+  "value": "six of eight $\\geq$ 0",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "EgosatMemHorizon": {
+  "value": "3.6 pp and 2.4 pp, both non-monotone",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "EgosatOnlineGap": {
+  "value": "31.63 vs 34.46",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "WinsorNinety": {
+  "value": "$+$1.18 [$-$0.92, $+$3.28], p = 0.259",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "EoneEvidenceBoth": {
+  "value": "$+$3.32 [$+$1.24, $+$5.40]",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "OffLetterSweep": {
+  "value": "$+$0.60 [$+$0.21, $+$1.11]",
+  "source": "CONFIDENCE-PROBE.md (literal check)"
+ },
+ "EgosatSeventyTwo": {
+  "value": "$+$9.45 / $-$4.57",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "EgosatSevenB": {
+  "value": "$+$10.05 / $+$1.75",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "EgosatTimeChat": {
+  "value": "$+$4.51 / $+$0.80",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "EgosatRoi": {
+  "value": "$+$5.42 / $+$0.74",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "EgosatCcMinusCw": {
+  "value": "$+$2.78 and $-$0.35",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ },
+ "EgosatAccDecline": {
+  "value": "$-$2.6 to $-$7.4 pp",
+  "source": "RELATED-EGOSAT.md (literal check)"
+ }
+}
