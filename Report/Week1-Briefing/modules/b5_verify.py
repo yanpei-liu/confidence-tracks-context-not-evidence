@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """B5 -- check the built deck against everything it was built from.
 
-Six checks, each of which has caught something at least once:
+Nine checks, each of which has caught something at least once:
   1. B1 is current       -- no slide quotes a number the artifacts no longer support
   2. B2 is current       -- no panel is a crop of a headline figure that has since changed
   3. macros all defined  -- every \\Macro a slide uses exists in the preamble or in B1's output
   4. figures all present -- every \\includegraphics target exists on disk
-  5. the pdf built       -- and has the expected structure
-  6. the log is clean    -- no LaTeX errors, no undefined references, no bad overfull boxes
+  5. slides compile alone-- each slides/*.tex builds standalone, so a broken one is named
+  6. the pdf built       -- and has the expected structure
+  7. no LaTeX errors     -- the log carries none
+  8. no undefined refs   -- every reference resolved
+  9. no bad overfull box -- nothing above the pt threshold
 """
 from __future__ import annotations
 

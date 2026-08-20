@@ -4,7 +4,7 @@
 Emits
     generated/numbers.tex   LaTeX macros, one per quoted quantity
     generated/numbers.json  the same values with their provenance
-    generated/tab-*.tex     tabular bodies built from the same sources
+    generated/tables.tex    tabular bodies built from the same sources
 
 Sources, in the precedence CLAUDE.md sets out:
     Teaser-Experiment/artifacts/m7_metrics.json          E1 (full-reprocess)

@@ -82,9 +82,9 @@ Four results that sharpen it:
 And one honest null, plus one prediction that failed:
 
 - **Item-level metamemory: suggestive, underpowered, not significant.** Among items correct at
-  the earlier bin, confidence fell −2.8 pp on items kept and −6.8 pp on items lost, difference
+  the earlier bin, confidence fell −3.0 pp on items kept (465) and −6.8 pp on items lost, difference
   **−3.8 pp [−8.5, +1.1], p = 0.118**. The teaser found this flatly item-blind (+1.0, p = 0.62),
-  so streaming moves it in the direction of genuine metamemory — but on 103 lost items the CI
+  so streaming moves it in the direction of genuine metamemory — but on 107 lost items the CI
   crosses zero and this must not be quoted as a positive finding.
 - **X8's confirmatory prediction was wrong in shape.** §4a predicted `main` ≈ `nots` at the
   saturated bins and a difference only at Δt = 1 and 5 min. Observed: **no** difference at 1 min
@@ -245,7 +245,7 @@ X3 driver implements rather than inherits:
   question tokens onto the live KV (`:657`) and nothing truncates them afterwards. Multi-
   checkpoint querying therefore **requires the master/secondary clone** the paper describes in
   §B.6 and the released code does not ship. `copy.deepcopy` is the implementation and it works
-  (0.11 s, master intact). Two vestiges confirm this was the intended design: the unused
+  (0.016 s, master intact — the timing in §1's table). Two vestiges confirm this was the intended design: the unused
   `IncrementalSlidingWindowSampler` whose docstring names the master/question split, and
   `DiskOffloadStore.__deepcopy__`, which exists only because something deep-copies the cache.
 - **The controls ride on the same cache**, which is a genuine advantage: both queries hit the
@@ -431,7 +431,7 @@ Code lives in `Teaser-Experiment/egovm/streaming/`; small artifacts in
 | **X6** | budget arm (context-length axis) | `m6_records_stream_budget_*.jsonl` | same questions at `small` and `large`; `live_tokens` separates the three budgets by ≥2× at Δt ≥ 15 min; pairs 1:1 with X5 on `qid` |
 | **X7** | prior + tokmatch passes | `m6_records_stream_prior_*.jsonl`, `m6_records_stream_tokmatch_*.jsonl` | `prior` at Δt ∈ {1,5,15} min (per-bin ingestion, §1); `tokmatch_evkeep`/`tokmatch_uniform` at Δt=60 min; frame counts match the M4 rows exactly |
 | **X8** | timestamps-off ablation | `m6_records_stream_nots_*.jsonl` | subset re-run with `timestamps_injected=false`; pairs 1:1 with X5 |
-| **X9** | analysis + cross-regime comparison | `artifacts/m7_metrics_stream.json`, `x9_regime_comparison.json`, `figures/streaming.pdf`, `x9_streaming.md` | M7 run **with a regime-restricted records glob** (§2); contrasts computed within streaming, then differenced against the committed full-reprocess contrasts with cluster-bootstrap CIs on the difference |
+| **X9** | analysis + cross-regime comparison | `artifacts/m7_metrics_stream.json`, `x9_regime_comparison.json`, `x9_streaming.md` | M7 run **with a regime-restricted records glob** (§2); contrasts computed within streaming, then differenced against the committed full-reprocess contrasts with cluster-bootstrap CIs on the difference |
 | **X10** | the standalone headline figure | `egovm/streaming/x10_figure.py`, `figures/streaming_headline.{pdf,png}` | CPU-only, ~2 s: reads `x9_regime_comparison.json` (contrasts, budget arm, cells) and `m7_metrics_stream.json` (per-bin levels, decomposition, AUROC, item transitions) and **computes nothing**, so the figure cannot drift from the metrics. Every panel names the cells it differences and what is held fixed; the elapsed-time rows are drawn as an *unavailable* axis, not a null (§4a) |
 
 ### Order and gating

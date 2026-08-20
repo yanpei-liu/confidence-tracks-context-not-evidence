@@ -15,13 +15,21 @@ Built with `make`. Checked with `make verify` (nine checks, listed below).
 
 The deck follows the repository's own convention: **modules separated along
 verifiable-artifact boundaries**. Each module emits a file that can be checked on its own, and
-the next stage consumes only that file. The point is that **no number on any slide is typed by
-hand** — every one is a macro whose value and provenance are recorded — so the deck cannot
-drift from the experiments the way prose does.
+the next stage consumes only that file. The point is that **every number a slide quotes is a
+macro whose value and provenance are recorded**, so the deck cannot drift from the experiments
+the way prose does.
+
+Two honest qualifications. Of B1's 129 macros, **78 are derived** — read straight out of the
+metrics JSON — while **51 come from the memos** and are hand-typed in `MEMO_FACTS`, guarded only
+by a check that their literal string still appears in the memo. That is a staleness tripwire, not
+a derivation. And a handful of ratios and scale factors are still typed directly into the slides
+(`02-confidence` E1 AUROCs, `03-egosat` ratios, `04-next` costs, and the whole dataset-curation
+slide in `90-backup`); they are correct but ungated. Closing both gaps is
+[`INTERPRETATION.md` §2.8](../../Teaser-Experiment/INTERPRETATION.md)'s `x11`/`x12` items.
 
 | module | script | artifact | what checks it |
 | --- | --- | --- | --- |
-| **B1** numbers | `modules/b1_numbers.py` | `generated/numbers.tex`, `generated/tables.tex`, `generated/numbers.json` | `--check` re-derives all 128 macros from the metrics JSON and fails if the committed output is stale. Values that exist only in a memo carry a literal string that must still appear in that memo. |
+| **B1** numbers | `modules/b1_numbers.py` | `generated/numbers.tex`, `generated/tables.tex`, `generated/numbers.json` | `--check` re-derives all 129 macros from the metrics JSON and fails if the committed output is stale. Values that exist only in a memo carry a literal string that must still appear in that memo. |
 | **B2** figures | `modules/b2_figures.py` | `figures/*.pdf`, `figures/figures_manifest.json` | `--check` re-cuts every panel into a temp dir and fails if a source figure's sha256 or a crop box changed. Panels are **crops, never redraws**, so a panel on a slide is bit-for-bit the panel in the committed figure. |
 | **B3** shell | `preamble.tex` | theme, palette, semantic macros | — |
 | **B4** content | `slides/*.tex` | one file per agenda item | `00-title`, `01-results`, `02-confidence`, `03-egosat`, `04-next`, `90-backup` |

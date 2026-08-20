@@ -39,13 +39,13 @@ cluster-bootstrapped over questions:
 | +45 min elapsed, tokens **and** evidence fixed (`evkeep@60` − `main@15`) | no | **yes, down** |
 | 4× more visual tokens, elapsed time fixed (`main` − `evkeep`, 30 & 60 pooled) | **yes, down** | no |
 | evidence thinned at fixed tokens and Δt (`uniform` − `evkeep`) | **yes, down** | barely |
-| evidence in context vs none (`main@5` − `prior@5`) | **yes, +9.6 pp** | **yes, but only +3.3 pp** |
+| evidence in context vs none (`main@5` − `prior@5`) | **yes, +9.7 pp** | **yes, but only +3.3 pp** |
 
 Read together: **confidence moves on elapsed time, which has no detectable effect on accuracy, and
 under-reacts to the things that do — context length and evidence.** The asymmetry is one of
 *proportion*, not of presence, and the table has to be read that way:
 
-One caveat on the elapsed-time null: +0.3 pp [−3.0, +3.2] is a low-precision null, and that CI
+One caveat on the elapsed-time null: +0.3 pp [−2.9, +3.2] is a low-precision null, and that CI
 contains the −2.4 pp context-length effect we do claim to detect. "No accuracy cost" means *none
 resolvable at n = 373*, not none.
 
@@ -83,7 +83,7 @@ therefore partly a floor effect and should never be quoted without the floor lin
 
 **Panel B — the dissociation map.** Each manipulation is a point in Δaccuracy × Δconfidence with
 cluster-bootstrap CIs on both axes, read against the diagonal where confidence would track
-competence. The manipulations that buy accuracy sit *below* it (evidence vs none at +9.6/+3.3, 4×
+competence. The manipulations that buy accuracy sit *below* it (evidence vs none at +9.7/+3.3, 4×
 fewer tokens at +2.4/+0.3): confidence under-reacts. The manipulation that buys nothing sits
 *above* it (+45 min at +0.3/−3.7): confidence reacts anyway. The no-memory control (+5.9/+13.1)
 is the calibration check — confidence *can* swing hard, it just swings on question kind rather

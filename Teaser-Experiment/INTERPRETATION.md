@@ -247,7 +247,7 @@ regimes, and it is the finding.
 
 | | E1 | E2 |
 | --- | --- | --- |
-| evidence vs none, Δaccuracy | +9.7 [+4.8, +14.4] | +8.1 [+2.9, +13.1] |
+| evidence vs none, Δaccuracy | +9.7 [+4.8, +14.5] | +8.1 [+2.9, +13.1] |
 | evidence vs none, Δconfidence | +3.3 [+1.2, +5.4] | +0.5 [−1.5, +2.6] |
 | difference (E2 − E1), Δconfidence | | **−2.8 [−5.1, −0.4]** |
 
