@@ -58,6 +58,13 @@ it gets its own section.
 responds to how much context is in the window and to nothing else.** The two measures are driven
 by disjoint variables.
 
+The figure that says exactly this and nothing more is
+[`figures/streaming_headline.pdf`](figures/streaming_headline.pdf) (X10): §1.2's rows are its
+panel A, §1.4's dose–response and decomposition are panels C and D, §1.6's AUROC is panel E, and
+§1.3's *unavailable* axis is drawn as such rather than as a null. `figures/headline_stream.*` is
+M7's template on these records and carries the full-reprocess sweep's panel titles — two of
+which are false here; see EXTENDING.md §0.
+
 ### 1.2 Read the axes in this order
 
 | axis | manipulation | Δaccuracy (pp) | Δconfidence (pp) | status |

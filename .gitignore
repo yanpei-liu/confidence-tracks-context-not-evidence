@@ -1,2 +1,7 @@
 __pycache__/
 *.pyc
+
+# X9 re-creates M7's template on the streaming records under these names.
+# They carry the full-reprocess sweep's panel titles, two of which are false on E2 records
+# (EXTENDING.md section 0). streaming_headline.pdf (X10) is the figure to show.
+Teaser-Experiment/figures/headline_stream*

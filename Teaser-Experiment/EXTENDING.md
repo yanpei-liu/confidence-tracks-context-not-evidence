@@ -26,6 +26,14 @@ the teaser could not ask is the one this experiment exists to ask:
 `x9_regime_comparison.json` and is **authoritative for every number**; the prose here is
 interpretation and may round.
 
+**The figure to show is [`figures/streaming_headline.pdf`](figures/streaming_headline.pdf)**
+(X10) — five panels drawn for this experiment alone, with every arm and every held-fixed
+variable named on the page. `figures/headline_stream.*` is M7's own template applied to these
+records; it is a useful mechanical cross-check but **its panel titles are the full-reprocess
+sweep's claims, and two of them are false here** — it asserts the confidence ranking is
+untouched by Δt (§0 shows it degrades) and treats elapsed time as a manipulation that returned
+a null rather than an input the model cannot read (§4a). Do not put it in front of a reader.
+
 > **How to read these results — including what not to claim from them — is
 > [INTERPRETATION.md](INTERPRETATION.md).** Part 1 covers this experiment, Part 2 covers it
 > jointly with the full-reprocess sweep. Read it before quoting anything below. Verdict selected by the measured intervals among the four
@@ -270,7 +278,9 @@ by the memory budget.
 At `INPUT_RES=320` (100 tok/frame) and the default budget (716 sink + 8,192 mutable + 200 hat =
 **9,108** live tokens), saturation lands at roughly 91 frames of presented video — i.e. between
 the Δt = 5 min bin (72 frames, unsaturated) and the Δt = 15 min bin (194 frames, saturated). The
-sweep therefore spans the transition, which is itself worth reporting.
+sweep therefore spans the transition, which is itself worth reporting. (Measured after the fact
+it is ≈85 frames, ≈7 min: the live cache also holds the prompt, 588 tokens at the 5 min bin, and
+X10 derives the mark that way rather than from the 9,108 ÷ 100 arithmetic above.)
 
 **Recreating the context-length axis: the `budget` arm.** Because the cache pins tokens, the
 manipulation that carries the dissociation in the completed sweep — *4× more visual tokens at
@@ -422,6 +432,7 @@ Code lives in `Teaser-Experiment/egovm/streaming/`; small artifacts in
 | **X7** | prior + tokmatch passes | `m6_records_stream_prior_*.jsonl`, `m6_records_stream_tokmatch_*.jsonl` | `prior` at Δt ∈ {1,5,15} min (per-bin ingestion, §1); `tokmatch_evkeep`/`tokmatch_uniform` at Δt=60 min; frame counts match the M4 rows exactly |
 | **X8** | timestamps-off ablation | `m6_records_stream_nots_*.jsonl` | subset re-run with `timestamps_injected=false`; pairs 1:1 with X5 |
 | **X9** | analysis + cross-regime comparison | `artifacts/m7_metrics_stream.json`, `x9_regime_comparison.json`, `figures/streaming.pdf`, `x9_streaming.md` | M7 run **with a regime-restricted records glob** (§2); contrasts computed within streaming, then differenced against the committed full-reprocess contrasts with cluster-bootstrap CIs on the difference |
+| **X10** | the standalone headline figure | `egovm/streaming/x10_figure.py`, `figures/streaming_headline.{pdf,png}` | CPU-only, ~2 s: reads `x9_regime_comparison.json` (contrasts, budget arm, cells) and `m7_metrics_stream.json` (per-bin levels, decomposition, AUROC, item transitions) and **computes nothing**, so the figure cannot drift from the metrics. Every panel names the cells it differences and what is held fixed; the elapsed-time rows are drawn as an *unavailable* axis, not a null (§4a) |
 
 ### Order and gating
 
