@@ -6,7 +6,7 @@ Emits
     generated/numbers.json  the same values with their provenance
     generated/tables.tex    tabular bodies built from the same sources
 
-Sources, in the precedence CLAUDE.md sets out:
+Sources, in the precedence the repository README sets out:
     Teaser-Experiment/artifacts/m7_metrics.json          E1 (full-reprocess)
     Teaser-Experiment/artifacts/m7_metrics_stream.json   E2 per-bin / AUROC / decomposition
     Teaser-Experiment/artifacts/x9_regime_comparison.json E2 contrasts and cross-regime

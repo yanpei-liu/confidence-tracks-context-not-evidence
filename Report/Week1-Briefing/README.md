@@ -1,6 +1,6 @@
-# Week 1 briefing deck
+# Research briefing deck
 
-`build/week1-briefing.pdf` — a beamer deck for the mentor/PI briefing, covering the three
+`build/week1-briefing.pdf` — a beamer research-briefing deck, covering the three
 agenda items:
 
 1. **What the two experiments say** — E1 (full-reprocess) and E2 (streaming KV cache), how to
@@ -37,7 +37,7 @@ slide in `90-backup`); they are correct but ungated. Closing both gaps is
 
 ## Sources
 
-Numbers come from the artifacts CLAUDE.md makes authoritative, never from prose:
+Numbers come from the generated artifacts the repository README makes authoritative, never from prose:
 
 * `Teaser-Experiment/artifacts/m7_metrics.json` — E1
 * `Teaser-Experiment/artifacts/m7_metrics_stream.json` — E2 per-bin, AUROC, decomposition

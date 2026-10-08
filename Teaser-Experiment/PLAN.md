@@ -1,6 +1,6 @@
 # Teaser Experiment — Execution Plan
 
-**Original goal (from [CLAUDE.md](../CLAUDE.md)):** the headline accuracy–confidence figure —
+**Original goal (the project brief):** the headline accuracy–confidence figure —
 accuracy vs Δt and mean confidence vs Δt on one axis, per-bin ECE, bootstrap CIs. Predicted
 signature: accuracy declines while confidence stays flat ("doesn't know it forgot").
 

@@ -11,7 +11,7 @@ Primary quantity: the change in the overconfidence gap,
 
     Δgap = [conf(Δt_max) − acc(Δt_max)] − [conf(Δt_min) − acc(Δt_min)]
 
-which is exactly the bin × {accuracy, confidence} interaction CLAUDE.md asks to power for.
+which is exactly the bin × {accuracy, confidence} interaction the original design asks to power for.
 A CI on Δgap that excludes 0 is the "doesn't know it forgot" result.
 
 Artifacts: artifacts/m7_metrics.json, figures/headline.{pdf,png}

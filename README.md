@@ -1,200 +1,230 @@
-# Metamemory in streaming egocentric video-LLMs
+# Confidence tracks context, not evidence
 
-**Where this stands, 2026-08-20.** Two experiments are complete. The project's original claim had
-two halves; **the first is rejected** and the second needs revision on both of its variables. What
-replaced it is a sharper result, and this document is the entry point to it.
+**A video-LLM's confidence follows surface properties of its context — how long ago the stream
+says something happened, how much visual input it has processed — rather than whether the
+information needed to answer is actually present.** Accuracy responds to the evidence; confidence
+does not, in either of two memory regimes.
 
-Target venue: **ICLR 2027** — abstract 19 Sep 2026, full paper 24 Sep 2026 AoE.
+This repository is a **concluded teaser study** (Aug 2026), run as groundwork before a larger
+project on memory and self-knowledge in streaming egocentric video-LLMs. It set out to confirm a
+hypothesis, rejected it, and documents what replaced it. The code, generated artifacts, figures
+and audits here are the complete record of that study.
 
-> **The original claim.** *Streaming egocentric video-LLMs exhibit a widening gap between
-> confidence and accuracy as evidence ages, and a Δt/evidence-conditioned recalibration recovers
-> most of the reliability at near-zero cost.*
->
-> The widening gap is **not there** — tested twice, in two memory regimes, and absent in both.
-
----
-
-## The one-paragraph version
-
-Confidence is computed from **surface properties of the context** — how much visual input the model
-has processed, and how long ago it says that was — **not from whether the information needed to
-answer is present.** Accuracy responds to evidence. Confidence does not, in either regime. When one
-surface cue is removed, confidence latches onto another; what it never latches onto is evidence.
-That is a failure of *what is being tracked*, and it is a harder and more useful problem than the
-"fails to update" story the project set out to find.
-
-**The two figures to show:**
-
-| | figure | what it says |
-| --- | --- | --- |
-| **E1** | [`Teaser-Experiment/figures/headline.pdf`](Teaser-Experiment/figures/headline.pdf) | Confidence tracks the wrong variable: it slides with elapsed time, which costs no accuracy, and under-reacts to context length and evidence, which do. |
-| **E2** | [`Teaser-Experiment/figures/streaming_headline.pdf`](Teaser-Experiment/figures/streaming_headline.pdf) | Accuracy tracks the evidence; confidence tracks how full the cache is. The same dissociation, rotated onto a different driver. |
-
-E2's figure is purpose-built (module X10: it reads the committed metrics and **computes nothing**,
-so it cannot drift) and names every arm and held-fixed variable on the page. E1's is M7's generic
-template — still correct, but not self-documenting. Giving E1 a matching figure is a roadmap item,
-not a gap in the result.
+- **Model:** Qwen3-VL-8B-Instruct, frozen; no fine-tuning, no generation
+- **Data:** EgoLifeQA, participant A1, 373 multiple-choice memory questions
+- **Confidence:** max softmax over the option-letter logits `{A,B,C,D}` at the first generated
+  position (the standard probe of Tsvilodub et al. 2024). This is a model output, never a
+  calibrated probability.
+- **Scale:** 5,540 + 17,311 scored records, ~20 GPU-h on single H100/A100s
 
 ---
+
+## The question, and why the answer was "no"
+
+> **Hypothesis.** *Streaming egocentric video-LLMs exhibit a widening gap between confidence and
+> accuracy as evidence ages ("they don't know they forgot"), and a Δt/evidence-conditioned
+> recalibration recovers most of the reliability at near-zero cost.*
+
+The widening gap is **not there**. It was tested twice, in two memory regimes, and is absent from
+both: in E1 the overconfidence gap moves −3.2 pp [−7.5, +1.0] over Δt = 1 → 60 min (p = 0.14).
+What the controls show instead is a *dissociation* between what moves accuracy and what moves
+confidence.
+
+The design is what makes that dissociation identifiable. The naive sweep confounds elapsed time
+with context length (the window grows with Δt), so the experiments add:
+- **token-matched arms** that hold the visual-token count and evidence sampling fixed while elapsed
+  time grows;
+- a **`prior` arm** — a window of the same length and token count placed *before* the evidence, so
+  the answer is simply not in context (the no-evidence floor);
+- a **no-memory control question** at every checkpoint, answerable from the frames alone.
+
+Every number below is a **paired within-question contrast** in percentage points,
+cluster-bootstrapped over questions (5,000 draws, seed 0), with 95 % intervals.
 
 ## The two experiments
 
-Same 373 EgoLifeQA questions, same frame bank, same **frozen Qwen3-VL-8B-Instruct**. They differ
-only in how the context reaches the model, which is what makes the comparison identifiable —
-EgoStream is a plug-in memory manager over the same backbone, so no bridge condition is needed.
+Both use the same 373 questions, the same 0.2 fps frame bank at a pinned 320 × 320 resolution,
+and the same frozen backbone. They differ only in how the context reaches the model.
 
-| | E1 | E2 |
+| | **E1 — full reprocess** | **E2 — streaming KV cache** |
 | --- | --- | --- |
-| regime | full-reprocess: every row re-encodes its whole window | streaming KV cache: one ingestion, queried at checkpoints against a bounded cache |
-| records | 5,540 scored | 17,311 |
-| modules | M0–M9 | X0–X12 |
+| regime | every checkpoint re-encodes its whole window | one ingestion into a bounded cache (EgoStream FlexibleCache + ReKV retrieval), queried at checkpoints |
+| records | 5,540 | 17,311 |
 | cost | ~6 GPU-h | ~14 GPU-h |
-| **authoritative artifact** | [`artifacts/m8_teaser.md`](Teaser-Experiment/artifacts/m8_teaser.md) | [`artifacts/x9_streaming.md`](Teaser-Experiment/artifacts/x9_streaming.md) |
-| verdict, selected by the measured intervals | *D — confidence tracks the wrong variable* | *Outcome 3 — the dissociation replicates* |
+| modules | M0–M9 ([`egovm/`](Teaser-Experiment/egovm/)) | X0–X12 ([`egovm/streaming/`](Teaser-Experiment/egovm/streaming/)) |
+| authoritative write-up | [`m8_teaser.md`](Teaser-Experiment/artifacts/m8_teaser.md) | [`x9_streaming.md`](Teaser-Experiment/artifacts/x9_streaming.md), [`x11_evidence_blindness.md`](Teaser-Experiment/artifacts/x11_evidence_blindness.md) |
+| verdict (selected from the measured intervals) | *confidence tracks the wrong variable* | *the dissociation replicates* |
 
-*(E1's raw record files hold 5,562 unique ids; M7 filters to rows in the current plan
-(`m7_analyze.py:1027-1035`), dropping 22 that belong to questions the plan later excluded. Both
-numbers are correct and appear in different artifacts.)*
+### E1 — confidence slides with elapsed time, which costs nothing
 
-Both artifacts are **generated** from the metrics JSON, so they cannot drift. Prose anywhere in
-this repo — including this file — is interpretation and may round. **When they disagree, the
-artifact wins.**
+![E1 headline figure](Teaser-Experiment/figures/headline.png)
 
----
+| manipulation (all else held fixed) | Δ accuracy | Δ confidence |
+| --- | --- | --- |
+| +45 min elapsed (tokens, evidence fixed) | +0.3 [−2.9, +3.2] | **−3.7 [−4.9, −2.4]** |
+| 4× fewer visual tokens (Δt, evidence fixed) | **+2.4 [+0.3, +4.7]** | +0.3 [−0.5, +1.1] |
+| evidence in context vs none (Δt = 5 min) | **+9.7 [+4.8, +14.5]** | +3.3 [+1.2, +5.4] |
 
-## Current results
+Confidence responds to elapsed time, which is the one manipulation that costs no accuracy.
+Accuracy responds to context length and to evidence, and confidence under-reacts to evidence by
+2.9×. The decline is a flat discount that ignores which items are affected: items the model goes
+on to lose show the same confidence drop as items it keeps (p = 0.62). The confidence *ranking*
+stays intact across the sweep (AUROC 0.643 → 0.655).
 
-**E1 — the dissociation.** Elapsed time is the variable confidence responds to, and it is the one
-that costs the model nothing: +45 min at fixed visual tokens *and* fixed evidence moves accuracy
-+0.3 pp and confidence −3.7 pp. Reverse it — hold elapsed time fixed and cut the context — and
-accuracy moves while confidence barely does. The largest accuracy effect in the experiment, having
-the evidence in context at all (+9.7 pp), buys only +3.3 pp of confidence: a 2.9× under-reaction.
-The confidence *ranking* is intact across the sweep (AUROC flat), and the decline is item-blind —
-a flat discount, not a signal about what was lost.
+### E2 — the same dissociation, rotated onto a different driver
 
-**E2 — the same dissociation, rotated.** Accuracy responds to whether the evidence is in the window
-(+8.1 pp) and to nothing else. Confidence responds to how much visual input was processed (up to
-−15.2 pp) and to nothing else, with a clean monotone dose–response and accuracy flat in every bin.
-The elapsed-time axis is **unavailable, not null**: X1b established — *before* the contrast was
-computed — that the injected clock is illegible once the cache saturates. Two things are new here:
-with real eviction the confidence *ranking* degrades (AUROC −0.073, p = 0.039) where it was flat in
-E1, and the item-level test moves toward genuine metamemory without reaching significance
-(p = 0.118 on 107 lost items).
+![E2 headline figure](Teaser-Experiment/figures/streaming_headline.png)
 
-**The pair.** Evidence-blindness is the invariant: it holds in both regimes and is *deeper* under
-streaming (confidence difference across regimes −2.8 pp, excluding zero). What rotates is the
-driver — E1's elapsed-time effect is absent in E2 (+3.5 pp difference) and E2's context-volume
-effect is absent in E1 (−6.1 pp difference), both excluding zero. On the one manipulation both
-regimes share, **the accuracy cost is identical and the confidence response is not**, which rules
-out the deflationary reading that E2 is merely a harder task.
+| manipulation (all else held fixed) | Δ accuracy | Δ confidence |
+| --- | --- | --- |
+| evidence in context vs none (Δt = 5 min) | **+8.1 [+2.9, +13.1]** | +0.5 [−1.5, +2.6] |
+| 17× larger live cache (Δt = 60 min) | −1.9 [−6.4, +2.4] | **−15.2 [−17.5, −13.1]** |
+| 3.8× more frames presented, same live cache | −2.4 [−5.9, +1.1] | **−6.7 [−8.4, −5.0]** |
+| +45 min elapsed (frames, tokens, evidence fixed) | −1.7 [−5.1, +1.6] | −0.1 [−1.7, +1.4] |
 
-> Every number above is a paired within-question contrast, cluster-bootstrapped over questions
-> (5,000 draws, seed 0). **Read
-> [`Teaser-Experiment/INTERPRETATION.md`](Teaser-Experiment/INTERPRETATION.md) before quoting any
-> of them** — it carries the ground rules, the *null* / *unavailable* / *not confirmed* distinction,
-> and the things not to claim.
+Accuracy responds to whether the evidence is in the window and to nothing else. Confidence
+responds to how much visual input was processed, whether retained or not. Its dose–response is
+monotone, while accuracy stays flat in every bin.
 
----
+Elapsed time drops out. This is an **unavailable axis, not a null**: before the contrast was
+computed, a probe (X1b) established that the injected clock is illegible once the cache
+saturates. And with real eviction the confidence *ranking* decays too (AUROC −0.073, p = 0.039),
+where in E1 it was flat.
 
-## Current conclusions
+### Evidence-blindness holds at every Δt
 
-The full ladder lives in
-[`INTERPRETATION.md` §2.7](Teaser-Experiment/INTERPRETATION.md) and is canonical. In short:
+![Evidence contrast across the Δt grid](Teaser-Experiment/figures/evidence_blind.png)
 
-**Safe to assert** — accuracy responds to evidence presence and confidence does not, in both
-regimes; the predicted widening overconfidence gap is absent in both; on the shared context-length
-manipulation the accuracy cost is the same across regimes while the confidence response is not;
-under a bounded cache confidence falls monotonically with the token budget while accuracy does not
-move; E2's confidence decline decomposes entirely onto presented volume.
+In E2 the evidence contrast is measured at all five Δt. Its accuracy effect runs from +11.3 pp at
+1 min down into noise by 30–60 min, because the evidence advantage is itself evicted. Δconfidence
+spans zero in all five bins and follows neither the effect nor its decay.
 
-**Defensible with the stated caveat** — the surface-properties account (a synthesis across two
-regimes, not one measured quantity); the AUROC decay (one test, p = 0.039, wants replication);
-permanent eviction in E2's default and large conditions but explicitly *not* in `small`; and the
-denominator sensitivity on E2's evidence contrast.
+### Reading the two together
 
-**Not supported** — "streaming models don't know they forgot" in the original sense; "confidence
-tracks the items actually lost"; "streaming makes the model more overconfident" (a level,
-confounded with a prompt change); "elapsed time does not affect confidence in streaming systems"
-(the axis was unavailable, which is not a null).
+- **What holds across both:** confidence is evidence-blind in both regimes, and *more* so under
+  streaming (the cross-regime Δconfidence difference is −2.8 pp [−5.1, −0.4]).
+- **What changes:** the surface cue confidence latches onto.
+  - E1's elapsed-time effect is absent in E2 (difference +3.5 pp [+1.7, +5.4]).
+  - E2's context-volume effect is absent in E1 (difference −6.1 pp [−8.1, −4.1]).
+- **E2 is not just a harder task.** On the one manipulation both regimes share, the accuracy cost
+  is the same and the confidence response is not.
 
-**What this does to the original claim.** Half 1 is rejected — twice, and the second time in the
-setting the hypothesis most deserved, where evidence is genuinely evicted rather than merely
-diluted. It should be retired, not tested a third way. Half 2 needs revision on both variables:
-**Δt is the wrong conditioner** (it worked in E1 by accident and has no purchase in E2, where the
-model cannot read it) and **`live_tokens` is the right one** — observable at inference and free;
-while "evidence-conditioned" is not implementable at all, since knowing whether the evidence is in
-context is the very thing the model cannot report. And the headroom differs by regime: recalibrating
-a *level* only works if the *ranking* survives, which it does in E1 and does not in E2. **The cheap
-fix gets cheaper-looking the less realistic the memory system is** — the most consequential thing
-the pair says, and visible only because both regimes were run.
+**What this means for the recalibration half of the hypothesis:**
+- **Δt is the wrong conditioner.** It worked in E1 by accident and has no purchase in E2.
+- **Live context size is a better one**, being observable and free.
+- **"Evidence-conditioned" cannot be implemented at all**, because whether the evidence is in
+  context is exactly what the model cannot report.
+- **Recalibrating a level only helps while the ranking survives.** It survives under full
+  reprocessing and does not under real eviction.
 
-**How to position this.** On **evidence age and the elapsed-time-vs-context-volume decomposition**,
-which nobody in this literature separates. *Not* on "we measure confidence under streaming" —
-EgoSAT (arXiv 2606.24422) holds that flag, and the collision analysis is in
-[`memo/RELATED-EGOSAT.md`](Report/Week1-Briefing/memo/RELATED-EGOSAT.md).
+## What not to claim
 
----
+[`Teaser-Experiment/INTERPRETATION.md`](Teaser-Experiment/INTERPRETATION.md) is the reading guide
+for both experiments, and its §2.7 claims ladder is canonical. In short:
 
-## Next steps
+- **Safe:**
+  - evidence moves accuracy and not confidence, in both regimes;
+  - the predicted widening gap is absent in both;
+  - under a bounded cache, confidence falls with the token budget while accuracy does not.
+- **Defensible with a caveat:**
+  - the "surface properties" synthesis (an account across two regimes, not one measured
+    quantity);
+  - the AUROC decay (one test, wants replication);
+  - the sensitivity of E2's evidence contrast to the probe's denominator
+    ([`CONFIDENCE-PROBE.md`](Report/Week1-Briefing/memo/CONFIDENCE-PROBE.md)).
+- **Not supported:**
+  - "streaming models don't know they forgot";
+  - "confidence tracks the items actually lost";
+  - "elapsed time does not affect confidence in streaming systems" (the axis was unavailable,
+    which is not a null).
 
-The canonical, ranked roadmap is
-[`INTERPRETATION.md` §2.8](Teaser-Experiment/INTERPRETATION.md) — ten items in three cost tiers.
-The shape of it:
+**Scope:** one participant, one 8B model, one cache policy, multiple-choice questions only.
+Accuracy levels sit in a narrow band above the no-evidence floor (E1 bin-1 accuracy is 42.9 %
+against a 31.4 % floor), so quote the contrasts, not the levels.
 
-- **Free, CPU only** — recalibrate on `live_tokens` per regime (the corrected Half-2 claim, and the
-  AUROC asymmetry makes it a sharp test); off-letter mass as a reported quantity; `x11`/`x12` to
-  turn the memos' tables into generated artifacts; three small schema and labelling fixes.
-- **~1 GPU-h** — **strip the timestamps from E1 and re-score the token-matched cells.** Highest
-  value per GPU-hour on the list: E1's clock is ordinary *text*, so this separates "confidence
-  responds to elapsed time" from "confidence responds to printed numbers", and separates the two
-  live explanations for E2's clock failure at the same time. Also: a top-k vocabulary dump on the
-  `prior` arm, to find out what the model hedges *with*.
-- **Larger** — restore a readable clock under streaming (the missing cell of the design, best run
-  after the timestamp strip); explicit abstention (~2.4 GPU-h); an option-permutation bias check;
-  and powering the item-level test.
+**Positioning:** EgoSAT (arXiv 2606.24422) also measures confidence under streaming and converges
+on part of this; the overlap analysis is in
+[`RELATED-EGOSAT.md`](Report/Week1-Briefing/memo/RELATED-EGOSAT.md). What this study adds is the
+separation of elapsed time from context volume, and the evidence-present/absent contrast at
+matched tokens.
 
-### Open decisions — these need a human
+## Open questions left for follow-up
 
-1. Retire the original hypothesis outright and lead with the dissociation?
-2. Which follow-up first? (Proposed: timestamps-off, then recalibration.)
-3. How hard to position against EgoSAT — convergent evidence, or competing framing?
-4. Is the abstention channel worth a paper section, given it rides on a 1.4 % tail?
+The full ranked list is in [INTERPRETATION.md §2.8](Teaser-Experiment/INTERPRETATION.md). The
+main items:
+
+- **Strip the printed timestamps from E1** and re-score the token-matched cells (~1 GPU-h). This
+  separates "confidence responds to elapsed time" from "confidence responds to printed numbers".
+- **Recalibrate on live context size** per regime. This is CPU-only, from the existing records.
+- **Restore a readable clock under streaming**, the one missing cell of the design.
+- **Add explicit abstention** and an option-permutation bias check.
 
 ---
 
-## Where things live
+## Repository layout
 
-| | |
+| path | contents |
 | --- | --- |
-| [`Teaser-Experiment/`](Teaser-Experiment/) | Both experiments: code (`egovm/` = E1, `egovm/streaming/` = E2), committed artifacts, figures, and the design documents. Named for the 2-day teaser it started as; both experiments are still a teaser for the wider project, so the name stays. |
-| [`Report/Week1-Briefing/`](Report/Week1-Briefing/) | The mentor briefing deck, built so no slide can quote a stale number, plus three memos that audit the confidence probe, the streaming cache, and the EgoSAT collision. The memos are primary analysis, not slide notes. |
-| [`Planning/`](Planning/) | Superseded pre-execution planning, kept as a record. Each file carries a banner saying what execution falsified. `[v1+]` is still useful as a verified literature and citation index. |
-| `$EGOVM_DATA` | Everything large (~114 GB): video, the 0.2 fps frame bank, the raw records. **Not committed** — EgoLife is S-Lab License 1.0, research-use, non-redistributable. Pinned by checksum in `artifacts/m6_records_manifest.json`. |
+| [`Teaser-Experiment/`](Teaser-Experiment/) | Both experiments: the `egovm` package (E1 modules M0–M9, and E2 modules X0–X12 under `egovm/streaming/`), Slurm and helper scripts, committed artifacts and figures, and the design documents. |
+| ↳ [`INTERPRETATION.md`](Teaser-Experiment/INTERPRETATION.md) | How to read both experiments, and what not to claim. **Start here before quoting any number.** |
+| ↳ [`PLAN.md`](Teaser-Experiment/PLAN.md) / [`EXTENDING.md`](Teaser-Experiment/EXTENDING.md) | Design and findings of E1 (full reprocess) and E2 (streaming cache). |
+| ↳ [`artifacts/`](Teaser-Experiment/artifacts/) | Every stage output that is small enough and safe to commit: plans, schedules, metrics JSON, generated write-ups. |
+| [`Report/Week1-Briefing/`](Report/Week1-Briefing/) | A research briefing deck built so that no slide can quote a stale number (`make verify`), plus three audit memos covering the confidence probe, the streaming cache and the EgoSAT overlap. The memos are primary analysis. |
+| [`Report/E2-Briefing/`](Report/E2-Briefing/) | A short deck of the E2 headline findings, reusing the verified macros and figures above. |
 
-### Document precedence
+**When sources disagree, the artifact wins.** The generated write-ups (`m8_teaser.md`,
+`x9_streaming.md`, `x11_evidence_blindness.md`) are produced from the metrics JSON, so they
+cannot drift. All prose, including this README, is interpretation and may round.
 
-0. [`Teaser-Experiment/INTERPRETATION.md`](Teaser-Experiment/INTERPRETATION.md) — how to read both
-   experiments and what not to claim. **Start here before quoting any number.**
-1. The two generated artifacts — `m8_teaser.md` (E1) and `x9_streaming.md` (E2). Authoritative.
-2. [`PLAN.md`](Teaser-Experiment/PLAN.md) (E1 design) and
-   [`EXTENDING.md`](Teaser-Experiment/EXTENDING.md) (E2 design and result).
-3. The three memos under `Report/Week1-Briefing/memo/` — each audits one construct against source
-   and ends in a *what has to change* list. As of 2026-08-20 every must-fix item is actioned.
-4. [`Teaser-Experiment/README.md`](Teaser-Experiment/README.md) — how to run it, and the cluster
-   gotchas that cost real time.
-5. `Planning/` — superseded. Do not take design decisions from any of it.
+The pipeline is split along verifiable-artifact boundaries. Each stage writes a file that can be
+checked on its own, and downstream stages read only that file. There is no separate test suite.
+Verification is done by inline assertions in the stage modules, plus the deck's nine-check
+`make verify`.
 
----
+## Reproducing
 
-## Verify a checkout
+**Without a GPU or the dataset**, everything committed can be checked as-is:
 
 ```bash
-# the records the committed metrics were computed from, both regimes
-python Teaser-Experiment/scripts/records_manifest.py --check   # 37 files, 22,873 ids
-
-# the deck still builds and every number on it still derives
-cd Report/Week1-Briefing && make && make verify                 # 191 macros, nine checks
+cd Report/Week1-Briefing && make && make verify   # re-derives 191 macros from the metrics JSON; nine checks
 ```
 
-Neither needs a GPU. Reproducing the analysis itself from the raw records — also GPU-free — is in
-[`Teaser-Experiment/README.md`](Teaser-Experiment/README.md).
+**With the data**, see [`Teaser-Experiment/README.md`](Teaser-Experiment/README.md) for the
+environment, download and run instructions. It also lists the cluster and streaming-cache
+pitfalls that fail silently.
+
+Data lives outside the repository at `$EGOVM_DATA` (~114 GB: video, frame bank, model snapshot,
+raw records). The raw per-record files are pinned by checksum in
+[`m6_records_manifest.json`](Teaser-Experiment/artifacts/m6_records_manifest.json):
+
+```bash
+python Teaser-Experiment/scripts/records_manifest.py --check   # 37 files, 22,873 ids
+```
+
+Re-analysis from the raw records is CPU-only. The full sweeps take ~6 GPU-h (E1) and ~14 GPU-h
+(E2). E2 also needs an EgoStream checkout at `./EgoStream/` (or `$EGOVM_EGOSTREAM`). EgoStream
+ships without a license, so it is not included; X0 records checksums of the upstream files it
+depends on.
+
+## Data and licensing
+
+- **EgoLife / EgoLifeQA** are under the S-Lab License 1.0 (research use, not redistributable).
+  **No video, frames, question text, answer-option text or caption text is committed.**
+  - Artifacts reference questions by id only. Some (`m1_questions`, `m4_eval_plan`,
+    `x2_stream_schedule`) also carry the gold option letter for each id.
+  - The raw per-record files are not included.
+  - The no-memory control questions are built from EgoLife DenseCaption text, so their file
+    (`m5_control_questions.jsonl`) is not part of the public release. `python -m egovm.m5_controls` regenerates
+    it from the downloaded captions.
+- **Qwen3-VL-8B-Instruct** is Apache 2.0.
+- **EgoStream** is used unmodified from an external checkout and is not redistributed.
+- **This repository's own code, documents and figures** are released under the
+  [MIT License](LICENSE). That license does not extend to any of the third-party data or code
+  above.
+
+## Acknowledgements
+
+- EgoLife (Yang et al., 2025) for the dataset.
+- Qwen3-VL for the backbone.
+- EgoStream for the streaming cache, and ReKV (Di et al., 2025) for its retrieval design.
+- EgoSAT (Lei et al., 2026) and Tsvilodub et al. (2024) for the option-letter confidence probe.

@@ -281,8 +281,8 @@ and significance are not. AUROC is the rank-based backstop and is already report
 
 **Should add:**
 
-5. **`x11_confidence_robustness.py`** — a module that regenerates §3–§5 from `m6_records*.jsonl` into
-   `artifacts/x11_confidence_robustness.{json,md}`, so these tables are generated rather than
+5. **`x13_confidence_robustness.py`** — a module that regenerates §3–§5 from `m6_records*.jsonl` into
+   `artifacts/x13_confidence_robustness.{json,md}`, so these tables are generated rather than
    transcribed, matching the standard M8/X9 already meet. Nothing in it needs a GPU.
 6. **Off-letter mass on every record.** It is derivable from `letter_logprobs`, but promoting it to a
    named field (`off_letter_mass`) and a reported contrast makes §5 a result rather than a

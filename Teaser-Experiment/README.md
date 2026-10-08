@@ -81,7 +81,7 @@ accelerate 1.14.0, pillow 12.2.0, numpy 2.4.4, on an `NVIDIA H100 NVL MIG 3g.47g
 Data and model:
 
 ```bash
-export EGOVM_DATA=~/Files/EgoVM-data
+export EGOVM_DATA=$HOME/Files/EgoVM-data
 python scripts/download_a1.py       # EgoLife A1 video + QA + DenseCaption -> $DATA/raw
 python scripts/download_model.py    # Qwen3-VL-8B-Instruct -> $DATA/model  (config.MODEL_ID)
 ```
@@ -92,9 +92,13 @@ idle and no socket timeout. If it will not converge, fall back to plain HTTPS:
 
 ## Running
 
+Paths default to `~/Files/EgoVM-data` and `~/miniconda3/envs/egovm`; override with
+`EGOVM_DATA` and `EGOVM_PY`. The `scripts/submit_*.sh` wrappers send Slurm logs to
+`$EGOVM_DATA/logs/`; a bare `sbatch slurm/<job>.sh` writes its log to the submit directory.
+
 ```bash
 export EGOVM_REPO=$PWD
-PY=~/miniconda3/envs/egovm/bin/python
+PY=$HOME/miniconda3/envs/egovm/bin/python
 
 # CPU stages
 $PY -m egovm.m1_questions
@@ -221,7 +225,7 @@ All of these fail silently.
   otherwise fits frames to a *total* pixel budget, which would make per-frame resolution a
   decreasing function of Δt. M0 check (3) exists specifically to catch that regression.
 - **`target_time` in EgoLifeQA is the evidence timestamp** and it is populated on all 500
-  items, contrary to `Planning/[v2-a]`. See `artifacts/m1_schema_report.md`.
+  items, contrary to what the pre-execution plan assumed. See `artifacts/m1_schema_report.md`.
 - Confidence is the option-letter softmax max — a proxy, reported with ECE, never as a
   calibrated probability.
 - **`scoring.py` is the only module that names a model** in E1; `streaming/backend.py` is its E2

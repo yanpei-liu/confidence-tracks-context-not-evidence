@@ -1,6 +1,6 @@
 """M5 — no-memory-required control questions.
 
-Risk 2 in CLAUDE.md: Δt is confounded with token count, interference and recency, so a drop
+Risk 2 in the original design (PLAN.md, *Known risks*): Δt is confounded with token count, interference and recency, so a drop
 in memory accuracy could just be generic long-context degradation. The control is a question
 answerable from the *checkpoint instant alone*: it rides on exactly the same context as the
 memory question, so if control accuracy stays flat while memory accuracy falls, generic

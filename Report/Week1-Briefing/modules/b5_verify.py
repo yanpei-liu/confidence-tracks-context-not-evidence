@@ -42,7 +42,7 @@ def run_module(script: str) -> tuple[bool, str]:
 
 
 def main() -> int:
-    print("B5 verifying the Week 1 briefing deck\n")
+    print("B5 verifying the research briefing deck\n")
 
     ok, msg = run_module("b1_numbers.py")
     check("B1 numbers are current", ok, msg)

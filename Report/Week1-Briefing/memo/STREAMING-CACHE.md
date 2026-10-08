@@ -345,9 +345,9 @@ inference into a measurement.
 
 **Should add:**
 
-5. **`x12_cache_forensics.py`** — regenerates §2.2's offload audit, §2.4's per-bin state table and
+5. **`x14_cache_forensics.py`** — regenerates §2.2's offload audit, §2.4's per-bin state table and
    §4's budget contrasts from `m6_records_stream_*.jsonl` into
-   `artifacts/x12_cache_forensics.{json,md}`, so these become generated rather than transcribed,
+   `artifacts/x14_cache_forensics.{json,md}`, so these become generated rather than transcribed,
    matching the standard X9/X10 already meet. CPU only.
 6. **`surviving_frame_tokens` as a record field** (§3), plus an evidence-frame-vs-window-mean
    contrast in X9.

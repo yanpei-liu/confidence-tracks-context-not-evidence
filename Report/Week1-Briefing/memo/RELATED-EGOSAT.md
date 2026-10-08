@@ -1,6 +1,6 @@
 # EgoSAT (Lei et al., arXiv 2606.24422, 23 Jun 2026) — collision surface and cross-validation
 
-*Vendored PDF: [`Misc/Lei et al. - 2026 - EgoSAT ...pdf`](../../../Misc/Lei%20et%20al.%20-%202026%20-%20EgoSAT%20A%20Comprehensive%20Benchmark%20of%20Egocentric%20Streaming%20Interaction%20Understanding.pdf).
+*Paper: [arXiv 2606.24422](https://arxiv.org/abs/2606.24422).
 Our numbers throughout come from [`artifacts/m8_teaser.md`](../../../Teaser-Experiment/artifacts/m8_teaser.md) (E1, full-reprocess)
 and [`artifacts/x9_streaming.md`](../../../Teaser-Experiment/artifacts/x9_streaming.md) (E2, streaming KV cache); their numbers
 are read off Tables 1, 2, 3, A1, A3, A7, A9. Derived quantities (Δ, ratios, `conf_correct − conf_wrong`)
@@ -37,7 +37,7 @@ missing control.
 ### 2.1 The confidence probe (C4) — hard collision, cite and move on
 
 Their Eq. 6 is our definition verbatim: max softmax over the option-letter set at the forced
-selection position, no generation. CLAUDE.md currently presents this as a design decision of ours.
+selection position, no generation. The project notes at the time presented this as a design decision of ours.
 It is now published prior art in the egocentric-streaming setting, and it in turn traces to
 Tsvilodub et al. 2024. **Action:** cite both; describe the probe as *standard*, not as a choice we
 made. Nothing about our results changes.
