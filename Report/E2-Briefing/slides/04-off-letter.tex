@@ -1,0 +1,27 @@
+% P4 -- Off-letter mass: implicit abstention
+\begin{frame}[t]{Off-letter mass: an implicit abstention signal}{When the evidence is gone, the model sometimes stops wanting to pick a letter}
+  {\footnotesize The restricted softmax discards mass the model places off $\{$A,B,C,D$\}$. In \Eone\ that mass is negligible (max \HedgeEoneMax). In \Etwo: \HedgeRows\ put ${>}10$\,\% off the letters --- \HedgePrior\ of the \texttt{prior} arm vs \HedgeMain\ of \texttt{main}.}
+
+  \vskip0.4em
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      {\footnotesize Paired within-question contrast on off-letter mass:}
+      \vskip0.2em
+      \scriptsize
+      \begin{tabular}{@{}p{3.2cm}r@{}}
+        \toprule
+        \thead{contrast} & \thead{$\Delta$ off-letter (pp)} \\
+        \midrule
+        evidence removed & \OffLetterEvidenceEtwo \\
+        raw \dt\ sweep (1$\rightarrow$60\,min) & \OffLetterSweep \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \claim{\scriptsize Removing the evidence \textbf{raises off-letter mass by 3.0\,pp} ($p < 0.001$). An evidence-sensitive signal --- an \textbf{implicit abstention} --- in exactly the regime where max-p is silent.}
+      \vskip0.3em
+      {\scriptsize Exists \textbf{only under the bounded cache}: \Eone's equivalent is three orders of magnitude smaller. Free from committed records.}
+    \end{column}
+  \end{columns}
+  \source{\texttt{memo/CONFIDENCE-PROBE.md} \S5.}
+\end{frame}

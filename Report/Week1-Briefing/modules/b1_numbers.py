@@ -10,6 +10,7 @@ Sources, in the precedence CLAUDE.md sets out:
     Teaser-Experiment/artifacts/m7_metrics.json          E1 (full-reprocess)
     Teaser-Experiment/artifacts/m7_metrics_stream.json   E2 per-bin / AUROC / decomposition
     Teaser-Experiment/artifacts/x9_regime_comparison.json E2 contrasts and cross-regime
+    Teaser-Experiment/artifacts/x11_evidence_blindness.json E2 evidence contrast, per Delta-t
     Report/Week1-Briefing/memo/*.md                      numbers that live only in a memo
 
 Memo-sourced values cannot be recomputed here, so each one carries a literal string
@@ -68,6 +69,11 @@ def num(x: float, digits: int = 3) -> str:
     return f"{x:.{digits}f}"
 
 
+def auroc_ci(d: dict, digits: int = 3) -> str:
+    """An AUROC with its interval, unsigned -- 0.5 is the reference, not 0."""
+    return f"{d['mean']:.{digits}f} [{d['lo95']:.{digits}f}, {d['hi95']:.{digits}f}]"
+
+
 def pval(d: dict) -> str:
     p = d["p_two_sided_vs_0"] if isinstance(d, dict) else d
     if p < 0.001:
@@ -90,21 +96,21 @@ MEMOS = {
 # macro -> (value, memo key, literal that must still appear in that memo)
 MEMO_FACTS: list[tuple[str, str, str, str]] = [
     # -- CONFIDENCE-PROBE.md
-    ("MassEone", "0.99988", "confidence", "| mean mass on {A,B,C,D} | 0.99988 | 0.99530 |"),
-    ("MassEtwo", "0.99530", "confidence", "| mean mass on {A,B,C,D} | 0.99988 | 0.99530 |"),
-    ("ArgmaxDisagree", "0 of 23,687", "confidence", "**0 / 23,687 records, both regimes combined**"),
-    ("AurocRestrEone", "0.6276", "confidence", "| max-p, restricted (as shipped) | 0.6276 | 0.6199 |"),
-    ("AurocVocabEone", "0.6275", "confidence", "| max-p, vocabulary-normalised | 0.6275 | 0.6203 |"),
-    ("AurocRestrEtwo", "0.6199", "confidence", "| max-p, restricted (as shipped) | 0.6276 | 0.6199 |"),
-    ("AurocVocabEtwo", "0.6203", "confidence", "| max-p, vocabulary-normalised | 0.6275 | 0.6203 |"),
-    ("AurocEntropyEtwo", "0.6215", "confidence", "| negative entropy | 0.6228 | 0.6215 |"),
-    ("AurocMarginEtwo", "0.6171", "confidence", "| top1 $-$ top2 margin | 0.6254 | 0.6171 |".replace("$-$", "−")),
+    ("MassEone", "0.99988", "confidence", "| mean mass on {A,B,C,D} | 0.99988 | 0.99546 |"),
+    ("MassEtwo", "0.99546", "confidence", "| mean mass on {A,B,C,D} | 0.99988 | 0.99546 |"),
+    ("ArgmaxDisagree", "0 of 24,433", "confidence", "**0 / 24,433 records, both regimes combined**"),
+    ("AurocRestrEone", "0.6276", "confidence", "| max-p, restricted (as shipped) | 0.6276 | 0.6196 |"),
+    ("AurocVocabEone", "0.6275", "confidence", "| max-p, vocabulary-normalised | 0.6275 | 0.6198 |"),
+    ("AurocRestrEtwo", "0.6196", "confidence", "| max-p, restricted (as shipped) | 0.6276 | 0.6196 |"),
+    ("AurocVocabEtwo", "0.6198", "confidence", "| max-p, vocabulary-normalised | 0.6275 | 0.6198 |"),
+    ("AurocEntropyEtwo", "0.6209", "confidence", "| negative entropy | 0.6228 | 0.6209 |"),
+    ("AurocMarginEtwo", "0.6169", "confidence", "| top1 $-$ top2 margin | 0.6254 | 0.6169 |".replace("$-$", "−")),
     ("VocabEvidenceEtwo", f"{PLUS}2.61 [{PLUS}0.33, {PLUS}4.94]", "confidence", "**+2.61 [+0.33, +4.94] p = 0.028**"),
     ("RestrEvidenceEtwo", f"{PLUS}0.55 [{MINUS}1.52, {PLUS}2.65]", "confidence", "**+0.55 [−1.52, +2.65] p = 0.59**"),
     ("OffLetterEvidenceEtwo", f"{MINUS}3.01 [{MINUS}4.40, {MINUS}1.82]", "confidence", "**−3.01 [−4.40, −1.82]**"),
-    ("HedgeRows", "129 rows (1.38\\%), over 79 of 373 questions", "confidence", "rows affected | 129 (1.38 %), spread over **79 of 373 questions**"),
-    ("HedgePrior", "8.76\\%", "confidence", "**`prior` 8.76 %** vs `main` 0.42 %"),
-    ("HedgeMain", "0.42\\%", "confidence", "**`prior` 8.76 %** vs `main` 0.42 %"),
+    ("HedgeRows", "130 rows (1.29\\%), over 79 of 373 questions", "confidence", "rows affected | 130 (1.29 %), spread over **79 of 373 questions**"),
+    ("HedgePrior", "5.31\\%", "confidence", "**`prior` 5.31 %** vs `main` 0.42 %"),
+    ("HedgeMain", "0.42\\%", "confidence", "**`prior` 5.31 %** vs `main` 0.42 %"),
     ("HedgeEoneMax", "0.0034", "confidence", "mean 0.0001, **max 0.0034**"),
     ("BiasPredEone", "A .124 \\quad B .280 \\quad \\textbf{C .435} \\quad D .161", "confidence", "A .124 B .280 **C .435** D .161"),
     ("BiasPredEtwo", "A .134 \\quad \\textbf{B .342} \\quad C .330 \\quad D .194", "confidence", "A .134 **B .342** C .330 D .194"),
@@ -117,7 +123,7 @@ MEMO_FACTS: list[tuple[str, str, str, str]] = [
     ("CleanBudgetRatio", "3.7$\\times$", "cache", "**−6.0 pp at 3.7× is the clean, single-mechanism number**"),
     ("CleanBudgetAcc", "null in every bin", "cache",
      "Accuracy is null throughout on the clean pair"),
-    ("OffloadDefault", "0 of 12,890", "cache", "0 of 12,890 default+large rows offloaded anything"),
+    ("OffloadDefault", "0 of 13,636", "cache", "0 of 13,636 default+large rows offloaded anything"),
     ("OffloadSmall", "3,675 of 3,675", "cache", "3,675 of 3,675 `small` rows"),
     ("SaturationPoint", "$\\approx$85 frames ($\\approx$7 min)", "cache", "The sweep crosses saturation at ≈85 frames (≈7 min)"),
     ("SurvivingShare", "$\\approx$11\\%", "cache", "~11 % of presented survives"),
@@ -154,6 +160,7 @@ def build() -> tuple[dict, dict]:
     e1 = json.load(open(ART / "m7_metrics.json"))["all_questions"]
     e2m = json.load(open(ART / "m7_metrics_stream.json"))["all_questions"]
     x9 = json.load(open(ART / "x9_regime_comparison.json"))
+    x11 = json.load(open(ART / "x11_evidence_blindness.json"))
 
     sc = x9["streaming_contrasts"]
     xr = x9["cross_regime"]
@@ -172,6 +179,7 @@ def build() -> tuple[dict, dict]:
     M7 = "m7_metrics.json"
     M7S = "m7_metrics_stream.json"
     X9 = "x9_regime_comparison.json"
+    X11 = "x11_evidence_blindness.json"
 
     # -- scale of the two experiments
     put("NrecEone", thousands(e1["n_records"]), f"{M7} all_questions.n_records")
@@ -258,6 +266,62 @@ def build() -> tuple[dict, dict]:
     put("EtwoBinOneAcc", pct(e2m["bins"]["memory/main"]["60"]["accuracy"]), f"{M7S} bins.memory/main.60.accuracy")
     put("EtwoFloorAcc", pct(e2m["bins"]["memory/prior"]["300"]["accuracy"]), f"{M7S} bins.memory/prior.300.accuracy")
 
+    # -- E2: the evidence contrast at every Delta-t where the no-evidence floor was measured.
+    # X11 discovers the bins from the records, so this grows on its own if `prior` is extended.
+    ORD = {60: "One", 300: "Five", 900: "Fifteen", 1800: "Thirty", 3600: "Sixty"}
+    dts = x11["prior_dts_s"]
+    put("EtwoEvidenceBins", str(len(dts)), f"{X11} prior_dts_s")
+    put("EtwoEvidenceBinList",
+        ", ".join(str(d // 60) for d in dts[:-1]) + f" and {dts[-1] // 60}",
+        f"{X11} prior_dts_s")
+    # a range rather than a max/min ratio: the accuracy effect shrinks as the cache saturates,
+    # and a ratio blows up as the smallest value nears zero and flips sign below it.
+    accs = [x11["by_dt"][str(d)]["delta_accuracy"]["mean"] for d in dts]
+    put("EtwoEvidenceSpread",
+        f"{_signed(100 * min(accs))} to {_signed(100 * max(accs))} pp",
+        f"{X11} by_dt.*.delta_accuracy (derived range)")
+    for d in dts:
+        o, c, rb = ORD[d], x11["by_dt"][str(d)], x11["robustness"][str(d)]
+        put(f"EtwoMain{o}Acc", pct(c["accuracy_a"]), f"{X11} by_dt.{d}.accuracy_a")
+        put(f"EtwoMain{o}Conf", pct(c["confidence_a"]), f"{X11} by_dt.{d}.confidence_a")
+        put(f"EtwoPrior{o}Acc", pct(c["accuracy_b"]), f"{X11} by_dt.{d}.accuracy_b")
+        put(f"EtwoPrior{o}Conf", pct(c["confidence_b"]), f"{X11} by_dt.{d}.confidence_b")
+        put(f"EtwoEvidence{o}Acc", pp(c["delta_accuracy"]), f"{X11} by_dt.{d}.delta_accuracy")
+        put(f"EtwoEvidence{o}Conf", pp(c["delta_confidence"]), f"{X11} by_dt.{d}.delta_confidence")
+        put(f"EtwoEvidence{o}Tokens", thousands(c["tokens_a"]), f"{X11} by_dt.{d}.tokens_a")
+        put(f"EtwoConfOverlap{o}", num(c["confidence_overlap"], 2),
+            f"{X11} by_dt.{d}.confidence_overlap")
+        put(f"EtwoOffLetter{o}", pp(rb["delta_off_letter"]),
+            f"{X11} robustness.{d}.delta_off_letter")
+        put(f"EtwoVocabEvidence{o}", pp(rb["delta_confidence_vocab"]),
+            f"{X11} robustness.{d}.delta_confidence_vocab")
+    # a range once there are more than three bins: the full list stops fitting on a slide
+    ovs = [x11["by_dt"][str(d)]["confidence_overlap"] for d in dts]
+    put("EtwoConfOverlapAll",
+        " / ".join(num(o, 2) for o in ovs) if len(dts) <= 3
+        else f"{min(ovs):.2f}--{max(ovs):.2f}",
+        f"{X11} by_dt.*.confidence_overlap")
+    # how many bins the accuracy effect is actually resolved in -- it decays as the cache
+    # saturates, so this is not "all of them" and the slide must not say so
+    n_sig = sum(1 for d in dts if x11["by_dt"][str(d)]["delta_accuracy"]["lo95"] > 0)
+    put("EtwoEvidenceAccSig", f"{n_sig} of {len(dts)}",
+        f"{X11} by_dt.*.delta_accuracy (bins excluding zero)")
+    put("EtwoEvidenceAccHi", pp(x11["by_dt"][str(dts[0])]["delta_accuracy"]),
+        f"{X11} by_dt.{dts[0]}.delta_accuracy")
+    put("EtwoEvidenceAccLo", pp(x11["by_dt"][str(dts[-1])]["delta_accuracy"]),
+        f"{X11} by_dt.{dts[-1]}.delta_accuracy")
+
+    det = x11["detectors"]["pooled"]
+    put("EtwoEvAurocConf", auroc_ci(det["confidence"]), f"{X11} detectors.pooled.confidence")
+    put("EtwoEvAurocOffLetter", auroc_ci(det["off_letter"]), f"{X11} detectors.pooled.off_letter")
+    put("EtwoEvAurocPairs", str(det["n_pairs"]), f"{X11} detectors.pooled.n_pairs")
+    # off-letter mass rises when the evidence is *gone*, so its detector sits below 0.5;
+    # flipped here so the deck can quote it in the same direction as the others.
+    ol = det["off_letter"]
+    put("EtwoEvAurocOffLetterRev",
+        auroc_ci({"mean": 1 - ol["mean"], "lo95": 1 - ol["hi95"], "hi95": 1 - ol["lo95"]}),
+        f"{X11} detectors.pooled.off_letter (direction flipped)")
+
     # -- cross-regime differences of contrasts
     for macro, key in [
         ("XregElapsed", "elapsed_time_fixed_frames"),
@@ -320,6 +384,25 @@ def build() -> tuple[dict, dict]:
             f"{ppmean({'mean': r['streaming_delta_confidence']})} & {pp(r['diff_confidence'])} \\\\"
         )
     tables["TabCrossRegime"] = "\n".join(rows)
+
+    # The evidence contrast at every Delta-t the floor was measured at. Rows come from X11's
+    # discovered bin list, so extending the `prior` arm lengthens this table on its own.
+    tables["TabEtwoEvidenceByDt"] = "\n".join(
+        f"{d // 60} & {pp(x11['by_dt'][str(d)]['delta_accuracy'])} & "
+        f"{pp(x11['by_dt'][str(d)]['delta_confidence'])} \\\\"
+        for d in x11["prior_dts_s"])
+
+    # "Is the probe inert?" -- means only, because the point is the ordering of magnitudes and
+    # the intervals would not fit beside the figure.
+    rows = []
+    for label, d in [
+        ("a no-memory question instead", sc["control_vs_memory"]),
+        (f"a {bd['3600']['live_tokens_large'] / bd['3600']['live_tokens_small']:.0f}$\\times$ larger live cache",
+         bd["3600"]),
+        ("\\textbf{the evidence itself}", sc["evidence_vs_none"]),
+    ]:
+        rows.append(f"{label} & {ppmean(d['delta_accuracy'])} & {ppmean(d['delta_confidence'])} \\\\")
+    tables["TabEtwoSensitivity"] = "\n".join(rows)
 
     return V, tables
 

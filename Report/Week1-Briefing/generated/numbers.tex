@@ -2,7 +2,7 @@
 % Every value below is derived from the artifacts named in generated/numbers.json.
 
 \newcommand{\NrecEone}{5,540}%  <- m7_metrics.json all_questions.n_records
-\newcommand{\NrecEtwo}{16,565}%  <- x9_regime_comparison.json n_streaming_records
+\newcommand{\NrecEtwo}{17,311}%  <- x9_regime_comparison.json n_streaming_records
 \newcommand{\Nquestions}{373}%  <- m7_metrics.json headline.n_paired_questions
 \newcommand{\EoneGap}{$-$3.2 [$-$7.5, $+$1.0]}%  <- m7_metrics.json headline.delta_gap
 \newcommand{\EoneGapP}{0.138}%  <- m7_metrics.json headline.delta_gap
@@ -71,6 +71,67 @@
 \newcommand{\EtwoItemLost}{107}%  <- m7_metrics_stream.json item_transitions.n_lost
 \newcommand{\EtwoBinOneAcc}{42.1}%  <- m7_metrics_stream.json bins.memory/main.60.accuracy
 \newcommand{\EtwoFloorAcc}{30.3}%  <- m7_metrics_stream.json bins.memory/prior.300.accuracy
+\newcommand{\EtwoEvidenceBins}{5}%  <- x11_evidence_blindness.json prior_dts_s
+\newcommand{\EtwoEvidenceBinList}{1, 5, 15, 30 and 60}%  <- x11_evidence_blindness.json prior_dts_s
+\newcommand{\EtwoEvidenceSpread}{$+$1.6 to $+$11.3 pp}%  <- x11_evidence_blindness.json by_dt.*.delta_accuracy (derived range)
+\newcommand{\EtwoMainOneAcc}{42.1}%  <- x11_evidence_blindness.json by_dt.60.accuracy_a
+\newcommand{\EtwoMainOneConf}{84.3}%  <- x11_evidence_blindness.json by_dt.60.confidence_a
+\newcommand{\EtwoPriorOneAcc}{30.8}%  <- x11_evidence_blindness.json by_dt.60.accuracy_b
+\newcommand{\EtwoPriorOneConf}{82.4}%  <- x11_evidence_blindness.json by_dt.60.confidence_b
+\newcommand{\EtwoEvidenceOneAcc}{$+$11.3 [$+$6.2, $+$16.6]}%  <- x11_evidence_blindness.json by_dt.60.delta_accuracy
+\newcommand{\EtwoEvidenceOneConf}{$+$1.9 [$-$0.2, $+$4.1]}%  <- x11_evidence_blindness.json by_dt.60.delta_confidence
+\newcommand{\EtwoEvidenceOneTokens}{2,557}%  <- x11_evidence_blindness.json by_dt.60.tokens_a
+\newcommand{\EtwoConfOverlapOne}{0.88}%  <- x11_evidence_blindness.json by_dt.60.confidence_overlap
+\newcommand{\EtwoOffLetterOne}{$-$7.5 [$-$9.6, $-$5.7]}%  <- x11_evidence_blindness.json robustness.60.delta_off_letter
+\newcommand{\EtwoVocabEvidenceOne}{$+$7.7 [$+$5.0, $+$10.4]}%  <- x11_evidence_blindness.json robustness.60.delta_confidence_vocab
+\newcommand{\EtwoMainFiveAcc}{38.3}%  <- x11_evidence_blindness.json by_dt.300.accuracy_a
+\newcommand{\EtwoMainFiveConf}{81.6}%  <- x11_evidence_blindness.json by_dt.300.confidence_a
+\newcommand{\EtwoPriorFiveAcc}{30.3}%  <- x11_evidence_blindness.json by_dt.300.accuracy_b
+\newcommand{\EtwoPriorFiveConf}{81.1}%  <- x11_evidence_blindness.json by_dt.300.confidence_b
+\newcommand{\EtwoEvidenceFiveAcc}{$+$8.1 [$+$2.9, $+$13.1]}%  <- x11_evidence_blindness.json by_dt.300.delta_accuracy
+\newcommand{\EtwoEvidenceFiveConf}{$+$0.5 [$-$1.5, $+$2.6]}%  <- x11_evidence_blindness.json by_dt.300.delta_confidence
+\newcommand{\EtwoEvidenceFiveTokens}{7,357}%  <- x11_evidence_blindness.json by_dt.300.tokens_a
+\newcommand{\EtwoConfOverlapFive}{0.83}%  <- x11_evidence_blindness.json by_dt.300.confidence_overlap
+\newcommand{\EtwoOffLetterFive}{$-$3.0 [$-$4.4, $-$1.8]}%  <- x11_evidence_blindness.json robustness.300.delta_off_letter
+\newcommand{\EtwoVocabEvidenceFive}{$+$2.6 [$+$0.3, $+$4.9]}%  <- x11_evidence_blindness.json robustness.300.delta_confidence_vocab
+\newcommand{\EtwoMainFifteenAcc}{38.1}%  <- x11_evidence_blindness.json by_dt.900.accuracy_a
+\newcommand{\EtwoMainFifteenConf}{79.0}%  <- x11_evidence_blindness.json by_dt.900.confidence_a
+\newcommand{\EtwoPriorFifteenAcc}{33.2}%  <- x11_evidence_blindness.json by_dt.900.accuracy_b
+\newcommand{\EtwoPriorFifteenConf}{77.4}%  <- x11_evidence_blindness.json by_dt.900.confidence_b
+\newcommand{\EtwoEvidenceFifteenAcc}{$+$4.9 [$+$0.3, $+$9.4]}%  <- x11_evidence_blindness.json by_dt.900.delta_accuracy
+\newcommand{\EtwoEvidenceFifteenConf}{$+$1.6 [$-$0.4, $+$3.5]}%  <- x11_evidence_blindness.json by_dt.900.delta_confidence
+\newcommand{\EtwoEvidenceFifteenTokens}{19,357}%  <- x11_evidence_blindness.json by_dt.900.tokens_a
+\newcommand{\EtwoConfOverlapFifteen}{0.84}%  <- x11_evidence_blindness.json by_dt.900.confidence_overlap
+\newcommand{\EtwoOffLetterFifteen}{$-$1.5 [$-$2.5, $-$0.7]}%  <- x11_evidence_blindness.json robustness.900.delta_off_letter
+\newcommand{\EtwoVocabEvidenceFifteen}{$+$2.7 [$+$0.6, $+$4.8]}%  <- x11_evidence_blindness.json robustness.900.delta_confidence_vocab
+\newcommand{\EtwoMainThirtyAcc}{34.9}%  <- x11_evidence_blindness.json by_dt.1800.accuracy_a
+\newcommand{\EtwoMainThirtyConf}{73.9}%  <- x11_evidence_blindness.json by_dt.1800.confidence_a
+\newcommand{\EtwoPriorThirtyAcc}{33.2}%  <- x11_evidence_blindness.json by_dt.1800.accuracy_b
+\newcommand{\EtwoPriorThirtyConf}{74.5}%  <- x11_evidence_blindness.json by_dt.1800.confidence_b
+\newcommand{\EtwoEvidenceThirtyAcc}{$+$1.6 [$-$2.4, $+$5.6]}%  <- x11_evidence_blindness.json by_dt.1800.delta_accuracy
+\newcommand{\EtwoEvidenceThirtyConf}{$-$0.6 [$-$2.4, $+$1.2]}%  <- x11_evidence_blindness.json by_dt.1800.delta_confidence
+\newcommand{\EtwoEvidenceThirtyTokens}{37,357}%  <- x11_evidence_blindness.json by_dt.1800.tokens_a
+\newcommand{\EtwoConfOverlapThirty}{0.85}%  <- x11_evidence_blindness.json by_dt.1800.confidence_overlap
+\newcommand{\EtwoOffLetterThirty}{$-$0.1 [$-$0.1, $-$0.0]}%  <- x11_evidence_blindness.json robustness.1800.delta_off_letter
+\newcommand{\EtwoVocabEvidenceThirty}{$-$0.6 [$-$2.4, $+$1.3]}%  <- x11_evidence_blindness.json robustness.1800.delta_confidence_vocab
+\newcommand{\EtwoMainSixtyAcc}{34.0}%  <- x11_evidence_blindness.json by_dt.3600.accuracy_a
+\newcommand{\EtwoMainSixtyConf}{72.2}%  <- x11_evidence_blindness.json by_dt.3600.confidence_a
+\newcommand{\EtwoPriorSixtyAcc}{31.1}%  <- x11_evidence_blindness.json by_dt.3600.accuracy_b
+\newcommand{\EtwoPriorSixtyConf}{73.2}%  <- x11_evidence_blindness.json by_dt.3600.confidence_b
+\newcommand{\EtwoEvidenceSixtyAcc}{$+$2.9 [$-$1.1, $+$7.0]}%  <- x11_evidence_blindness.json by_dt.3600.delta_accuracy
+\newcommand{\EtwoEvidenceSixtyConf}{$-$1.1 [$-$3.1, $+$0.9]}%  <- x11_evidence_blindness.json by_dt.3600.delta_confidence
+\newcommand{\EtwoEvidenceSixtyTokens}{73,357}%  <- x11_evidence_blindness.json by_dt.3600.tokens_a
+\newcommand{\EtwoConfOverlapSixty}{0.90}%  <- x11_evidence_blindness.json by_dt.3600.confidence_overlap
+\newcommand{\EtwoOffLetterSixty}{$-$0.1 [$-$0.2, $-$0.0]}%  <- x11_evidence_blindness.json robustness.3600.delta_off_letter
+\newcommand{\EtwoVocabEvidenceSixty}{$-$1.0 [$-$3.0, $+$1.0]}%  <- x11_evidence_blindness.json robustness.3600.delta_confidence_vocab
+\newcommand{\EtwoConfOverlapAll}{0.83--0.90}%  <- x11_evidence_blindness.json by_dt.*.confidence_overlap
+\newcommand{\EtwoEvidenceAccSig}{3 of 5}%  <- x11_evidence_blindness.json by_dt.*.delta_accuracy (bins excluding zero)
+\newcommand{\EtwoEvidenceAccHi}{$+$11.3 [$+$6.2, $+$16.6]}%  <- x11_evidence_blindness.json by_dt.60.delta_accuracy
+\newcommand{\EtwoEvidenceAccLo}{$+$2.9 [$-$1.1, $+$7.0]}%  <- x11_evidence_blindness.json by_dt.3600.delta_accuracy
+\newcommand{\EtwoEvAurocConf}{0.511 [0.495, 0.528]}%  <- x11_evidence_blindness.json detectors.pooled.confidence
+\newcommand{\EtwoEvAurocOffLetter}{0.393 [0.378, 0.408]}%  <- x11_evidence_blindness.json detectors.pooled.off_letter
+\newcommand{\EtwoEvAurocPairs}{1865}%  <- x11_evidence_blindness.json detectors.pooled.n_pairs
+\newcommand{\EtwoEvAurocOffLetterRev}{0.607 [0.592, 0.622]}%  <- x11_evidence_blindness.json detectors.pooled.off_letter (direction flipped)
 \newcommand{\XregElapsedAcc}{$-$1.9 [$-$5.9, $+$1.9]}%  <- x9_regime_comparison.json cross_regime.elapsed_time_fixed_frames.diff_accuracy
 \newcommand{\XregElapsedConf}{$+$3.5 [$+$1.7, $+$5.4]}%  <- x9_regime_comparison.json cross_regime.elapsed_time_fixed_frames.diff_confidence
 \newcommand{\XregFourxAcc}{$+$0.8 [$-$4.0, $+$5.4]}%  <- x9_regime_comparison.json cross_regime.context_length_4x_tokens.diff_accuracy
@@ -80,19 +141,19 @@
 \newcommand{\XregKindAcc}{$+$7.5 [$+$4.1, $+$11.0]}%  <- x9_regime_comparison.json cross_regime.control_vs_memory.diff_accuracy
 \newcommand{\XregKindConf}{$-$1.7 [$-$3.3, $-$0.1]}%  <- x9_regime_comparison.json cross_regime.control_vs_memory.diff_confidence
 \newcommand{\MassEone}{0.99988}%  <- CONFIDENCE-PROBE.md (literal check)
-\newcommand{\MassEtwo}{0.99530}%  <- CONFIDENCE-PROBE.md (literal check)
-\newcommand{\ArgmaxDisagree}{0 of 23,687}%  <- CONFIDENCE-PROBE.md (literal check)
+\newcommand{\MassEtwo}{0.99546}%  <- CONFIDENCE-PROBE.md (literal check)
+\newcommand{\ArgmaxDisagree}{0 of 24,433}%  <- CONFIDENCE-PROBE.md (literal check)
 \newcommand{\AurocRestrEone}{0.6276}%  <- CONFIDENCE-PROBE.md (literal check)
 \newcommand{\AurocVocabEone}{0.6275}%  <- CONFIDENCE-PROBE.md (literal check)
-\newcommand{\AurocRestrEtwo}{0.6199}%  <- CONFIDENCE-PROBE.md (literal check)
-\newcommand{\AurocVocabEtwo}{0.6203}%  <- CONFIDENCE-PROBE.md (literal check)
-\newcommand{\AurocEntropyEtwo}{0.6215}%  <- CONFIDENCE-PROBE.md (literal check)
-\newcommand{\AurocMarginEtwo}{0.6171}%  <- CONFIDENCE-PROBE.md (literal check)
+\newcommand{\AurocRestrEtwo}{0.6196}%  <- CONFIDENCE-PROBE.md (literal check)
+\newcommand{\AurocVocabEtwo}{0.6198}%  <- CONFIDENCE-PROBE.md (literal check)
+\newcommand{\AurocEntropyEtwo}{0.6209}%  <- CONFIDENCE-PROBE.md (literal check)
+\newcommand{\AurocMarginEtwo}{0.6169}%  <- CONFIDENCE-PROBE.md (literal check)
 \newcommand{\VocabEvidenceEtwo}{$+$2.61 [$+$0.33, $+$4.94]}%  <- CONFIDENCE-PROBE.md (literal check)
 \newcommand{\RestrEvidenceEtwo}{$+$0.55 [$-$1.52, $+$2.65]}%  <- CONFIDENCE-PROBE.md (literal check)
 \newcommand{\OffLetterEvidenceEtwo}{$-$3.01 [$-$4.40, $-$1.82]}%  <- CONFIDENCE-PROBE.md (literal check)
-\newcommand{\HedgeRows}{129 rows (1.38\%), over 79 of 373 questions}%  <- CONFIDENCE-PROBE.md (literal check)
-\newcommand{\HedgePrior}{8.76\%}%  <- CONFIDENCE-PROBE.md (literal check)
+\newcommand{\HedgeRows}{130 rows (1.29\%), over 79 of 373 questions}%  <- CONFIDENCE-PROBE.md (literal check)
+\newcommand{\HedgePrior}{5.31\%}%  <- CONFIDENCE-PROBE.md (literal check)
 \newcommand{\HedgeMain}{0.42\%}%  <- CONFIDENCE-PROBE.md (literal check)
 \newcommand{\HedgeEoneMax}{0.0034}%  <- CONFIDENCE-PROBE.md (literal check)
 \newcommand{\BiasPredEone}{A .124 \quad B .280 \quad \textbf{C .435} \quad D .161}%  <- CONFIDENCE-PROBE.md (literal check)
@@ -104,7 +165,7 @@
 \newcommand{\CleanBudgetConf}{$-$6.0 [$-$7.3, $-$4.7]}%  <- STREAMING-CACHE.md (literal check)
 \newcommand{\CleanBudgetRatio}{3.7$\times$}%  <- STREAMING-CACHE.md (literal check)
 \newcommand{\CleanBudgetAcc}{null in every bin}%  <- STREAMING-CACHE.md (literal check)
-\newcommand{\OffloadDefault}{0 of 12,890}%  <- STREAMING-CACHE.md (literal check)
+\newcommand{\OffloadDefault}{0 of 13,636}%  <- STREAMING-CACHE.md (literal check)
 \newcommand{\OffloadSmall}{3,675 of 3,675}%  <- STREAMING-CACHE.md (literal check)
 \newcommand{\SaturationPoint}{$\approx$85 frames ($\approx$7 min)}%  <- STREAMING-CACHE.md (literal check)
 \newcommand{\SurvivingShare}{$\approx$11\%}%  <- STREAMING-CACHE.md (literal check)

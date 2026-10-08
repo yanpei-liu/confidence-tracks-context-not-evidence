@@ -1,10 +1,10 @@
 {
- "n_streaming_records": 16565,
+ "n_streaming_records": 17311,
  "n_full_records": 5562,
  "records_by_condition": {
   "large": 3675,
   "small": 3675,
-  "stream": 5540,
+  "stream": 6286,
   "nots": 3675
  },
  "streaming_contrasts": {
@@ -1020,6 +1020,20 @@
    "confidence": 0.8881001802816895,
    "live_tokens": 9108.0,
    "visual_tokens": 73365.07042253521
+  },
+  "memory/prior/1800": {
+   "n": 373,
+   "accuracy": 0.3324396782841823,
+   "confidence": 0.7449597640750665,
+   "live_tokens": 9108.0,
+   "visual_tokens": 37357.10455764075
+  },
+  "memory/prior/3600": {
+   "n": 373,
+   "accuracy": 0.3109919571045576,
+   "confidence": 0.7322907077747985,
+   "live_tokens": 9108.0,
+   "visual_tokens": 73357.10455764075
   },
   "memory/prior/60": {
    "n": 373,

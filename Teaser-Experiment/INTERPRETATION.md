@@ -6,7 +6,7 @@ frozen Qwen3-VL-8B backbone, differing only in how the context reaches the model
 | | experiment | records | authoritative artifact |
 | --- | --- | --- | --- |
 | **E1** | full-reprocess per checkpoint — each row re-encodes its whole window | 5,540 | [`artifacts/m8_teaser.md`](artifacts/m8_teaser.md) |
-| **E2** | streaming KV cache — one ingestion, queried at checkpoints against a bounded cache | 16,565 | [`artifacts/x9_streaming.md`](artifacts/x9_streaming.md) |
+| **E2** | streaming KV cache — one ingestion, queried at checkpoints against a bounded cache | 17,311 | [`artifacts/x9_streaming.md`](artifacts/x9_streaming.md) |
 
 **This document is interpretation.** The two artifacts above are generated from
 `m7_metrics.json` and `x9_regime_comparison.json` and are authoritative for every number; where
@@ -30,11 +30,11 @@ invention here.
 **The denominator is a reported choice, not an assumption.** The softmax is restricted to the four
 option letters, so mass the model puts anywhere else is renormalised away. The
 vocabulary-normalised alternative was computed on the committed records and is **inert almost
-everywhere** — argmax agrees on 23,687 of 23,687 rows, and AUROC moves in the fourth decimal
+everywhere** — argmax agrees on 24,433 of 24,433 rows, and AUROC moves in the fourth decimal
 (0.6276 → 0.6275 in E1, 0.6199 → 0.6203 in E2). It is *not* inert in one place: E2's
 `evidence_vs_none` Δconfidence goes **+0.55 [−1.52, +2.65] → +2.61 [+0.33, +4.94]**, which is
 enough to move `x9_compare`'s verdict from Outcome 3 to Outcome 1. The reason is that the
-evidence-free `prior` arm hedges — 8.76 % of its streaming rows put real mass off the letters,
+evidence-free `prior` arm hedges — 5.31 % of its streaming rows put real mass off the letters,
 against 0.42 % for `main`. §2.7 carries this as a stated sensitivity.
 See [`CONFIDENCE-PROBE.md`](../Report/Week1-Briefing/memo/CONFIDENCE-PROBE.md).
 
@@ -173,7 +173,7 @@ deal of confidence.**
 > `small` sets `mutable_token_size` to 1,024, which is **below one 1,600-token ingestion batch**,
 > so it is the only condition in the sweep that overflows to the offload store and the only one
 > where ReKV retrieval is actually selecting anything: measured, `offloaded_tokens` is 0 on
-> **12,890 of 12,890** default and large rows and non-zero on **3,675 of 3,675** `small` rows
+> **13,636 of 13,636** default and large rows and non-zero on **3,675 of 3,675** `small` rows
 > (§1.7). The `large − small` contrast therefore mixes a budget change with a
 > retrieval-vs-no-retrieval change. The clean, single-mechanism contrast is
 > **`large − default` at 60 min: −6.0 pp [−7.3, −4.7] for a 3.7× budget** — both sides
@@ -200,19 +200,58 @@ not merely small; it is absent, exactly as §1.3 requires.
 > the budget and `retrieve_top_k` is recorded on every row. Any future budget-like arm must
 > check the *realised* `live_tokens`, not the configured budget.
 
-### 1.5 Confidence is evidence-blind — here, almost perfectly
+### 1.5 Confidence is evidence-blind — across the whole Δt grid
 
-Token-matched, paired, with the *only* difference being whether the window contains the evidence:
+Token-matched, paired, with the *only* difference being whether the window contains the
+evidence. The `prior` arm runs at every Δt in `sconf.PRIOR_DTS`, so this is a curve, not a cell:
 
-| | E2 no evidence (`prior@5`) | E2 evidence (`main@5`) |
-| --- | --- | --- |
-| accuracy | 30.3 % | 38.3 % |
-| confidence | 81.1 % | 81.6 % |
+| Δt | accuracy (`main` / `prior`) | confidence (`main` / `prior`) | Δaccuracy | Δconfidence |
+| --- | --- | --- | --- | --- |
+| 1 min | 42.1 % / 30.8 % | 84.3 % / 82.4 % | **+11.3 [+6.2, +16.6]** | +1.9 [-0.2, +4.1] |
+| 5 min | 38.3 % / 30.3 % | 81.6 % / 81.1 % | **+8.1 [+2.9, +13.1]** | +0.5 [-1.5, +2.6] |
+| 15 min | 38.1 % / 33.2 % | 79.0 % / 77.4 % | **+4.9 [+0.3, +9.4]** | +1.6 [-0.4, +3.5] |
+| 30 min | 34.9 % / 33.2 % | 73.9 % / 74.5 % | +1.6 [-2.4, +5.6] | -0.6 [-2.4, +1.2] |
+| 60 min | 34.0 % / 31.1 % | 72.2 % / 73.2 % | +2.9 [-1.1, +7.0] | -1.1 [-3.1, +0.9] |
 
-Having the evidence is worth **+8.1 pp [+2.9, +13.1]** of accuracy and **+0.5 pp [−1.5, +2.6]**
-of confidence. The model is essentially exactly as confident answering from an evidence-free
-window as from one containing what it needs. In E1 the same contrast bought +9.7 pp accuracy and
-+3.3 pp confidence — a 2.9× under-reaction; in E2 the under-reaction is total.
+**Two things move here and one of them is new.** Δaccuracy runs +1.6 to
++11.3 pp and excludes zero in 3 of 5 bins: the evidence advantage
+is largest when the window is short and **decays as the cache saturates**, until by 30–60 min the
+contrast is inside noise. That is eviction doing exactly what it is supposed to do — the evidence
+advantage is itself evicted. Δconfidence spans zero in **all 5** bins and tracks neither
+the effect nor its decay.
+
+Read the columns against each other, not the rows on their own. That is the load-bearing
+statement, and it is much stronger than the single 5 min cell the first write-up quoted: a null
+at one Δt is weak, but a null that holds across a ~10 pp swing in the effect it should be
+tracking is not.
+
+Two further ways of saying the same thing, both in `x11_evidence_blindness.md`:
+
+- The conditions are not separable from the confidence *distribution*. Histogram overlap runs
+  0.83–0.90 across the bins, and confidence discriminates evidence presence at
+  AUROC 0.511 [0.495, 0.528]
+  on 1,865 pairs — an interval that contains chance.
+- The probe is not inert. On the same records the same measure moves
+  +12.6 [+10.8, +14.4] on question kind and
+  -15.2 [-17.5, -13.1] over the cache budget. Evidence is the
+  manipulation it does not see, not a manipulation the measure is too blunt to register.
+
+In E1 the same contrast bought +9.7 pp accuracy and +3.3 pp confidence — a 2.9× under-reaction;
+in E2 the under-reaction is total, and the cross-regime difference of contrasts on Δconfidence
+is −2.8 [−5.1, −0.4].
+
+> **Do not pool the bins.** Pooling the three bins the first sweep measured tightened
+> Δconfidence to +1.4 [−0.0, +2.8], p = 0.052 — a borderline positive manufactured out of clean
+> nulls. Report them separately. For the same reason Δgap does not carry this claim: removing the
+> evidence does widen the confidence−accuracy gap under the restricted probe (−7.5 pp, p = 0.008
+> at 5 min), but that is **not** robust to the denominator (vocabulary-normalised: −3.6 p = 0.21
+> / −5.5 p = 0.055 / −2.1 p = 0.40 at 1 / 5 / 15 min).
+
+The denominator caveat of §0.1 attaches here and nowhere else, and it is **bin-specific**: the
+off-letter mass that drives it collapses to ~0.1 % by 30 min, so restricted and
+vocabulary-normalised agree there to 0.1 pp. `x11_evidence_blindness.md` carries both
+denominators and the off-letter mass at every bin, so the sensitivity can be read off rather
+than reconstructed.
 
 ### 1.6 The ranking degrades — the one genuinely new phenomenon
 
@@ -243,7 +282,7 @@ recoverable.
 
 This matters because "the evidence is genuinely evicted" is doing real work in the argument
 (§1.6). It is supported for the primary condition by this measurement, and the audit is now
-exhaustive rather than a median: **0 of 12,890** default and large rows offloaded anything;
+exhaustive rather than a median: **0 of 13,636** default and large rows offloaded anything;
 **3,675 of 3,675** `small` rows did.
 
 The mechanism is also characterised. `small`'s 1,024-token mutable region is smaller than one
@@ -280,8 +319,9 @@ See [`STREAMING-CACHE.md` §2.2](../Report/Week1-Briefing/memo/STREAMING-CACHE.m
 - **Streaming over the window, not the life-log.** Each question resets the cache and ingests
   from `evidence_min − PRE`. This preserves every arm definition from E1 and keeps the comparison
   clean, but supports no claim about 44 h of accumulated history.
-- **The no-evidence floor is measured at Δt ∈ {1, 5, 15} min only** and assumed flat beyond,
-  because `prior` windows do not nest and each bin costs its own ingestion.
+- **The evidence contrast is resolved at Δt ≤ 15 min only.** The floor is now measured at every
+  Δt on the grid — `prior` windows do not nest, so each bin cost its own ingestion — but by
+  30–60 min the contrast itself is inside noise, so no evidence effect can be claimed there.
 - One participant (EgoLife A1), one model, one cache policy (EgoStream's shipped pruning pipeline
   plus ReKV retrieval).
 
@@ -448,7 +488,7 @@ because both regimes were run.
 - Confidence ranking degrades when evidence is genuinely evicted (AUROC −0.073, p = 0.039) —
   one test, CI nearly touching zero, wants replication.
 - Eviction is permanent in E2's default and large conditions — measured exhaustively,
-  `offloaded_tokens` = 0 on 12,890 of 12,890 rows. It is *not* claimed for `small`, whose 1,024
+  `offloaded_tokens` = 0 on 13,636 of 13,636 rows. It is *not* claimed for `small`, whose 1,024
   mutable tokens sit below one ingestion batch (§1.7).
 - E2's evidence-blindness is **denominator-sensitive**: the restricted softmax gives Δconfidence
   +0.55 [−1.52, +2.65], the vocabulary-normalised one +2.61 [+0.33, +4.94]. The restricted probe
@@ -475,15 +515,19 @@ add* sections feed into it. Ranked by what each settles per GPU-hour, cheapest f
    lot in E1 (ranking intact, Δ +0.012) and only partly in E2 (ranking decays, Δ −0.073). If that
    asymmetry holds, "the cheap fix gets cheaper-looking the less realistic the memory system is"
    stops being a synthesis and becomes a measurement.
-2. **Off-letter mass as a reported quantity.** Derivable from `letter_logprobs` already on every
-   record. It turns §0.1's denominator sensitivity from a caveat into a result: the `prior` arm
-   hedges on 8.76 % of streaming rows against `main`'s 0.42 %, contrast −3.01 pp [−4.40, −1.82].
-   Promote it to a named field `off_letter_mass` and a contrast in X9.
-3. **`x11_confidence_robustness.py` and `x12_cache_forensics.py`.** Regenerate the two memos'
+2. **Off-letter mass as a reported quantity.** *Partly done.* X11 now derives it from
+   `letter_logprobs` and contrasts it at every measured Δt (−7.5 / −3.0 / −1.5 pp, all
+   p < 0.001), alongside both denominators, so §0.1's sensitivity can be read off an artifact
+   instead of a memo. What remains is promoting it to a named record field `off_letter_mass`
+   at scoring time and adding the contrast to X9 itself, so it travels with the headline table.
+3. **`x13_confidence_robustness.py` and `x14_cache_forensics.py`.** Regenerate the two memos'
    tables — the probe robustness sweep and the offload/cache audit — into
-   `artifacts/x11_*.{json,md}` and `artifacts/x12_*.{json,md}`, so they meet the standard M8/X9/X10
-   already meet. Today 52 of the deck's 130 macros are memo literals behind a substring tripwire;
-   this moves them to derived.
+   `artifacts/x13_*.{json,md}` and `artifacts/x14_*.{json,md}`, so they meet the standard
+   M8/X9/X10/X11 already meet. (The x11/x12 slots this item once named are taken: X11 is the
+   evidence-blindness analysis, X12 its figure. X11 already delivers the per-bin half of
+   `CONFIDENCE-PROBE.md` §4–§5; what is still memo-only is §3's scalarisation table and the
+   whole of `STREAMING-CACHE.md`.) Today 52 of the deck's 168 macros are memo literals behind a
+   substring tripwire; this moves them to derived.
 4. **Three small integrity fixes.** Emit both denominators alongside `x9_compare.verdict` rather
    than leaving the sensitivity in a memo (§0.1); add `surviving_frame_tokens` to the record schema
    with an evidence-frame-vs-window-mean contrast; and footnote the `cache_policy` label, where

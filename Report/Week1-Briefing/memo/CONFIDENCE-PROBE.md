@@ -1,7 +1,7 @@
 # The confidence probe — is `max softmax({A,B,C,D})` the right construct?
 
 *Every number below was recomputed from the committed records (`$EGOVM_DATA/artifacts/m6_records*.jsonl`,
-7,122 E1 rows and 16,565 E2 rows as loaded) using `egovm.m7_analyze.contrast` /
+7,122 E1 rows and 17,311 E2 rows as loaded) using `egovm.m7_analyze.contrast` /
 `cluster_bootstrap` and `egovm.streaming.x9_compare.streaming_specs` unchanged, so the contrast
 machinery is identical to the one that produced [`artifacts/m8_teaser.md`](../../../Teaser-Experiment/artifacts/m8_teaser.md)
 and [`artifacts/x9_streaming.md`](../../../Teaser-Experiment/artifacts/x9_streaming.md). The E1 row count
@@ -62,27 +62,27 @@ done.
 
 | | E1 full-reprocess | E2 streaming |
 | --- | ---: | ---: |
-| mean mass on {A,B,C,D} | 0.99988 | 0.99530 |
+| mean mass on {A,B,C,D} | 0.99988 | 0.99546 |
 | median | 0.99996 | 0.99997 |
 | p5 / p1 | 0.9997 / 0.9994 | 0.9971 / 0.9242 |
-| fraction with mass < 0.99 | 0.14 % | 2.54 % |
+| fraction with mass < 0.99 | 0.14 % | 2.50 % |
 | fraction with mass < 0.50 | 0.00 % | 0.28 % |
 | mean confidence, restricted → vocab | 0.7099 → 0.7098 | 0.8435 → 0.8400 |
-| **`argmax` disagreements** | **0 / 23,687 records, both regimes combined** | |
+| **`argmax` disagreements** | **0 / 24,433 records, both regimes combined** | |
 
 Prediction and therefore accuracy are *identical* under the two definitions in every record we have.
 
 ### 3.2 Discrimination is unchanged — and so is the choice of scalar
 
-AUROC of the score against correctness, memory rows only (E1 n = 3,746; E2 n = 9,325):
+AUROC of the score against correctness, memory rows only (E1 n = 3,746; E2 n = 10,071):
 
 | discriminator | E1 | E2 |
 | --- | ---: | ---: |
-| max-p, restricted (as shipped) | 0.6276 | 0.6199 |
-| max-p, vocabulary-normalised | 0.6275 | 0.6203 |
-| negative entropy | 0.6228 | 0.6215 |
-| top1 − top2 margin | 0.6254 | 0.6171 |
-| mass on letters alone | 0.5761 | 0.5626 |
+| max-p, restricted (as shipped) | 0.6276 | 0.6196 |
+| max-p, vocabulary-normalised | 0.6275 | 0.6198 |
+| negative entropy | 0.6228 | 0.6209 |
+| top1 − top2 margin | 0.6254 | 0.6169 |
+| mass on letters alone | 0.5761 | 0.5620 |
 
 Two things worth carrying into the paper. First, the denominator is invisible to the ranking.
 Second — the stronger robustness statement — **however the four-way distribution is collapsed to a
@@ -152,16 +152,29 @@ The E2 effect is not a smooth rescaling. Winsorising the mass from below removes
 | 0.99 | +0.66 [−1.41, +2.76] p = 0.524 |
 
 It rides on a small, heavy-tailed minority of rows. Characterising rows with off-letter mass > 10 %
-(E2 memory rows, n = 9,325):
+(E2 memory rows, n = 10,071):
 
 | | value |
 | --- | --- |
-| rows affected | 129 (1.38 %), spread over **79 of 373 questions** |
-| by arm | **`prior` 8.76 %** vs `main` 0.42 % |
-| by Δt | 1 min 4.24 %, 5 min 1.77 %, 15 min 0.91 %, **30 and 60 min: none** |
-| by condition | `stream` 2.79 %, `small` 0.54 %, `nots` 0.48 %, `large` 0.32 % |
-| accuracy on those rows | 0.341, vs 0.371 elsewhere |
+| rows affected | 130 (1.29 %), spread over **79 of 373 questions** |
+| by arm | **`prior` 5.31 %** vs `main` 0.42 % |
+| by Δt | 1 min 4.24 %, 5 min 1.77 %, 15 min 0.91 %, **30 min 0.00 %, 60 min 0.04 %** |
+| by condition | `stream` 2.35 %, `small` 0.54 %, `nots` 0.48 %, `large` 0.32 % |
+| accuracy on those rows | 0.338, vs 0.367 elsewhere |
 | E1 equivalent | `prior`@5 min off-mass: mean 0.0001, **max 0.0034** — the phenomenon does not exist |
+
+> **Recomputed 2026-08-21 on 17,311 E2 records**, after the `prior` arm was extended to Δt ∈
+> {30, 60} min (X11 / `sconf.PRIOR_DTS`). The two rates that moved are denominator effects, not
+> a change in the phenomenon: `prior` went from 1,119 to 1,865 rows and the two new bins
+> essentially never hedge, so the pooled `prior` rate fell 8.76 % → 5.31 % and the overall rate
+> 1.38 % → 1.29 % while the *count* rose 129 → 130. The per-Δt row is the stable one, and the
+> new bins confirm what it predicted: hedging is a short-Δt phenomenon and is gone by 30 min.
+>
+> Note what this episode shows about the tripwire. `b1_numbers.py --check` verifies that each
+> literal below still *appears* in this memo; it cannot verify that the literal is still *true*
+> of the records. Adding records is therefore a silent way to make the deck quote a stale
+> number, and it did. Until these tables are generated (INTERPRETATION.md §2.8 item 3,
+> `x13_confidence_robustness.py`), **re-run this memo's numbers whenever the record set grows.**
 
 Read plainly: **with a bounded cache and no evidence in the window, the streaming model sometimes
 stops wanting to emit a letter at all.** Paired within-question contrasts on *off-letter* mass

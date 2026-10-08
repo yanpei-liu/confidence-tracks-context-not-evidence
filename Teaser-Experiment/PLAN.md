@@ -263,7 +263,7 @@ decomposition; it is cheap (the records are on disk, no GPU needed) if that is w
 
 > **The next experiment is not one of these, and it has now run.** The same design on a
 > streaming KV cache over the same Qwen3-VL-8B backbone — see [EXTENDING.md](EXTENDING.md) §0
-> for the result and `artifacts/x9_streaming.md` for the numbers. 16,565 records, 373 questions,
+> for the result and `artifacts/x9_streaming.md` for the numbers. 17,311 records, 373 questions,
 > ~9 GPU-h. Headline: the dissociation replicates but **rotates** — accuracy responds to whether
 > the evidence is present (+8.1 pp) and confidence responds to how much context is in the window
 > (−15.2 pp for a 17× budget, with accuracy flat), while the elapsed-time axis this sweep found

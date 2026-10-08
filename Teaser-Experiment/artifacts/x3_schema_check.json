@@ -1,14 +1,13 @@
 {
-  "file": "~/Files/EgoVM-data/artifacts/m6_records_stream_budget_0of6.jsonl",
-  "n_records": 1184,
-  "n_unique_record_ids": 1184,
+  "file": "~/Files/EgoVM-data/artifacts/m6_records_stream_prior_ext_4of6.jsonl",
+  "n_records": 134,
+  "n_unique_record_ids": 134,
   "missing_fields": [],
   "records_with_bad_question_kind": 0,
   "records_not_in_plan": 0,
   "records_over_cache_cap": 0,
   "budgets": [
-    "large",
-    "small"
+    "default"
   ],
   "ok": true
 }

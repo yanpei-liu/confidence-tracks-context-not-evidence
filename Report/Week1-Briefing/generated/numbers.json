@@ -4,7 +4,7 @@
   "source": "m7_metrics.json all_questions.n_records"
  },
  "NrecEtwo": {
-  "value": "16,565",
+  "value": "17,311",
   "source": "x9_regime_comparison.json n_streaming_records"
  },
  "Nquestions": {
@@ -279,6 +279,250 @@
   "value": "30.3",
   "source": "m7_metrics_stream.json bins.memory/prior.300.accuracy"
  },
+ "EtwoEvidenceBins": {
+  "value": "5",
+  "source": "x11_evidence_blindness.json prior_dts_s"
+ },
+ "EtwoEvidenceBinList": {
+  "value": "1, 5, 15, 30 and 60",
+  "source": "x11_evidence_blindness.json prior_dts_s"
+ },
+ "EtwoEvidenceSpread": {
+  "value": "$+$1.6 to $+$11.3 pp",
+  "source": "x11_evidence_blindness.json by_dt.*.delta_accuracy (derived range)"
+ },
+ "EtwoMainOneAcc": {
+  "value": "42.1",
+  "source": "x11_evidence_blindness.json by_dt.60.accuracy_a"
+ },
+ "EtwoMainOneConf": {
+  "value": "84.3",
+  "source": "x11_evidence_blindness.json by_dt.60.confidence_a"
+ },
+ "EtwoPriorOneAcc": {
+  "value": "30.8",
+  "source": "x11_evidence_blindness.json by_dt.60.accuracy_b"
+ },
+ "EtwoPriorOneConf": {
+  "value": "82.4",
+  "source": "x11_evidence_blindness.json by_dt.60.confidence_b"
+ },
+ "EtwoEvidenceOneAcc": {
+  "value": "$+$11.3 [$+$6.2, $+$16.6]",
+  "source": "x11_evidence_blindness.json by_dt.60.delta_accuracy"
+ },
+ "EtwoEvidenceOneConf": {
+  "value": "$+$1.9 [$-$0.2, $+$4.1]",
+  "source": "x11_evidence_blindness.json by_dt.60.delta_confidence"
+ },
+ "EtwoEvidenceOneTokens": {
+  "value": "2,557",
+  "source": "x11_evidence_blindness.json by_dt.60.tokens_a"
+ },
+ "EtwoConfOverlapOne": {
+  "value": "0.88",
+  "source": "x11_evidence_blindness.json by_dt.60.confidence_overlap"
+ },
+ "EtwoOffLetterOne": {
+  "value": "$-$7.5 [$-$9.6, $-$5.7]",
+  "source": "x11_evidence_blindness.json robustness.60.delta_off_letter"
+ },
+ "EtwoVocabEvidenceOne": {
+  "value": "$+$7.7 [$+$5.0, $+$10.4]",
+  "source": "x11_evidence_blindness.json robustness.60.delta_confidence_vocab"
+ },
+ "EtwoMainFiveAcc": {
+  "value": "38.3",
+  "source": "x11_evidence_blindness.json by_dt.300.accuracy_a"
+ },
+ "EtwoMainFiveConf": {
+  "value": "81.6",
+  "source": "x11_evidence_blindness.json by_dt.300.confidence_a"
+ },
+ "EtwoPriorFiveAcc": {
+  "value": "30.3",
+  "source": "x11_evidence_blindness.json by_dt.300.accuracy_b"
+ },
+ "EtwoPriorFiveConf": {
+  "value": "81.1",
+  "source": "x11_evidence_blindness.json by_dt.300.confidence_b"
+ },
+ "EtwoEvidenceFiveAcc": {
+  "value": "$+$8.1 [$+$2.9, $+$13.1]",
+  "source": "x11_evidence_blindness.json by_dt.300.delta_accuracy"
+ },
+ "EtwoEvidenceFiveConf": {
+  "value": "$+$0.5 [$-$1.5, $+$2.6]",
+  "source": "x11_evidence_blindness.json by_dt.300.delta_confidence"
+ },
+ "EtwoEvidenceFiveTokens": {
+  "value": "7,357",
+  "source": "x11_evidence_blindness.json by_dt.300.tokens_a"
+ },
+ "EtwoConfOverlapFive": {
+  "value": "0.83",
+  "source": "x11_evidence_blindness.json by_dt.300.confidence_overlap"
+ },
+ "EtwoOffLetterFive": {
+  "value": "$-$3.0 [$-$4.4, $-$1.8]",
+  "source": "x11_evidence_blindness.json robustness.300.delta_off_letter"
+ },
+ "EtwoVocabEvidenceFive": {
+  "value": "$+$2.6 [$+$0.3, $+$4.9]",
+  "source": "x11_evidence_blindness.json robustness.300.delta_confidence_vocab"
+ },
+ "EtwoMainFifteenAcc": {
+  "value": "38.1",
+  "source": "x11_evidence_blindness.json by_dt.900.accuracy_a"
+ },
+ "EtwoMainFifteenConf": {
+  "value": "79.0",
+  "source": "x11_evidence_blindness.json by_dt.900.confidence_a"
+ },
+ "EtwoPriorFifteenAcc": {
+  "value": "33.2",
+  "source": "x11_evidence_blindness.json by_dt.900.accuracy_b"
+ },
+ "EtwoPriorFifteenConf": {
+  "value": "77.4",
+  "source": "x11_evidence_blindness.json by_dt.900.confidence_b"
+ },
+ "EtwoEvidenceFifteenAcc": {
+  "value": "$+$4.9 [$+$0.3, $+$9.4]",
+  "source": "x11_evidence_blindness.json by_dt.900.delta_accuracy"
+ },
+ "EtwoEvidenceFifteenConf": {
+  "value": "$+$1.6 [$-$0.4, $+$3.5]",
+  "source": "x11_evidence_blindness.json by_dt.900.delta_confidence"
+ },
+ "EtwoEvidenceFifteenTokens": {
+  "value": "19,357",
+  "source": "x11_evidence_blindness.json by_dt.900.tokens_a"
+ },
+ "EtwoConfOverlapFifteen": {
+  "value": "0.84",
+  "source": "x11_evidence_blindness.json by_dt.900.confidence_overlap"
+ },
+ "EtwoOffLetterFifteen": {
+  "value": "$-$1.5 [$-$2.5, $-$0.7]",
+  "source": "x11_evidence_blindness.json robustness.900.delta_off_letter"
+ },
+ "EtwoVocabEvidenceFifteen": {
+  "value": "$+$2.7 [$+$0.6, $+$4.8]",
+  "source": "x11_evidence_blindness.json robustness.900.delta_confidence_vocab"
+ },
+ "EtwoMainThirtyAcc": {
+  "value": "34.9",
+  "source": "x11_evidence_blindness.json by_dt.1800.accuracy_a"
+ },
+ "EtwoMainThirtyConf": {
+  "value": "73.9",
+  "source": "x11_evidence_blindness.json by_dt.1800.confidence_a"
+ },
+ "EtwoPriorThirtyAcc": {
+  "value": "33.2",
+  "source": "x11_evidence_blindness.json by_dt.1800.accuracy_b"
+ },
+ "EtwoPriorThirtyConf": {
+  "value": "74.5",
+  "source": "x11_evidence_blindness.json by_dt.1800.confidence_b"
+ },
+ "EtwoEvidenceThirtyAcc": {
+  "value": "$+$1.6 [$-$2.4, $+$5.6]",
+  "source": "x11_evidence_blindness.json by_dt.1800.delta_accuracy"
+ },
+ "EtwoEvidenceThirtyConf": {
+  "value": "$-$0.6 [$-$2.4, $+$1.2]",
+  "source": "x11_evidence_blindness.json by_dt.1800.delta_confidence"
+ },
+ "EtwoEvidenceThirtyTokens": {
+  "value": "37,357",
+  "source": "x11_evidence_blindness.json by_dt.1800.tokens_a"
+ },
+ "EtwoConfOverlapThirty": {
+  "value": "0.85",
+  "source": "x11_evidence_blindness.json by_dt.1800.confidence_overlap"
+ },
+ "EtwoOffLetterThirty": {
+  "value": "$-$0.1 [$-$0.1, $-$0.0]",
+  "source": "x11_evidence_blindness.json robustness.1800.delta_off_letter"
+ },
+ "EtwoVocabEvidenceThirty": {
+  "value": "$-$0.6 [$-$2.4, $+$1.3]",
+  "source": "x11_evidence_blindness.json robustness.1800.delta_confidence_vocab"
+ },
+ "EtwoMainSixtyAcc": {
+  "value": "34.0",
+  "source": "x11_evidence_blindness.json by_dt.3600.accuracy_a"
+ },
+ "EtwoMainSixtyConf": {
+  "value": "72.2",
+  "source": "x11_evidence_blindness.json by_dt.3600.confidence_a"
+ },
+ "EtwoPriorSixtyAcc": {
+  "value": "31.1",
+  "source": "x11_evidence_blindness.json by_dt.3600.accuracy_b"
+ },
+ "EtwoPriorSixtyConf": {
+  "value": "73.2",
+  "source": "x11_evidence_blindness.json by_dt.3600.confidence_b"
+ },
+ "EtwoEvidenceSixtyAcc": {
+  "value": "$+$2.9 [$-$1.1, $+$7.0]",
+  "source": "x11_evidence_blindness.json by_dt.3600.delta_accuracy"
+ },
+ "EtwoEvidenceSixtyConf": {
+  "value": "$-$1.1 [$-$3.1, $+$0.9]",
+  "source": "x11_evidence_blindness.json by_dt.3600.delta_confidence"
+ },
+ "EtwoEvidenceSixtyTokens": {
+  "value": "73,357",
+  "source": "x11_evidence_blindness.json by_dt.3600.tokens_a"
+ },
+ "EtwoConfOverlapSixty": {
+  "value": "0.90",
+  "source": "x11_evidence_blindness.json by_dt.3600.confidence_overlap"
+ },
+ "EtwoOffLetterSixty": {
+  "value": "$-$0.1 [$-$0.2, $-$0.0]",
+  "source": "x11_evidence_blindness.json robustness.3600.delta_off_letter"
+ },
+ "EtwoVocabEvidenceSixty": {
+  "value": "$-$1.0 [$-$3.0, $+$1.0]",
+  "source": "x11_evidence_blindness.json robustness.3600.delta_confidence_vocab"
+ },
+ "EtwoConfOverlapAll": {
+  "value": "0.83--0.90",
+  "source": "x11_evidence_blindness.json by_dt.*.confidence_overlap"
+ },
+ "EtwoEvidenceAccSig": {
+  "value": "3 of 5",
+  "source": "x11_evidence_blindness.json by_dt.*.delta_accuracy (bins excluding zero)"
+ },
+ "EtwoEvidenceAccHi": {
+  "value": "$+$11.3 [$+$6.2, $+$16.6]",
+  "source": "x11_evidence_blindness.json by_dt.60.delta_accuracy"
+ },
+ "EtwoEvidenceAccLo": {
+  "value": "$+$2.9 [$-$1.1, $+$7.0]",
+  "source": "x11_evidence_blindness.json by_dt.3600.delta_accuracy"
+ },
+ "EtwoEvAurocConf": {
+  "value": "0.511 [0.495, 0.528]",
+  "source": "x11_evidence_blindness.json detectors.pooled.confidence"
+ },
+ "EtwoEvAurocOffLetter": {
+  "value": "0.393 [0.378, 0.408]",
+  "source": "x11_evidence_blindness.json detectors.pooled.off_letter"
+ },
+ "EtwoEvAurocPairs": {
+  "value": "1865",
+  "source": "x11_evidence_blindness.json detectors.pooled.n_pairs"
+ },
+ "EtwoEvAurocOffLetterRev": {
+  "value": "0.607 [0.592, 0.622]",
+  "source": "x11_evidence_blindness.json detectors.pooled.off_letter (direction flipped)"
+ },
  "XregElapsedAcc": {
   "value": "$-$1.9 [$-$5.9, $+$1.9]",
   "source": "x9_regime_comparison.json cross_regime.elapsed_time_fixed_frames.diff_accuracy"
@@ -316,11 +560,11 @@
   "source": "CONFIDENCE-PROBE.md (literal check)"
  },
  "MassEtwo": {
-  "value": "0.99530",
+  "value": "0.99546",
   "source": "CONFIDENCE-PROBE.md (literal check)"
  },
  "ArgmaxDisagree": {
-  "value": "0 of 23,687",
+  "value": "0 of 24,433",
   "source": "CONFIDENCE-PROBE.md (literal check)"
  },
  "AurocRestrEone": {
@@ -332,19 +576,19 @@
   "source": "CONFIDENCE-PROBE.md (literal check)"
  },
  "AurocRestrEtwo": {
-  "value": "0.6199",
+  "value": "0.6196",
   "source": "CONFIDENCE-PROBE.md (literal check)"
  },
  "AurocVocabEtwo": {
-  "value": "0.6203",
+  "value": "0.6198",
   "source": "CONFIDENCE-PROBE.md (literal check)"
  },
  "AurocEntropyEtwo": {
-  "value": "0.6215",
+  "value": "0.6209",
   "source": "CONFIDENCE-PROBE.md (literal check)"
  },
  "AurocMarginEtwo": {
-  "value": "0.6171",
+  "value": "0.6169",
   "source": "CONFIDENCE-PROBE.md (literal check)"
  },
  "VocabEvidenceEtwo": {
@@ -360,11 +604,11 @@
   "source": "CONFIDENCE-PROBE.md (literal check)"
  },
  "HedgeRows": {
-  "value": "129 rows (1.38\\%), over 79 of 373 questions",
+  "value": "130 rows (1.29\\%), over 79 of 373 questions",
   "source": "CONFIDENCE-PROBE.md (literal check)"
  },
  "HedgePrior": {
-  "value": "8.76\\%",
+  "value": "5.31\\%",
   "source": "CONFIDENCE-PROBE.md (literal check)"
  },
  "HedgeMain": {
@@ -412,7 +656,7 @@
   "source": "STREAMING-CACHE.md (literal check)"
  },
  "OffloadDefault": {
-  "value": "0 of 12,890",
+  "value": "0 of 13,636",
   "source": "STREAMING-CACHE.md (literal check)"
  },
  "OffloadSmall": {

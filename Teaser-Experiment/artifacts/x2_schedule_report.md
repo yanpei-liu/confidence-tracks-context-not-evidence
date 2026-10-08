@@ -6,16 +6,16 @@ Derived from `m4_eval_plan.jsonl` over 373 questions. Cost model: **100 visual t
 | --- | --- | --- | --- | --- |
 | `main` | 373 | 273,622 | 3,730 | 7.6 |
 | `budget` | 746 | 547,244 | 3,730 | 15.2 |
-| `prior` | 1,119 | 109,182 | 1,119 | 3.0 |
+| `prior` | 1,865 | 522,146 | 1,865 | 14.5 |
 | `tokmatch` | 746 | 144,404 | 746 | 4.0 |
 | `nots` | 373 | 273,622 | 1,865 | 7.6 |
-| **total** | **3,357** | **1,348,074** | | **37.4** |
+| **total** | **4,103** | **1,761,038** | | **48.9** |
 
 ## Assertions that passed
 
 - **Nesting.** For every `main`/`budget`/`nots` pass, `gids[:n_frames]` equals the M4 row's `gids` element for element at all 5 Δt bins. This is what lets one ingestion serve five checkpoints.
-- **`prior` does not nest** (0 of 746 adjacent pairs nest), which is why each prior bin is its own pass.
-- **No duplicated work**: 9,325 distinct (row_id, budget, timestamps) triples, each produced by exactly one pass.
+- **`prior` does not nest** (1 of 1492 adjacent pairs nest), which is why each prior bin is its own pass.
+- **No duplicated work**: 10,071 distinct (row_id, budget, timestamps) triples, each produced by exactly one pass.
 - **Controls attached** on 1,810 of 1,865 `main` checkpoints (97.1 %) — every one M5 produced. The 55 without a control are checkpoints for which M5 found no usable DenseCaption MCQ; the completed sweep carries the same gap.
 
 ## Ordering and sharding

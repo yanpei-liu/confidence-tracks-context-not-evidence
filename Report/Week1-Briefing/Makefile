@@ -14,13 +14,16 @@ $(GENED): modules/b1_numbers.py \
           ../../Teaser-Experiment/artifacts/m7_metrics.json \
           ../../Teaser-Experiment/artifacts/m7_metrics_stream.json \
           ../../Teaser-Experiment/artifacts/x9_regime_comparison.json \
+          ../../Teaser-Experiment/artifacts/x11_evidence_blindness.json \
           memo/CONFIDENCE-PROBE.md memo/RELATED-EGOSAT.md memo/STREAMING-CACHE.md
 	$(PY) modules/b1_numbers.py
 
 figures: figures/figures_manifest.json
 figures/figures_manifest.json: modules/b2_figures.py \
           ../../Teaser-Experiment/figures/headline.pdf \
-          ../../Teaser-Experiment/figures/streaming_headline.pdf
+          ../../Teaser-Experiment/figures/streaming_headline.pdf \
+          ../../Teaser-Experiment/figures/evidence_blind.pdf \
+          ../../Teaser-Experiment/figures/evidence_blind_panelA.pdf
 	$(PY) modules/b2_figures.py
 
 pdf: build/$(DECK).pdf

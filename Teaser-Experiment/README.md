@@ -7,7 +7,7 @@ frozen backbone — they differ only in how the context reaches the model.
 | | regime | records | modules | design doc | authoritative artifact |
 | --- | --- | --- | --- | --- | --- |
 | **E1** | full-reprocess per checkpoint | 5,540 | M0–M9 | [PLAN.md](PLAN.md) | [artifacts/m8_teaser.md](artifacts/m8_teaser.md) |
-| **E2** | streaming KV cache (EgoStream) | 16,565 | X0–X10 | [EXTENDING.md](EXTENDING.md) | [artifacts/x9_streaming.md](artifacts/x9_streaming.md) |
+| **E2** | streaming KV cache (EgoStream) | 17,311 | X0–X12 | [EXTENDING.md](EXTENDING.md) | [artifacts/x9_streaming.md](artifacts/x9_streaming.md) |
 
 Both artifacts are generated from the metrics JSON and are **authoritative for every number**.
 
@@ -45,6 +45,8 @@ egovm/streaming/x3_stream_score.py  the sweep  (GPU, resumable, sharded on qid)
 egovm/streaming/x4_pilot.py       the gate: Δt=1 min level before anything scales
 egovm/streaming/x9_compare.py     M7 per-condition + cross-regime differenced contrasts
 egovm/streaming/x10_figure.py     the standalone headline figure; computes nothing
+egovm/streaming/x11_evidence_blindness.py  the evidence contrast at every Δt, + robustness
+egovm/streaming/x12_evidence_figure.py     the evidence-blindness figure; computes nothing
 
 scripts/                  provisioning, submission helpers, incl. submit_supplements.sh (S1-S4)
 slurm/                    batch scripts
@@ -52,6 +54,8 @@ requirements.txt          the versions the committed artifacts were produced on
 artifacts/                small, committed artifacts (no dataset content)
 figures/                  headline.pdf            E1, M7's 3-panel template
                           streaming_headline.pdf  E2, purpose-built by X10 -- the one to show
+                          evidence_blind.pdf      E2 evidence blindness, per Δt (X12)
+                          evidence_blind_panelA.pdf  the same panel A at slide size
                           supp_sweep*.pdf         the raw 2-panel Δt sweeps, supplementary
 ```
 
@@ -136,7 +140,14 @@ $PY -m egovm.m7_analyze && $PY -m egovm.m8_report && $PY -m egovm.m9_page
 $PY -m egovm.streaming.x9_compare    # -> m7_metrics_stream*.json, x9_regime_comparison.json,
                                      #    x9_streaming.md
 $PY -m egovm.streaming.x10_figure    # -> figures/streaming_headline.{pdf,png}, ~2 s
+$PY -m egovm.streaming.x11_evidence_blindness  # -> x11_evidence_blindness.{json,md}, ~1 min
+$PY -m egovm.streaming.x12_evidence_figure     # -> figures/evidence_blind*.{pdf,png}, ~2 s
 ```
+
+X11 discovers its Δt bins from the records, so it reports whatever `prior` bins exist. Its
+per-bin contrasts must reproduce `m7_metrics_stream.json`'s `evidence_present_{N}min` exactly;
+if they ever do not, the pairing or the bootstrap seeding has drifted and the rest of the file
+should not be trusted either.
 
 The cluster bootstrap is seeded (`m7_analyze.py:69`), so the metrics are deterministic — a rerun
 that changes a number means the inputs changed.
@@ -171,7 +182,12 @@ python scripts/records_manifest.py --check    # against artifacts/m6_records_man
   a hang. Trust the job's own progress lines and file mtimes, not `wc -l` from elsewhere.
 - **`/home` fsync is expensive.** M6 flushes every row but fsyncs every 100.
 - **Not every node runs the conda python.** Two `long`-partition nodes (`xcng0`, `xcng1`)
-  failed with `cannot execute binary file: Exec format error`.
+  failed with `cannot execute binary file: Exec format error` — and so does **`xgpj0`, which is
+  in the `gpu` partition** and advertises an ordinary `a100-80`. It is a different CPU
+  architecture from the rest of the pool. The job exits 126 after two seconds, writes nothing,
+  and **Slurm reports it `COMPLETED`**, so a shard that landed there looks like a shard that
+  had no work to do. `scripts/submit_stream.sh` now passes `--exclude=xgpj0`; if you sbatch by
+  hand, do the same, and check `X3_EXIT=` at the end of the log rather than the Slurm state.
 - **`h100-47` really is ~47 GB visible** even though `nvidia-smi` names a 95 GB card. A 60 min
   window needs a single ~12 GB vision-tower allocation and thrashes there; the headline arms
   run on `a100-80` / `h100-96` / `h200-141`.
@@ -210,7 +226,7 @@ All of these fail silently.
   calibrated probability.
 - **`scoring.py` is the only module that names a model** in E1; `streaming/backend.py` is its E2
   counterpart. M1–M5 and M7–M9 transfer untouched to any backend emitting the documented record
-  schema — that is what made E2 cost ~9 GPU-h rather than a rebuild.
+  schema — that is what made E2 cost ~14 GPU-h rather than a rebuild.
 - **Streaming breaks row independence.** Rows for one question at different Δt share a cache and
   must run in ascending Δt order on one worker, so shard on `qid`. `main`'s five Δt windows nest
   exactly (one 733-frame ingestion yields all five checkpoints); `prior`'s do not, so each bin

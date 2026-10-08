@@ -29,8 +29,14 @@ case "${EXTRA}" in
        exit 1 ;;
 esac
 
+# xgpj0 is a different CPU architecture from the rest of the gpu partition, and the conda env
+# at ~/miniconda3/envs/egovm is built for the others: python there dies with "cannot execute
+# binary file: Exec format error", the job exits 126 after two seconds, and *Slurm reports it
+# COMPLETED*. Nothing is written and nothing looks wrong. Excluded rather than diagnosed twice.
+EXCLUDE_NODES="xgpj0"
+
 for i in $(seq 0 $((N - 1))); do
-  sbatch --gres="gpu:${GRES}:1" \
+  sbatch --gres="gpu:${GRES}:1" --exclude="${EXCLUDE_NODES}" \
          -J "egovm-x3-${TAG}-${i}" \
          --export="ALL,EGOVM_REPO=${REPO},EGOVM_KINDS=${KINDS_SAFE},EGOVM_TAG=${TAG}_${i}of${N},EGOVM_SHARD=${i}/${N},EGOVM_XTRA=${EXTRA}" \
          "${REPO}/slurm/x3_stream.sh"

@@ -2,7 +2,7 @@
 
 Generated from `x9_regime_comparison.json`; every number below is read from it, so this file cannot drift from the metrics. Δ are percentage points, paired within-question, cluster-bootstrapped over questions (5,000 draws, seed 0).
 
-16,565 streaming records (large=3,675, nots=3,675, small=3,675, stream=5,540) against 5,562 committed full-reprocess records.
+17,311 streaming records (large=3,675, nots=3,675, small=3,675, stream=6,286) against 5,562 committed full-reprocess records.
 
 ## Verdict
 
@@ -103,7 +103,9 @@ Recreated as a memory-budget arm because a bounded cache pins the token count: c
 | `memory/main@small/3600` | 373 | 0.378 | 0.814 | 1,940 | 73,357 |
 | `memory/main@small/60` | 373 | 0.391 | 0.863 | 1,900 | 2,557 |
 | `memory/main@small/900` | 373 | 0.381 | 0.840 | 1,939 | 19,357 |
+| `memory/prior/1800` | 373 | 0.332 | 0.745 | 9,108 | 37,357 |
 | `memory/prior/300` | 373 | 0.303 | 0.811 | 7,945 | 7,357 |
+| `memory/prior/3600` | 373 | 0.311 | 0.732 | 9,108 | 73,357 |
 | `memory/prior/60` | 373 | 0.308 | 0.824 | 3,227 | 2,557 |
 | `memory/prior/900` | 373 | 0.332 | 0.774 | 9,108 | 19,357 |
 | `memory/tokmatch_evkeep/3600` | 373 | 0.365 | 0.789 | 9,108 | 19,357 |
@@ -114,4 +116,5 @@ Recreated as a memory-budget arm because a bounded cache pins the token count: c
 - **Elapsed time is not an input in this regime once the cache saturates** (EXTENDING.md §4a). The elapsed-time contrasts are reported as unavailable rather than null: an input the model cannot read is not a manipulation that failed.
 - **This is streaming over the window, not over the 44 h life-log.** Each question resets the cache and ingests from `evidence_min − PRE`, which preserves every arm definition in PLAN.md but does not support claims about accumulated history.
 - **Levels are not comparable across regimes** — the priming prompt replaces the system prompt and the image path replaces the video path. Contrasts are.
-- The `prior` floor is measured at Δt ∈ {1, 5, 15} min only and assumed flat beyond.
+- The `prior` floor is measured at every Δt on the grid (1, 5, 15, 30, 60 min); nothing about it is assumed.
+- `evidence_vs_none` above is the Δt = 5 min cell only, because `streaming_specs` pins the bin so this table's headline stays comparable across reruns. The same contrast at **every** measured Δt, with the distribution overlap, the evidence-presence AUROC and both denominators, is in `x11_evidence_blindness.md`.

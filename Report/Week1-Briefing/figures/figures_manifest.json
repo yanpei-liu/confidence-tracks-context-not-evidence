@@ -1,5 +1,17 @@
 {
  "source_figures": {
+  "evidence_blind.pdf": {
+   "sha256": "830e8b19a8f1fbe44cef3100880f4d6be99052a8d3cc81dcafde6c83a86ffceb",
+   "width_pt": 460.8,
+   "height_pt": 518.4,
+   "path": "Teaser-Experiment/figures/evidence_blind.pdf"
+  },
+  "evidence_blind_panelA.pdf": {
+   "sha256": "d560328649c30e1de464bee9fc6fd159de7aa944dc5949be76474e17680cd289",
+   "width_pt": 237.6,
+   "height_pt": 201.6,
+   "path": "Teaser-Experiment/figures/evidence_blind_panelA.pdf"
+  },
   "headline.pdf": {
    "sha256": "912463b791670fb437ff1b22fb7779dc742d825aa4276aa11b4667aadea738c5",
    "width_pt": 1051.2,
@@ -7,7 +19,7 @@
    "path": "Teaser-Experiment/figures/headline.pdf"
   },
   "streaming_headline.pdf": {
-   "sha256": "e4961b4aa11d878f1a01439fc2f459efc8bc518ad0efec2e235b105b89e19eb5",
+   "sha256": "624b4c00704cca3a6eb5a7015ed5d15e9ae963a31b2329507992d32a0b0a5062",
    "width_pt": 1123.2,
    "height_pt": 763.2,
    "path": "Teaser-Experiment/figures/streaming_headline.pdf"
@@ -26,7 +38,7 @@
    "width_pt": 1051.2,
    "height_pt": 511.2,
    "aspect": 2.056,
-   "sha256": "f72704028cdf8931bf4c69af0c15f7291684baa79fe954376d3147cd87e7d30b"
+   "sha256": "0cd8cbe548b7e49ed6db3cee4e407c8677aa62a836ca51efc2f69358e7736f01"
   },
   "e1-head": {
    "source": "headline.pdf",
@@ -40,7 +52,7 @@
    "width_pt": 1051.2,
    "height_pt": 69.01,
    "aspect": 15.233,
-   "sha256": "a97916bf9c9236386efe8b183cf9dace98ebb15b46835fe68deb96d21460c85f"
+   "sha256": "71a24b11413e2edac532dc6227c79f90d860183b571720fb370dbef0fda5e49f"
   },
   "e1-a": {
    "source": "headline.pdf",
@@ -54,7 +66,7 @@
    "width_pt": 333.23,
    "height_pt": 439.63,
    "aspect": 0.758,
-   "sha256": "ad54bb2320c971fbbd4e67ef74989c72dbf883b2c76265f5a687ef52b9ecb0cb"
+   "sha256": "8792efd56acf252c46a091754a94701650d73d2be4cf8443290d7b22ba442756"
   },
   "e1-b": {
    "source": "headline.pdf",
@@ -68,7 +80,7 @@
    "width_pt": 412.07,
    "height_pt": 439.63,
    "aspect": 0.937,
-   "sha256": "dceb5e6ddbf17e6008e282913da3ad626d53099a1f00ceca1ae850df183859ef"
+   "sha256": "90ba26e16dbd24bf33f40a3ba968f5b033c431c3e216c5982c63b4e37db447ff"
   },
   "e1-c": {
    "source": "headline.pdf",
@@ -82,7 +94,7 @@
    "width_pt": 299.59,
    "height_pt": 184.03,
    "aspect": 1.628,
-   "sha256": "823bdab103c902071d6f573048d50d89d9165b68880e0f2a0602dc2ce5d9c8b3"
+   "sha256": "bfa4a98fcf0bf8adfeb7a6f7cd025d82ccb1fdc2839351dd8b9cb270ce83c908"
   },
   "e1-d": {
    "source": "headline.pdf",
@@ -96,7 +108,7 @@
    "width_pt": 299.59,
    "height_pt": 258.16,
    "aspect": 1.16,
-   "sha256": "f79646968c10cfdbcde162d7fb5530c6562ddc854d5acaf08fa4938d52ab0aee"
+   "sha256": "cac4800b9837c344b4d9e0ad9741f93f0118219b1655b99f2a6c6df132feb009"
   },
   "e2-full": {
    "source": "streaming_headline.pdf",
@@ -110,7 +122,7 @@
    "width_pt": 1123.2,
    "height_pt": 763.2,
    "aspect": 1.472,
-   "sha256": "e99161fd6c5f25e0f069525a641c053954c7c86cb033dc27cd99f5670f3c5153"
+   "sha256": "62b98a90f308d7bdac2189abcecf4f02cd3b1278857455fde5d99e46135d83b7"
   },
   "e2-head": {
    "source": "streaming_headline.pdf",
@@ -124,7 +136,7 @@
    "width_pt": 1123.2,
    "height_pt": 76.32,
    "aspect": 14.717,
-   "sha256": "0004074ce1b7bdc261d8d41e035dbeaa1d1a6e5bc936797be319f66f0158d246"
+   "sha256": "798384006045f60ab1830f897ea15dab721e12b47adf3f33019a37a724733247"
   },
   "e2-a": {
    "source": "streaming_headline.pdf",
@@ -138,7 +150,7 @@
    "width_pt": 1123.2,
    "height_pt": 333.52,
    "aspect": 3.368,
-   "sha256": "4271baf79ec530d885330f381186af8c3248f88e853c714159f9a0d78a70062b"
+   "sha256": "5abd885a78af4529251ee489aaaa064f9896e5f50d7f5ea03f8102fec3546bcf"
   },
   "e2-b": {
    "source": "streaming_headline.pdf",
@@ -152,7 +164,7 @@
    "width_pt": 247.11,
    "height_pt": 254.15,
    "aspect": 0.972,
-   "sha256": "e469858714a83a7573c7b2d3d6944e16d25ad4567c19edf204ccf92bf5c770d5"
+   "sha256": "73d3d9237dfe809805017000c2bc9d15f0cbe26ac0c1ee2090ca95af33029248"
   },
   "e2-c": {
    "source": "streaming_headline.pdf",
@@ -166,7 +178,7 @@
    "width_pt": 278.55,
    "height_pt": 254.15,
    "aspect": 1.096,
-   "sha256": "49fd4adf297481e14c32edc919b4e77f5e354c4e62af4572d88c224a350d12a8"
+   "sha256": "2048329638cd5e48f1dc0241746189fb97cae7597baac23841a211bc1ec7f05e"
   },
   "e2-d": {
    "source": "streaming_headline.pdf",
@@ -180,7 +192,7 @@
    "width_pt": 288.66,
    "height_pt": 254.15,
    "aspect": 1.136,
-   "sha256": "383a737adbb80c4f62ea0eaaa4f50c87f015a1bafa2c5f108b296e3ae8b76d92"
+   "sha256": "f2c69b97c93006d80a4112e8ddc7125782fa447c47ca3fa799aae9a261bf0c56"
   },
   "e2-e": {
    "source": "streaming_headline.pdf",
@@ -194,7 +206,49 @@
    "width_pt": 286.42,
    "height_pt": 254.15,
    "aspect": 1.127,
-   "sha256": "94a4fbf6ff040485302d7e8b22685b8eed91d6867da29587c03c1e0b8c22967c"
+   "sha256": "19c2d0a5faab35fe5f0f3962859b2126b3abc96429e0f7ce8b97a8beb46c0aae"
+  },
+  "e2-ev": {
+   "source": "evidence_blind.pdf",
+   "caption": "E2 evidence blindness, whole figure",
+   "crop_box_pt": [
+    0.0,
+    0.0,
+    460.8,
+    518.4
+   ],
+   "width_pt": 460.8,
+   "height_pt": 518.4,
+   "aspect": 0.889,
+   "sha256": "230d308648e8cbf054ba9bdb120a7aef5805c90bd151d794c4040c624df2bbfd"
+  },
+  "e2-ev-plots": {
+   "source": "evidence_blind.pdf",
+   "caption": "E2 evidence blindness, both panels without the caption blocks",
+   "crop_box_pt": [
+    0.0,
+    80.35,
+    460.8,
+    467.6
+   ],
+   "width_pt": 460.8,
+   "height_pt": 387.25,
+   "aspect": 1.19,
+   "sha256": "d854f9178167f0a50145caed6496e4817b93f8ad309f622c020c82dc5e9a6fae"
+  },
+  "e2-ev-slide": {
+   "source": "evidence_blind_panelA.pdf",
+   "caption": "E2 evidence blindness panel A, authored at the size the deck shows it",
+   "crop_box_pt": [
+    0.0,
+    0.0,
+    237.6,
+    201.6
+   ],
+   "width_pt": 237.6,
+   "height_pt": 201.6,
+   "aspect": 1.179,
+   "sha256": "45b4e48e8225b7d319be8f0770ca3ef82bc6a7610dc6311e81619aab5ef1eb35"
   }
  }
 }

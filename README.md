@@ -46,9 +46,9 @@ EgoStream is a plug-in memory manager over the same backbone, so no bridge condi
 | | E1 | E2 |
 | --- | --- | --- |
 | regime | full-reprocess: every row re-encodes its whole window | streaming KV cache: one ingestion, queried at checkpoints against a bounded cache |
-| records | 5,540 scored | 16,565 |
-| modules | M0–M9 | X0–X10 |
-| cost | ~6 GPU-h | ~9 GPU-h |
+| records | 5,540 scored | 17,311 |
+| modules | M0–M9 | X0–X12 |
+| cost | ~6 GPU-h | ~14 GPU-h |
 | **authoritative artifact** | [`artifacts/m8_teaser.md`](Teaser-Experiment/artifacts/m8_teaser.md) | [`artifacts/x9_streaming.md`](Teaser-Experiment/artifacts/x9_streaming.md) |
 | verdict, selected by the measured intervals | *D — confidence tracks the wrong variable* | *Outcome 3 — the dissociation replicates* |
 
@@ -190,10 +190,10 @@ The shape of it:
 
 ```bash
 # the records the committed metrics were computed from, both regimes
-python Teaser-Experiment/scripts/records_manifest.py --check   # 31 files, 22,127 ids
+python Teaser-Experiment/scripts/records_manifest.py --check   # 37 files, 22,873 ids
 
 # the deck still builds and every number on it still derives
-cd Report/Week1-Briefing && make && make verify                 # 130 macros, nine checks
+cd Report/Week1-Briefing && make && make verify                 # 191 macros, nine checks
 ```
 
 Neither needs a GPU. Reproducing the analysis itself from the raw records — also GPU-free — is in

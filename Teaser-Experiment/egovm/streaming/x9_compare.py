@@ -208,6 +208,22 @@ def verdict(out: dict) -> str:
             "manipulations, so metamemory is better here than the teaser suggested.")
 
 
+def prior_scope(cells: dict) -> str:
+    """State which Δt the no-evidence floor was actually measured at, from the cells.
+
+    This was a hardcoded "{1, 5, 15} min" sentence and went stale the moment `sconf.PRIOR_DTS`
+    grew. Derive it, so extending the arm cannot leave a false scope condition behind.
+    """
+    dts = sorted(int(k.rsplit("/", 1)[1]) for k in cells if k.startswith("memory/prior/"))
+    grid = sorted(DT_GRID_S)
+    mins = ", ".join(str(d // 60) for d in dts)
+    if dts == grid:
+        return (f"- The `prior` floor is measured at every Δt on the grid "
+                f"({mins} min); nothing about it is assumed.")
+    return (f"- The `prior` floor is measured at Δt ∈ {{{mins}}} min only and assumed flat "
+            f"beyond. `prior` windows do not nest, so each bin costs its own ingestion pass.")
+
+
 def write_report(out: dict, fmt) -> None:
     S, C, X = out["streaming_contrasts"], out["cross_regime"], out["cells"]
     L = ["# X9 — the streaming sweep, and how it compares with full-reprocess", "",
@@ -281,7 +297,11 @@ def write_report(out: dict, fmt) -> None:
           "definition in PLAN.md but does not support claims about accumulated history.",
           "- **Levels are not comparable across regimes** — the priming prompt replaces the "
           "system prompt and the image path replaces the video path. Contrasts are.",
-          "- The `prior` floor is measured at Δt ∈ {1, 5, 15} min only and assumed flat beyond.",
+          prior_scope(X),
+          "- `evidence_vs_none` above is the Δt = 5 min cell only, because `streaming_specs` "
+          "pins the bin so this table's headline stays comparable across reruns. The same "
+          "contrast at **every** measured Δt, with the distribution overlap, the "
+          "evidence-presence AUROC and both denominators, is in `x11_evidence_blindness.md`.",
           ""]
     path = ARTIFACTS / "x9_streaming.md"
     path.write_text("\n".join(L))

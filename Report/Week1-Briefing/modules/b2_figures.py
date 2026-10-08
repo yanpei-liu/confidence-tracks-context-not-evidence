@@ -47,6 +47,12 @@ PANELS: dict[str, tuple[str, tuple[float, float, float, float], str]] = {
     "e2-c": ("streaming_headline.pdf", (0.252, 0.500, 0.535, 0.868), "E2 panel C -- a bigger cache buys no accuracy"),
     "e2-d": ("streaming_headline.pdf", (0.505, 0.762, 0.535, 0.868), "E2 panel D -- the decline is all context"),
     "e2-e": ("streaming_headline.pdf", (0.745, 1.000, 0.535, 0.868), "E2 panel E -- the confidence ordering decays"),
+    # X12's standalone figure. Kept out of streaming_headline.pdf so that figure's sha256 --
+    # and every crop above that depends on it -- is untouched by this addition.
+    "e2-ev": ("evidence_blind.pdf", (0.000, 1.000, 0.000, 1.000), "E2 evidence blindness, whole figure"),
+    "e2-ev-plots": ("evidence_blind.pdf", (0.000, 1.000, 0.098, 0.845), "E2 evidence blindness, both panels without the caption blocks"),
+    # authored at slide size rather than cropped -- see x12_evidence_figure.py's docstring
+    "e2-ev-slide": ("evidence_blind_panelA.pdf", (0.000, 1.000, 0.000, 1.000), "E2 evidence blindness panel A, authored at the size the deck shows it"),
 }
 
 

@@ -21,7 +21,7 @@ the teaser could not ask is the one this experiment exists to ask:
 
 ## 0. Result — the sweep is complete
 
-**16,565 records over 373 questions, five arms, 100 % of the planned schedule, zero skips**
+**17,311 records over 373 questions, five arms, 100 % of the planned schedule, zero skips**
 (~9 GPU-h). [`artifacts/x9_streaming.md`](artifacts/x9_streaming.md) is generated from
 `x9_regime_comparison.json` and is **authoritative for every number**; the prose here is
 interpretation and may round.
@@ -57,8 +57,17 @@ measures are driven by disjoint variables. This is the teaser's finding with the
 term re-pointed: there confidence moved on elapsed time (an input it could read), here it moves
 on context volume (the only input that still varies).
 
-Four results that sharpen it:
+Five results that sharpen it:
 
+- **The evidence row is a curve, not a cell.** The `prior` arm runs at every Δt in
+  `sconf.PRIOR_DTS`, so the evidence contrast is measured at each of them (X11). Δaccuracy
+  excludes zero in 3 of the 5 and runs from +11.3 pp at 1 min down to +1.6/+2.9 by 30–60 min,
+  where the advantage has itself been evicted; Δconfidence spans zero in all five and tracks
+  neither the effect nor its decay. That is a much stronger statement than the single 5 min
+  cell in the table above, which is what X9 reports because `streaming_specs` pins the bin to
+  keep its headline comparable across reruns. The per-bin table, the confidence-distribution
+  overlap, the evidence-presence AUROC and both denominators are in
+  `artifacts/x11_evidence_blindness.md`; quote that file for this row.
 - **The teaser's headline contrast does not replicate, and the failure is significant.** The
   full-reprocess sweep's central claim — confidence slides with elapsed time at fixed tokens and
   evidence — gave −3.7 pp there and **−0.1 pp [−1.7, +1.4]** here. Cross-regime difference
@@ -70,7 +79,7 @@ Four results that sharpen it:
   −1.9 pp, every CI containing 0). More context buys no accuracy and costs a great deal of
   confidence. **Carry the mechanism caveat with the endpoint:** `small`'s 1,024 mutable tokens sit
   below one 1,600-token ingestion batch, so it is the only condition that offloads (3,675/3,675
-  rows, against 0/12,890 for default and large) and the only one with retrieval in play. The
+  rows, against 0/13,636 for default and large) and the only one with retrieval in play. The
   clean single-mechanism contrast is `large − default` at 60 min, **−6.0 pp [−7.3, −4.7] at 3.7×**.
   Quote −15.2 for the span of the axis, −6.0 when the claim needs one mechanism.
 - **M7's decomposition closes almost exactly** — tighter than on the teaser's own data
@@ -450,10 +459,12 @@ Code lives in `Teaser-Experiment/egovm/streaming/`; small artifacts in
 > agreement 0.733. Do not weaken a pre-registered threshold to accommodate a bad sample.
 | **X5** | main pass | `m6_records_stream_main_*.jsonl` | 373 questions × 5 checkpoints × {memory, control}; ≤ 3,730 records; `frames_ingested` monotone in `dt_s` within a question |
 | **X6** | budget arm (context-length axis) | `m6_records_stream_budget_*.jsonl` | same questions at `small` and `large`; `live_tokens` separates the three budgets by ≥2× at Δt ≥ 15 min; pairs 1:1 with X5 on `qid` |
-| **X7** | prior + tokmatch passes | `m6_records_stream_prior_*.jsonl`, `m6_records_stream_tokmatch_*.jsonl` | `prior` at Δt ∈ {1,5,15} min (per-bin ingestion, §1); `tokmatch_evkeep`/`tokmatch_uniform` at Δt=60 min; frame counts match the M4 rows exactly |
+| **X7** | prior + tokmatch passes | `m6_records_stream_prior_*.jsonl`, `m6_records_stream_tokmatch_*.jsonl` | `prior` at every Δt on the grid (per-bin ingestion, §1 — `sconf.PRIOR_DTS`); `tokmatch_evkeep`/`tokmatch_uniform` at Δt=60 min; frame counts match the M4 rows exactly. The 30 and 60 min bins were added after the first sweep, at a measured ~1.2 and ~3.9 GPU-h; X3 resumes on `record_id`, so re-running `--kinds prior` scores only what is missing |
 | **X8** | timestamps-off ablation | `m6_records_stream_nots_*.jsonl` | subset re-run with `timestamps_injected=false`; pairs 1:1 with X5 |
 | **X9** | analysis + cross-regime comparison | `artifacts/m7_metrics_stream.json`, `x9_regime_comparison.json`, `x9_streaming.md` | M7 run **with a regime-restricted records glob** (§2); contrasts computed within streaming, then differenced against the committed full-reprocess contrasts with cluster-bootstrap CIs on the difference |
 | **X10** | the standalone headline figure | `egovm/streaming/x10_figure.py`, `figures/streaming_headline.{pdf,png}` | CPU-only, ~2 s: reads `x9_regime_comparison.json` (contrasts, budget arm, cells) and `m7_metrics_stream.json` (per-bin levels, decomposition, AUROC, item transitions) and **computes nothing**, so the figure cannot drift from the metrics. Every panel names the cells it differences and what is held fixed; the elapsed-time rows are drawn as an *unavailable* axis, not a null (§4a) |
+| **X11** | evidence blindness, per Δt | `egovm/streaming/x11_evidence_blindness.py`, `artifacts/x11_evidence_blindness.{json,md}` | CPU-only, ~1 min. The deck's central claim rested on one cell (`main@5 − prior@5`); this reports the same contrast at **every** Δt with a `prior` bin, discovering the bins from the records rather than hardcoding them. Adds confidence-distribution overlap, a cluster-bootstrapped AUROC for confidence *as a detector of evidence presence*, and the off-letter / vocabulary-normalised robustness rows at every bin. **Its per-bin contrasts must reproduce `m7_metrics_stream.json`'s `evidence_present_{N}min` exactly** — same `contrast`, same seed — which is the check that it is reading the same data the same way |
+| **X12** | the evidence-blindness figure | `egovm/streaming/x12_evidence_figure.py`, `figures/evidence_blind.{pdf,png}`, `figures/evidence_blind_panelA.{pdf,png}` | CPU-only. Reads `x11_evidence_blindness.json` and **computes nothing**, as X10 does. Deliberately a separate file from `streaming_headline.pdf`: adding a panel there would change that figure's sha256 and invalidate every crop the briefing decks already take from it. The `_panelA` variant is authored at the size a slide shows it, because a crop of the 6.4 in figure displayed at 2.7 in renders every label at a third of its intended size |
 
 ### Order and gating
 
@@ -478,6 +489,7 @@ costs 100 tokens here rather than 448. Query cost is 0.31 s per checkpoint with 
 | X5 main | 1 × 373 | **273,622** | **2.7** | `main` + `control` at all 5 Δt bins |
 | X6 budget | 2 × 373 | **547,244** | **5.4** | the context-length axis at all 5 bins |
 | X7 prior @{1,5,15} | 3 × 373 | **109,182** | **1.1** | the no-evidence floor at three bins |
+| X7 prior @{30,60} | 2 × 373 | **412,964** | **5.1** | the floor at the remaining two bins (added later — see below) |
 | X7 tokmatch @60 | 2 × 373 | **144,404** | **1.4** | elapsed time at fixed frame count |
 | X8 timestamps-off | 1 × 373 | **273,622** | **2.7** | the time-blind ablation |
 
@@ -487,10 +499,14 @@ questions.** Two levers stay available if the cluster is contended rather than f
 
 - X6 and X8 accept `--max-rank k` (first *k* by sorted `qid`), a deterministic subset; both are
   paired within-question contrasts and lose precision, not validity, at smaller *n*.
-- `prior` at Δt ∈ {30, 60} min remains deferred — it would add 413,000 frames (~4.1 GPU-h) for
-  two more points on the floor. Consequence to state in the write-up: the no-evidence floor is
-  measured at 1, 5 and 15 min and *assumed flat* beyond, which is what the completed sweep
-  found, but on the other regime.
+- `prior` at Δt ∈ {30, 60} min was deferred in the original programme and **has since been
+  run**. The deferral cost more than it saved: the floor being measured at 1, 5 and 15 min only,
+  and *assumed flat* beyond, was a scope condition on every statement about the evidence
+  contrast. Measured per-pass cost put the two bins at ~1.2 and ~3.9 GPU-h — 412,964 frames,
+  a little above the 413,000-frame estimate here but at a slower realised rate than 0.0355 s/frame,
+  because ingestion cost per frame rises with the length of the window (0.008 s/frame at 1 min
+  against 0.050 s/frame at 60 min). Flip `sconf.PRIOR_DTS`, re-run X2, and re-run X3 with
+  `--kinds prior`: it resumes on `record_id` and scores only the missing bins.
 
 **Scheduling.** `gpu` caps at 3 h and backfills well; `gpu-long` did not schedule in practice.
 Every pass is sharded on `qid`: at 733 frames × 0.0355 s ≈ 26 s of ingestion plus ~3 s of
@@ -542,8 +558,8 @@ pilot gate (X4) checks the Δt=1 min level before anything scales.
 selects between these outcomes off E2's `evidence_vs_none` Δconfidence, which is
 +0.55 [−1.52, +2.65] under the restricted option-letter softmax (→ Outcome 3, as reported) and
 +2.61 [+0.33, +4.94] under a vocabulary-normalised one (→ Outcome 1). The restricted probe is the
-published standard and is inert on every other quantity measured — argmax agrees on 23,687 of
-23,687 rows — so Outcome 3 stands; but the module should emit both values alongside the verdict
+published standard and is inert on every other quantity measured — argmax agrees on 24,433 of
+24,433 rows — so Outcome 3 stands; but the module should emit both values alongside the verdict
 rather than leaving the sensitivity in a memo. Logged in INTERPRETATION.md §2.8.
 See `CONFIDENCE-PROBE.md` §4.
 

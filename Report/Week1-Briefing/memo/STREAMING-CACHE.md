@@ -356,7 +356,7 @@ inference into a measurement.
 8. **The E1 timestamps-off arm (§8.1)** into `PLAN.md`'s supplementary list, above S1 on
    cost-effectiveness grounds.
 
-**Newly de-risked:** the eviction-permanence claim is now audited over all 16,565 streaming records
-rather than sampled (0 of 12,890 default+large rows offloaded anything, 3,675 of 3,675 `small` rows
+**Newly de-risked:** the eviction-permanence claim is now audited over all 17,311 streaming records
+rather than sampled (0 of 13,636 default+large rows offloaded anything, 3,675 of 3,675 `small` rows
 did), and the dose–response that carries the E2 result is confirmed to survive inside a single
 memory mechanism, which was the most plausible way for the headline to have been an artefact.

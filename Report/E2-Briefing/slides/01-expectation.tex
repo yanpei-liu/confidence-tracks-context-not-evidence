@@ -1,0 +1,28 @@
+% P1 -- Setup and expectation
+\begin{frame}[t]{Setup and expectation}{A streaming KV cache that genuinely evicts evidence}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      {\footnotesize\textbf{The system.} Qwen3-VL-8B processes egocentric video through EgoStream's bounded KV cache. As new frames arrive, old tokens are pruned. Evidence is genuinely destroyed: \OffloadDefault\ default/large rows offloaded anything.}
+      \vskip0.4em
+      {\footnotesize\textbf{The probe} (Tsvilodub et al.\ 2024 / EgoSAT Eq.~6):}
+      \begin{itemize}\footnotesize\setlength\itemsep{0.1em}
+        \item \acc{Accuracy}: argmax over $\{$A,B,C,D$\}$ vs gold.
+        \item \conf{Confidence}: $\max\;\mathrm{softmax}(\{$A,B,C,D$\})$ at the first generated position.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      {\footnotesize\textbf{The key manipulation}, paired within each of \Nquestions\ questions at \dt\ $\in$ \{\EtwoEvidenceBinList\}\,min:}
+      \vskip0.3em
+      \scriptsize
+      \begin{tabular}{@{}p{3.0cm}p{3.0cm}@{}}
+        \toprule
+        \thead{\texttt{main}@\dt} & \thead{\texttt{prior}@\dt} \\
+        \midrule
+        window includes the evidence frames & window of \emph{same} duration \emph{before} the evidence \\
+        \bottomrule
+      \end{tabular}
+      \vskip0.6em
+      \claim{\footnotesize\textbf{Expectation.} If ``confidence'' proxies metamemory, removing the evidence should lower it in proportion to the accuracy loss.}
+    \end{column}
+  \end{columns}
+\end{frame}

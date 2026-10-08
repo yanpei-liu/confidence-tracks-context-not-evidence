@@ -1,6 +1,6 @@
 {
  "all_questions": {
-  "n_records": 5540,
+  "n_records": 6286,
   "excluded_need_audio": false,
   "bins": {
    "memory/main": {
@@ -179,6 +179,50 @@
       "mean": 0.7741668105554934,
       "lo95": 0.7532106327077751,
       "hi95": 0.7946404450402145,
+      "p_two_sided_vs_0": 0.0
+     }
+    },
+    "1800": {
+     "n": 373,
+     "accuracy": 0.3324396782841823,
+     "mean_confidence": 0.7449597640750665,
+     "overconfidence": 0.4125200857908842,
+     "ece": 0.4125200857908848,
+     "mean_frames": 373.5710455764075,
+     "mean_visual_tokens": 37357.10455764075,
+     "mean_entropy": 0.6371529222520109,
+     "accuracy_ci": {
+      "mean": 0.3324697050938301,
+      "lo95": 0.28418230563002683,
+      "hi95": 0.3806970509383378,
+      "p_two_sided_vs_0": 0.0
+     },
+     "confidence_ci": {
+      "mean": 0.7450527318970503,
+      "lo95": 0.7246656434316354,
+      "hi95": 0.765181514745308,
+      "p_two_sided_vs_0": 0.0
+     }
+    },
+    "3600": {
+     "n": 373,
+     "accuracy": 0.3109919571045576,
+     "mean_confidence": 0.7322907077747985,
+     "overconfidence": 0.4212987506702409,
+     "ece": 0.4212987506702411,
+     "mean_frames": 733.5710455764075,
+     "mean_visual_tokens": 73357.10455764075,
+     "mean_entropy": 0.6584161126005366,
+     "accuracy_ci": {
+      "mean": 0.31090509383378045,
+      "lo95": 0.26273458445040215,
+      "hi95": 0.35924932975871315,
+      "p_two_sided_vs_0": 0.0
+     },
+     "confidence_ci": {
+      "mean": 0.7323238676225179,
+      "lo95": 0.7113557882037529,
+      "hi95": 0.7533663083109923,
       "p_two_sided_vs_0": 0.0
      }
     }
@@ -504,6 +548,64 @@
     },
     "label": "evidence in context vs none (\u0394t=15 min)"
    },
+   "evidence_present_30min": {
+    "n_questions": 373,
+    "n_pairs": 373,
+    "accuracy_a": 0.3485254691689008,
+    "accuracy_b": 0.3324396782841823,
+    "confidence_a": 0.7388650670241286,
+    "confidence_b": 0.7449597640750665,
+    "tokens_a": 37357.10455764075,
+    "tokens_b": 37357.10455764075,
+    "delta_accuracy": {
+     "mean": 0.01604557640750667,
+     "lo95": -0.024128686327077764,
+     "hi95": 0.05630026809651473,
+     "p_two_sided_vs_0": 0.4548
+    },
+    "delta_confidence": {
+     "mean": -0.006076878206434301,
+     "lo95": -0.024418391420911068,
+     "hi95": 0.01215630026809611,
+     "p_two_sided_vs_0": 0.518
+    },
+    "delta_gap": {
+     "mean": -0.022122454613941044,
+     "lo95": -0.061875557640750256,
+     "hi95": 0.018504619302948278,
+     "p_two_sided_vs_0": 0.278
+    },
+    "label": "evidence in context vs none (\u0394t=30 min)"
+   },
+   "evidence_present_60min": {
+    "n_questions": 373,
+    "n_pairs": 373,
+    "accuracy_a": 0.34048257372654156,
+    "accuracy_b": 0.3109919571045576,
+    "confidence_a": 0.7218398954423593,
+    "confidence_b": 0.7322907077747985,
+    "tokens_a": 73357.10455764075,
+    "tokens_b": 73357.10455764075,
+    "delta_accuracy": {
+     "mean": 0.029187131367291744,
+     "lo95": -0.01072386058981234,
+     "hi95": 0.06970509383378015,
+     "p_two_sided_vs_0": 0.1692
+    },
+    "delta_confidence": {
+     "mean": -0.010512164212332534,
+     "lo95": -0.030590962466488292,
+     "hi95": 0.009220959785523064,
+     "p_two_sided_vs_0": 0.3076
+    },
+    "delta_gap": {
+     "mean": -0.03969929557962461,
+     "lo95": -0.08360213941018774,
+     "hi95": 0.004933517426273237,
+     "p_two_sided_vs_0": 0.078
+    },
+    "label": "evidence in context vs none (\u0394t=60 min)"
+   },
    "evidence_resolution": {
     "n_questions": 373,
     "n_pairs": 373,
@@ -787,6 +889,18 @@
     "confidence_when_correct": 0.8036155967741936,
     "confidence_when_wrong": 0.7594226104417668
    },
+   "memory/prior/1800": {
+    "n": 373,
+    "auroc": 0.5823455110765643,
+    "confidence_when_correct": 0.7829112016129034,
+    "confidence_when_wrong": 0.7260602530120478
+   },
+   "memory/prior/3600": {
+    "n": 373,
+    "auroc": 0.6313229571984436,
+    "confidence_when_correct": 0.7976015603448275,
+    "confidence_when_wrong": 0.7028118793774314
+   },
    "memory/tokmatch_evkeep/3600": {
     "n": 373,
     "auroc": 0.6413657235045918,
@@ -917,7 +1031,7 @@
   }
  },
  "vision_only_questions": {
-  "n_records": 3901,
+  "n_records": 4427,
   "excluded_need_audio": true,
   "bins": {
    "memory/main": {
@@ -1096,6 +1210,50 @@
       "mean": 0.7760318715657795,
       "lo95": 0.7512412699619775,
       "hi95": 0.8003177148288972,
+      "p_two_sided_vs_0": 0.0
+     }
+    },
+    "1800": {
+     "n": 263,
+     "accuracy": 0.3269961977186312,
+     "mean_confidence": 0.7416015665399233,
+     "overconfidence": 0.41460536882129206,
+     "ece": 0.4146053688212928,
+     "mean_frames": 373.77566539923953,
+     "mean_visual_tokens": 37377.56653992395,
+     "mean_entropy": 0.6530793003802282,
+     "accuracy_ci": {
+      "mean": 0.3273680608365056,
+      "lo95": 0.26996197718631176,
+      "hi95": 0.3840304182509506,
+      "p_two_sided_vs_0": 0.0
+     },
+     "confidence_ci": {
+      "mean": 0.741541349399998,
+      "lo95": 0.7168187642585547,
+      "hi95": 0.7661164220532318,
+      "p_two_sided_vs_0": 0.0
+     }
+    },
+    "3600": {
+     "n": 263,
+     "accuracy": 0.3155893536121673,
+     "mean_confidence": 0.7286128060836503,
+     "overconfidence": 0.41302345247148303,
+     "ece": 0.41302345247148275,
+     "mean_frames": 733.7756653992395,
+     "mean_visual_tokens": 73377.56653992395,
+     "mean_entropy": 0.6740798555133081,
+     "accuracy_ci": {
+      "mean": 0.3154722433460073,
+      "lo95": 0.2585551330798479,
+      "hi95": 0.3726235741444867,
+      "p_two_sided_vs_0": 0.0
+     },
+     "confidence_ci": {
+      "mean": 0.7286709964174918,
+      "lo95": 0.7037507262357411,
+      "hi95": 0.7537031368821286,
       "p_two_sided_vs_0": 0.0
      }
     }
@@ -1421,6 +1579,64 @@
     },
     "label": "evidence in context vs none (\u0394t=15 min)"
    },
+   "evidence_present_30min": {
+    "n_questions": 263,
+    "n_pairs": 263,
+    "accuracy_a": 0.376425855513308,
+    "accuracy_b": 0.3269961977186312,
+    "confidence_a": 0.7293197414448666,
+    "confidence_b": 0.7416015665399233,
+    "tokens_a": 37377.56653992395,
+    "tokens_b": 37377.56653992395,
+    "delta_accuracy": {
+     "mean": 0.049212927756655235,
+     "lo95": 0.0038022813688213253,
+     "hi95": 0.0950570342205323,
+     "p_two_sided_vs_0": 0.036
+    },
+    "delta_confidence": {
+     "mean": -0.012152062428136629,
+     "lo95": -0.03355307984790845,
+     "hi95": 0.009244714828896772,
+     "p_two_sided_vs_0": 0.2596
+    },
+    "delta_gap": {
+     "mean": -0.0613649901847906,
+     "lo95": -0.10873566159695752,
+     "hi95": -0.015129114068440697,
+     "p_two_sided_vs_0": 0.008
+    },
+    "label": "evidence in context vs none (\u0394t=30 min)"
+   },
+   "evidence_present_60min": {
+    "n_questions": 263,
+    "n_pairs": 263,
+    "accuracy_a": 0.34220532319391633,
+    "accuracy_b": 0.3155893536121673,
+    "confidence_a": 0.7129008022813687,
+    "confidence_b": 0.7286128060836498,
+    "tokens_a": 73377.56653992395,
+    "tokens_b": 73377.56653992395,
+    "delta_accuracy": {
+     "mean": 0.02681749049429675,
+     "lo95": -0.01901140684410646,
+     "hi95": 0.07604562737642584,
+     "p_two_sided_vs_0": 0.3008
+    },
+    "delta_confidence": {
+     "mean": -0.015857655783269732,
+     "lo95": -0.039844939163497406,
+     "hi95": 0.008000646387832488,
+     "p_two_sided_vs_0": 0.1848
+    },
+    "delta_gap": {
+     "mean": -0.042675146277566384,
+     "lo95": -0.09459362357414386,
+     "hi95": 0.008032243346007939,
+     "p_two_sided_vs_0": 0.0996
+    },
+    "label": "evidence in context vs none (\u0394t=60 min)"
+   },
    "evidence_resolution": {
     "n_questions": 263,
     "n_pairs": 263,
@@ -1703,6 +1919,18 @@
     "auroc": 0.5741553604682096,
     "confidence_when_correct": 0.8098407857142854,
     "confidence_when_wrong": 0.7597896201117318
+   },
+   "memory/prior/1800": {
+    "n": 263,
+    "auroc": 0.5908553409538826,
+    "confidence_when_correct": 0.7820179302325584,
+    "confidence_when_wrong": 0.7219642372881356
+   },
+   "memory/prior/3600": {
+    "n": 263,
+    "auroc": 0.6266064257028112,
+    "confidence_when_correct": 0.7924362168674697,
+    "confidence_when_wrong": 0.6991831222222217
    },
    "memory/tokmatch_evkeep/3600": {
     "n": 263,

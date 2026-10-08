@@ -73,8 +73,12 @@ def live_cap(budget_label: str = DEFAULT_BUDGET, res: int = None) -> int:
 # --- which passes the schedule emits ----------------------------------------------------
 # `main` nests: all five Δt checkpoints come off one ingestion (asserted in X2). `prior` does
 # not — M4 draws each bin's evidence-free window from an independently chosen start — so each
-# prior bin costs its own pass, which is why only the three cheap bins are planned.
-PRIOR_DTS = (60, 300, 900)
+# prior bin costs its own pass. The first sweep planned only the three cheap bins for that
+# reason; measured per-pass cost then put the two expensive ones at ~1.2 and ~3.9 GPU-h, which
+# is affordable, and they are what turns the evidence contrast from three points into the
+# whole Δt grid. X3 resumes on `record_id`, so re-running `--kinds prior` scores only the new
+# bins.
+PRIOR_DTS = (60, 300, 900, 1800, 3600)
 TOKMATCH_ARMS = ("tokmatch_evkeep", "tokmatch_uniform")
 TOKMATCH_DTS = (3600,)
 BUDGET_ARM_BUDGETS = ("small", "large")

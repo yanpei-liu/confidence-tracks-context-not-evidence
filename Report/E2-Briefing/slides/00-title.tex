@@ -1,0 +1,27 @@
+% Title and agenda
+\begin{frame}[plain,noframenumbering]
+  \vfill
+  \begin{center}
+    {\Large\bfseries\color{inkdark}\inserttitle}\\[0.7em]
+    {\footnotesize\color{inkmid}\insertsubtitle}\\[1.4em]
+    {\color{accblue}\rule{4cm}{1.2pt}}\\[1.2em]
+    {\small\color{inkmid}\insertauthor \quad$\cdot$\quad \insertdate}\\[0.4em]
+    {\scriptsize\color{inklight}\Nquestions\ questions\ \ $\cdot$\ \ \NrecEtwo\ streaming records\ \ $\cdot$\ \ frozen Qwen3-VL-8B-Instruct}
+  \end{center}
+  \vfill
+\end{frame}
+
+\begin{frame}[t]{Agenda}
+  \begin{enumerate}\setlength\itemsep{0.6em}
+    \item \textbf{Setup and expectation.}\\
+      {\footnotesize\color{inkmid} Can model ``confidence'' serve as a proxy for metamemory?}
+    \item \textbf{The result: confidence is evidence-blind.}\\
+      {\footnotesize\color{inkmid} At every \dt\ where the no-evidence floor was measured, accuracy responds and confidence does not.}
+    \item \textbf{What confidence actually tracks.}\\
+      {\footnotesize\color{inkmid} The context-volume dose--response: a monotone on one measure, flat on the other.}
+    \item \textbf{Off-letter mass: an implicit abstention signal.}\\
+      {\footnotesize\color{inkmid} When evidence is gone, the model sometimes stops wanting to pick a letter.}
+    \item \textbf{AUROC degradation: a genuinely new phenomenon.}\\
+      {\footnotesize\color{inkmid} The confidence \emph{ranking} decays under a bounded cache, where it was flat before.}
+  \end{enumerate}
+\end{frame}
