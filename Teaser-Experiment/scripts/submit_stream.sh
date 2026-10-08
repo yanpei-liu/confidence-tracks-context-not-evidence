@@ -11,6 +11,7 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LOGS="${EGOVM_DATA:-$HOME/Files/EgoVM-data}/logs"   # sbatch -o: #SBATCH lines cannot expand variables
 TAG="${1:?tag}"
 KINDS="${2:?kinds}"
 N="${3:-1}"
@@ -36,7 +37,7 @@ esac
 EXCLUDE_NODES="xgpj0"
 
 for i in $(seq 0 $((N - 1))); do
-  sbatch --gres="gpu:${GRES}:1" --exclude="${EXCLUDE_NODES}" \
+  sbatch -o "${LOGS}/x3_%x_%j.out" --gres="gpu:${GRES}:1" --exclude="${EXCLUDE_NODES}" \
          -J "egovm-x3-${TAG}-${i}" \
          --export="ALL,EGOVM_REPO=${REPO},EGOVM_KINDS=${KINDS_SAFE},EGOVM_TAG=${TAG}_${i}of${N},EGOVM_SHARD=${i}/${N},EGOVM_XTRA=${EXTRA}" \
          "${REPO}/slurm/x3_stream.sh"

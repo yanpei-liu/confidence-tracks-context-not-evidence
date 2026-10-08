@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-DATA_ROOT = Path(os.environ.get("EGOVM_DATA", "~/Files/EgoVM-data"))
+DATA_ROOT = Path(os.environ.get("EGOVM_DATA", os.path.expanduser("~/Files/EgoVM-data")))
 RAW = DATA_ROOT / "raw" / "EgoLife"
 FRAMES = DATA_ROOT / "frames"
 BIG_ARTIFACTS = DATA_ROOT / "artifacts"

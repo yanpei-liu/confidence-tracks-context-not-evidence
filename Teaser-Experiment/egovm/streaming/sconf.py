@@ -13,8 +13,9 @@ from ..config import ARTIFACTS, BIG_ARTIFACTS, DATA_ROOT, INPUT_RES, PATCH_PX
 # --- where the upstream EgoStream checkout lives ----------------------------------------
 # It ships no LICENSE and is not a git checkout, so it is NOT vendored into this repo (see
 # EXTENDING.md §1b). We import it from outside the tree and record a checksum manifest.
-_DEFAULT_EGOSTREAM = Path(
-    "~/Files/Egocentric-Vision_Metamemory/EgoStream/Online_Cache_Optimization"
+# Default: a git-ignored EgoStream/ checkout at the repository root.
+_DEFAULT_EGOSTREAM = (
+    Path(__file__).resolve().parents[3] / "EgoStream" / "Online_Cache_Optimization"
 )
 EGOSTREAM_ROOT = Path(os.environ.get("EGOVM_EGOSTREAM", str(_DEFAULT_EGOSTREAM)))
 

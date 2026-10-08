@@ -5,7 +5,8 @@
 # silently set EGOVM_ARMS=main and created a stray variable named "prior" — the prior and
 # tokmatch_evkeep arms never ran. Exporting in the caller's shell and passing --export=ALL
 # keeps multi-value settings intact.
-REPO=~/Files/Egocentric-Vision_Metamemory/.claude/worktrees/teaser-experiment/Teaser-Experiment
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LOGS="${EGOVM_DATA:-$HOME/Files/EgoVM-data}/logs"   # sbatch -o: #SBATCH lines cannot expand variables
 NAME=$1
 ARMS=$2
 OUT=$3
@@ -18,5 +19,5 @@ export EGOVM_OUT="$OUT"
 export EGOVM_RACE=1
 
 for G in $TYPES; do
-  sbatch --parsable -J "$NAME" --gres=gpu:"$G":1 --export=ALL "$REPO/slurm/m6_sweep.sh"
+  sbatch --parsable -o "$LOGS/m6_%x_%j.out" -J "$NAME" --gres=gpu:"$G":1 --export=ALL "$REPO/slurm/m6_sweep.sh"
 done

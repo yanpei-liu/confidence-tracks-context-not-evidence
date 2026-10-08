@@ -15,8 +15,9 @@
 # As with submit_arm.sh: export in this shell and pass --export=ALL, because sbatch splits
 # --export on commas and would mangle a multi-arm value.
 set -uo pipefail
-REPO=~/Files/Egocentric-Vision_Metamemory/.claude/worktrees/teaser-experiment/Teaser-Experiment
-ART=~/Files/EgoVM-data/artifacts
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LOGS="${EGOVM_DATA:-$HOME/Files/EgoVM-data}/logs"   # sbatch -o: #SBATCH lines cannot expand variables
+ART="${EGOVM_DATA:-$HOME/Files/EgoVM-data}/artifacts"
 WHICH=${1:-all}
 TYPES=${EGOVM_GPUS:-"h200-141 h100-96 a100-80"}
 
@@ -24,7 +25,7 @@ submit() {  # submit <name> <arms> <dts> <out> [extra flags]
   export EGOVM_REPO="$REPO" EGOVM_ARMS="$2" EGOVM_DTS="$3" EGOVM_OUT="$ART/$4"
   export EGOVM_EXTRA="${5:-}" EGOVM_RACE=1
   for G in $TYPES; do
-    sbatch --parsable -J "$1" --gres=gpu:"$G":1 --export=ALL "$REPO/slurm/m6_sweep.sh"
+    sbatch --parsable -o "$LOGS/m6_%x_%j.out" -J "$1" --gres=gpu:"$G":1 --export=ALL "$REPO/slurm/m6_sweep.sh"
   done
 }
 

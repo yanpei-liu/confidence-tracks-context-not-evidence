@@ -8,7 +8,7 @@ import json
 import os
 import urllib.request
 
-DATA = os.environ.get("EGOVM_DATA", "~/Files/EgoVM-data")
+DATA = os.environ.get("EGOVM_DATA", os.path.expanduser("~/Files/EgoVM-data"))
 
 meta = json.load(urllib.request.urlopen(
     "https://huggingface.co/api/datasets/lmms-lab/EgoLife"))

@@ -5,7 +5,7 @@
 #SBATCH -c 8
 #SBATCH --mem=64G
 #SBATCH -t 2:55:00
-#SBATCH -o ~/Files/EgoVM-data/logs/x3_%x_%j.out
+#SBATCH -o x3_%x_%j.out
 #
 # X3 — the streaming driver. See EXTENDING.md §5.
 #
@@ -20,7 +20,7 @@
 set -uo pipefail
 
 export PYTHONUNBUFFERED=1
-export HF_HOME=~/Files/EgoVM-data/hf_home
+export HF_HOME="${EGOVM_DATA:-$HOME/Files/EgoVM-data}/hf_home"
 export HF_HUB_OFFLINE=1
 export TOKENIZERS_PARALLELISM=false
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
@@ -39,7 +39,7 @@ EGOVM_KINDS="${EGOVM_KINDS:-main}"
 EGOVM_KINDS="${EGOVM_KINDS//+/,}"
 echo "kinds=${EGOVM_KINDS} tag=${EGOVM_TAG:-main} shard=${EGOVM_SHARD:-0/1}"
 
-~/miniconda3/envs/egovm/bin/python -m egovm.streaming.x3_stream_score \
+"${EGOVM_PY:-$HOME/miniconda3/envs/egovm/bin/python}" -m egovm.streaming.x3_stream_score \
     --kinds "${EGOVM_KINDS}" \
     --tag "${EGOVM_TAG:-main}" \
     --shard "${EGOVM_SHARD:-0/1}" \

@@ -5,7 +5,7 @@
 #SBATCH -c 8
 #SBATCH --mem=96G
 #SBATCH -t 2:55:00
-#SBATCH -o ~/Files/EgoVM-data/logs/m6_%x_%j.out
+#SBATCH -o m6_%x_%j.out
 #
 # EGOVM_ARMS  which arms to run (default: the headline set)
 # EGOVM_DTS   which Δt bins, comma-separated seconds (default: all)
@@ -16,16 +16,16 @@
 # leaves results balanced across Δt rather than concentrated in one bin.
 set -uo pipefail
 
-# GPU race (see Misc/SoC GPU Info.md): the same job is submitted once per GPU type under one
-# -J name and whichever starts first cancels the still-pending twins. The doc's warning about
-# two jobs starting before the scancel lands is harmless here — M6 is idempotent per row and
+# GPU race: a Slurm job can request only one GPU type, so the same job is submitted once per
+# GPU type under one -J name and whichever starts first cancels the still-pending twins. Two
+# jobs starting before the scancel lands is harmless here — M6 is idempotent per row and
 # M7 de-duplicates on record_id, so the worst case is duplicated work, not wrong results.
 if [ -n "${EGOVM_RACE:-}" ]; then
   scancel -n "$SLURM_JOB_NAME" -u "$USER" --state=PENDING 2>/dev/null || true
 fi
 
 export PYTHONUNBUFFERED=1
-export HF_HOME=~/Files/EgoVM-data/hf_home
+export HF_HOME="${EGOVM_DATA:-$HOME/Files/EgoVM-data}/hf_home"
 export HF_HUB_OFFLINE=1
 export TOKENIZERS_PARALLELISM=false
 # Window sizes vary 25 -> 734 frames row to row, so the allocator ends up holding many
@@ -34,9 +34,9 @@ export TOKENIZERS_PARALLELISM=false
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 cd "$EGOVM_REPO"
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
-~/miniconda3/envs/egovm/bin/python -m egovm.m6_score \
+"${EGOVM_PY:-$HOME/miniconda3/envs/egovm/bin/python}" -m egovm.m6_score \
     --arms "${EGOVM_ARMS:-main,prior}" --dts "${EGOVM_DTS:-all}" \
     --order plan --shard "${EGOVM_SHARD:-0/1}" \
-    --out "${EGOVM_OUT:-~/Files/EgoVM-data/artifacts/m6_records.jsonl}" \
+    --out "${EGOVM_OUT:-${EGOVM_DATA:-$HOME/Files/EgoVM-data}/artifacts/m6_records.jsonl}" \
     --time-budget-s "${EGOVM_BUDGET:-9600}" ${EGOVM_EXTRA:-}
 echo "SWEEP_EXIT=$?"

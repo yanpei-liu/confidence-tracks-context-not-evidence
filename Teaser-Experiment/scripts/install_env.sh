@@ -4,7 +4,7 @@
 #
 # usage: EGOVM_PY=/path/to/env/bin/python scripts/install_env.sh
 set -eux
-PY=${EGOVM_PY:-~/miniconda3/envs/egovm/bin/python}
+PY=${EGOVM_PY:-$HOME/miniconda3/envs/egovm/bin/python}
 PIP="$PY -m pip"
 
 $PIP install -q torch torchvision --index-url https://download.pytorch.org/whl/cu126

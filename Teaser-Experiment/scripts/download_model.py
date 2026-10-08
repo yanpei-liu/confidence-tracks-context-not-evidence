@@ -6,7 +6,7 @@ the model must be a local snapshot on disk before any GPU job runs.
 import os
 import time
 
-DATA = os.environ.get("EGOVM_DATA", "~/Files/EgoVM-data")
+DATA = os.environ.get("EGOVM_DATA", os.path.expanduser("~/Files/EgoVM-data"))
 os.environ.setdefault("HF_HOME", f"{DATA}/hf_home")
 os.environ.setdefault("HF_HUB_DOWNLOAD_TIMEOUT", "30")
 os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
